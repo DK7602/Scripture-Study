@@ -28,9 +28,9 @@ Once the site is published (below):
 
 ## Publish with GitHub Pages
 
-1. Merge this branch into `main`.
-2. In the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. The workflow in `.github/workflows/deploy.yml` builds and publishes on every push to `main`. Pages on a private repository needs a paid GitHub plan; any static host (Netlify, Cloudflare Pages, Vercel) also works — publish the `dist/` folder.
+1. In the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
+2. Open **Actions → Deploy Scripture Study to GitHub Pages → Run workflow** (it also runs on every push to `main` or the current default branch).
+3. The site appears at `https://<your-user>.github.io/Scripture-Study/`. Any static host (Netlify, Cloudflare Pages, Vercel) also works — publish the `dist/` folder.
 
 ## Develop
 

@@ -2,7 +2,7 @@ name: Deploy Scripture Study to GitHub Pages
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/affectionate-pasteur-c22ifu]
   workflow_dispatch:
 
 permissions:
