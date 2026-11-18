@@ -499,7 +499,6 @@ def stage_xref():
 COMMENTARIES = [
     # id, module zip, data path, zCom4?, display name, author, year
     ("henry", "MHC", "modules/comments/zcom4/mhc", True, "Matthew Henry's Commentary", "Matthew Henry", "1706"),
-    ("barnes", "Barnes", "modules/comments/zcom/barnes", False, "Barnes' Notes on the New Testament", "Albert Barnes", "1834"),
     ("calvin", "CalvinCommentaries", "modules/comments/zcom/calvincommentaries", False, "Calvin's Commentaries", "John Calvin", "1540–1564"),
     ("jfb", "JFB", "modules/comments/zcom/jfb", True, "Jamieson, Fausset & Brown Commentary", "Robert Jamieson, A. R. Fausset, David Brown", "1871"),
     ("geneva", "Geneva", "modules/comments/zcom/geneva", False, "Geneva Bible Notes (1599)", "Reformation translators", "1599"),
@@ -898,11 +897,117 @@ def stage_manifest():
     log("== Manifest", {g: len(v["files"]) for g, v in out.items()})
 
 
+# ---------------------------------------------------------------------------------------------
+# Commentaries distributed as MySword modules (SQLite; public-domain texts)
+# ---------------------------------------------------------------------------------------------
+MYSWORD = [
+    # id, module file, display name, author, year
+    ("poole", "poole", "Matthew Poole's English Annotations on the Holy Bible", "Matthew Poole", "1683–1685"),
+    ("barnes", "barnes", "Barnes' Notes on the Bible", "Albert Barnes", "1832–1872"),
+]
+
+
+def mysword_html(h):
+    """MySword HTML -> the same small HTML subset as the SWORD modules (refs become data-r links)."""
+    def ref(m):
+        parts = []
+        for part in m.group(1).split("-")[:2]:
+            bits = part.split(".")
+            try:
+                b = int(bits[0])
+            except ValueError:
+                return m.group(2)
+            if not 1 <= b <= 66:
+                return m.group(2)
+            parts.append([CODES[b - 1]] + bits[1:])
+        a = parts[0]
+        r = ".".join(a)
+        if len(parts) > 1:
+            z = parts[1]
+            if z[0] == a[0] and len(a) == 3 and len(z) == 3 and z[1] == a[1]:
+                r += "-" + z[2]
+            elif z[0] == a[0] and len(z) >= 2:
+                r += "-" + ".".join(z[1:])
+        return f'<a data-r="{r}">{m.group(2)}</a>'
+
+    h = re.sub(r"<a[^>]*href=['\"]#b([\d.\-]+)['\"][^>]*>(.*?)</a>", ref, h, flags=re.S | re.I)
+    h = re.sub(r"<a\b(?![^>]*data-r)[^>]*>(.*?)</a>", r"\1", h, flags=re.S | re.I)
+    h = re.sub(r"<(/?)([A-Za-z0-9]+)", lambda m: "<" + m.group(1) + m.group(2).lower(), h)
+    h = re.sub(r"<(p|b|i|sup|sub|br|h\d)\s[^>]*>", r"<\1>", h)
+    h = re.sub(r"</?(font|span|div|u|strong|em)\b[^>]*>", lambda m: {"<strong": "<b", "</strong": "</b", "<em": "<i", "</em": "</i"}.get(m.group(0).split()[0].rstrip(">"), "") + (">" if m.group(0).split()[0].rstrip(">") in ("<strong", "</strong", "<em", "</em") else ""), h)
+    h = re.sub(r"<h\d>", "<h4>", h)
+    h = re.sub(r"</h\d>", "</h4>", h)
+    return markup_to_html(h)
+
+
+def stage_mysword():
+    log("== MySword commentaries")
+    import gzip
+    import sqlite3
+    books = load_books()
+    vcount = {b["id"]: b["v"] for b in books}
+    idx_path = os.path.join(OUT, "comm/index.json")
+    meta = json.load(open(idx_path, encoding="utf-8")) if os.path.exists(idx_path) else []
+    for cid, mod, name, author, year in MYSWORD:
+        gz = fetch(f"https://mysword-bible.info/download/getfile.php?file={mod}.cmt.mybible.gz", f"{mod}.cmt.mybible.gz")
+        db = gz[:-3]
+        if not os.path.exists(db):
+            with gzip.open(gz) as fi, open(db, "wb") as fo:
+                fo.write(fi.read())
+        con = sqlite3.connect(db)
+        out_dir = os.path.join(OUT, "comm", cid)
+        if os.path.isdir(out_dir):
+            import shutil
+            shutil.rmtree(out_dir)
+        chapters = defaultdict(lambda: {"i": [], "e": []})
+        intros = defaultdict(list)
+        for b, c, v1, v2, data in con.execute("select book, chapter, fromverse, toverse, data from commentary order by book, chapter, fromverse, id"):
+            if not data or not 1 <= b <= 66:
+                continue
+            code = CODES[b - 1]
+            h = mysword_html(data)
+            if not re.sub(r"<[^>]+>", "", h).strip():
+                continue
+            if c == 0:
+                intros[code].append(h)
+                continue
+            if c > len(vcount[code]):
+                continue
+            if v1 == 0:
+                chapters[(code, c)]["i"].append(h)
+            else:
+                v2 = max(v1, v2 or v1)
+                ent = chapters[(code, c)]["e"]
+                if ent and ent[-1][0] == v1 and ent[-1][1] == v2:
+                    ent[-1][2] += h
+                else:
+                    ent.append([v1, min(v2, vcount[code][c - 1]), h])
+        covered = defaultdict(list)
+        total = 0
+        for code, parts in intros.items():
+            total += write_json(f"comm/{cid}/{code}/0.json", {"i": "".join(parts)})
+            covered[code].append(0)
+        for (code, c), obj in sorted(chapters.items(), key=lambda kv: (CODES.index(kv[0][0]), kv[0][1])):
+            out = {}
+            if obj["i"]:
+                out["i"] = "".join(obj["i"])
+            if obj["e"]:
+                out["e"] = obj["e"]
+            total += write_json(f"comm/{cid}/{code}/{c}.json", out)
+            covered[code].append(c)
+        meta = [m for m in meta if m["id"] != cid]
+        meta.append({"id": cid, "name": name, "author": author, "year": year,
+                     "books": {k: sorted(v) for k, v in sorted(covered.items(), key=lambda kv: CODES.index(kv[0]))}})
+        log(f"  {cid}: {len(covered)} books, {total/1e6:.1f} MB")
+    write_json("comm/index.json", meta)
+
+
 STAGES = {
     "bibles": stage_bibles,
     "strongs": stage_strongs,
     "xref": stage_xref,
     "commentaries": stage_commentaries,
+    "mysword": stage_mysword,
     "topics": stage_topics,
     "geo": stage_geo,
     "maps": stage_maps,

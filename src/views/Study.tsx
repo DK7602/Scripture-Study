@@ -18,38 +18,10 @@ export const CHIPS: Chip[] = [
   { id: 'barnes', label: 'Barnes' },
   { id: 'calvin', label: 'Calvin' },
   { id: 'poole', label: 'Poole' },
-  { id: 'reformation', label: 'Reformation' },
   { id: 'jfb', label: 'JFB' },
-  { id: 'gundry', label: 'Gundry' },
   { id: 'geneva', label: 'Geneva 1599' },
   { id: 'fathers', label: 'Church Fathers' },
 ]
-
-const UNBUNDLED: Record<string, { name: string; body: string; link?: (b: string, c: number) => string; linkLabel?: string; alt?: string }> = {
-  poole: {
-    name: "Matthew Poole's Commentary",
-    body:
-      'Matthew Poole’s Annotations upon the Holy Bible (1683–85) is in the public domain, but no clean digital edition was available to bundle with this version of Scripture Study. You can read Poole on this chapter online, and the app is ready to include it once a public-domain source is added to the data build.',
-    link: (b, c) => {
-      const name = book(b).name.toLowerCase()
-      const slug = name === 'song of solomon' ? 'songs' : name.replace(/ /g, '_')
-      return `https://biblehub.com/commentaries/poole/${slug}/${c}.htm`
-    },
-    linkLabel: 'Read Poole on this chapter (Bible Hub)',
-  },
-  reformation: {
-    name: 'Reformation Study Bible',
-    body:
-      'The notes of the Reformation Study Bible (Ligonier Ministries, R. C. Sproul, general editor) are copyrighted and can’t be included. The Geneva Bible notes of 1599 — the original Reformation study Bible, used by the Puritans and Pilgrims — are included under the “Geneva 1599” chip.',
-    alt: 'geneva',
-  },
-  gundry: {
-    name: "Gundry's Commentary on the New Testament",
-    body:
-      'Robert H. Gundry’s Commentary on the New Testament (Hendrickson, 2010) is copyrighted and can’t be included. Barnes’ Notes and Calvin’s Commentaries are the closest verse-by-verse New Testament commentaries included here.',
-    alt: 'barnes',
-  },
-}
 
 function clean(html: string): string {
   return html.replace(/<(a|span)\b([^>]*)>/gi, (_m, tag: string, attrs: string) => {
@@ -133,7 +105,6 @@ export function StudyPanel() {
     setView({ ...view, chapter, verse })
   }
 
-  const unbundled = UNBUNDLED[cid]
   const refs = xref[`${view.chapter}:${view.verse}`] ?? []
 
   return (
@@ -143,7 +114,7 @@ export function StudyPanel() {
       </div>
       <div className="pills" role="tablist" aria-label="Commentaries">
         {CHIPS.map((c) => (
-          <button key={c.id} className="pill" aria-pressed={cid === c.id} onClick={() => setCid(c.id)} title={index.find((x) => x.id === c.id)?.name ?? UNBUNDLED[c.id]?.name}>
+          <button key={c.id} className="pill" aria-pressed={cid === c.id} onClick={() => setCid(c.id)} title={index.find((x) => x.id === c.id)?.name ?? 'Church Fathers'}>
             {c.label}
           </button>
         ))}
@@ -185,21 +156,6 @@ export function StudyPanel() {
 
       {cid === 'fathers' ? (
         <FathersPanel bookId={view.book} chapter={view.chapter} verse={view.verse} onVerse={(v) => setView({ ...view, verse: v })} />
-      ) : unbundled ? (
-        <div className="notice">
-          <h4>{unbundled.name}</h4>
-          <p style={{ marginTop: 0 }}>{unbundled.body}</p>
-          {unbundled.link && (
-            <a className="btn small" href={unbundled.link(view.book, view.chapter)} target="_blank" rel="noreferrer">
-              <Icon name="globe" size={15} /> {unbundled.linkLabel}
-            </a>
-          )}
-          {unbundled.alt && (
-            <button className="btn small primary" onClick={() => setCid(unbundled.alt!)}>
-              Open {index.find((x) => x.id === unbundled.alt)?.name ?? unbundled.alt}
-            </button>
-          )}
-        </div>
       ) : (
         <div className="commentary" ref={bodyRef} onClick={onClick}>
           <h3>{info?.name ?? ''}</h3>

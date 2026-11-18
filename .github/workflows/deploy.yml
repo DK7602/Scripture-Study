@@ -1,8 +1,8 @@
-name: Deploy Scripture Study to GitHub Pages
+name: Deploy Scripture Study to GitHub Pages (optional, no sync)
 
+# Alternative static hosting without sign-in/sync. Run manually from the Actions tab after
+# enabling Settings → Pages → Source: GitHub Actions. Cloudflare Pages is the main host.
 on:
-  push:
-    branches: [main, claude/affectionate-pasteur-c22ifu]
   workflow_dispatch:
 
 permissions:

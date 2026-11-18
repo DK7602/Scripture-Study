@@ -5,6 +5,7 @@ import { deleteItem, exportData, importData, newId, saveItem, updateSettings, us
 import type { CommentaryInfo, Settings, ThemeColor, ThemeMode } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { CHIPS } from './Study'
+import { SyncPanel } from './SyncPanel'
 
 const COLORS: { id: ThemeColor; label: string; swatch: string }[] = [
   { id: 'green', label: 'Green', swatch: '#2f5d3a' },
@@ -50,6 +51,7 @@ export function SettingsView() {
       <div className="section-title">
         <Icon name="gear" /> Settings
       </div>
+      <SyncPanel />
 
       <div className="setting-row">
         <div>
@@ -323,8 +325,8 @@ function Backup() {
         <Icon name="upload" /> Backup & move to another device
       </div>
       <p className="small subtle" style={{ marginTop: 0 }}>
-        Your notes, journal, highlights and bookmarks are stored on this device. Export a backup file and import it on your PC, tablet or phone to
-        bring everything across.
+        Your notes, journal, highlights and bookmarks are stored on this device (and in your account when you sign in to sync). You can also export a
+        backup file and import it on another device.
       </p>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className="btn" onClick={exp}>
@@ -352,8 +354,8 @@ function About() {
           Standard Version (1901) — public domain, from eBible.org.
         </p>
         <p>
-          <b>Commentaries:</b> Matthew Henry’s Complete Commentary, Barnes’ Notes on the New Testament, Calvin’s Commentaries, Jamieson-Fausset-Brown and the
-          1599 Geneva Bible notes — public domain, from the CrossWire Bible Society.
+          <b>Commentaries:</b> Matthew Henry’s Complete Commentary, Calvin’s Commentaries, Jamieson-Fausset-Brown and the 1599 Geneva Bible notes (CrossWire
+          Bible Society); Barnes’ Notes on the Bible and Matthew Poole’s English Annotations (MySword modules) — all public domain.
         </p>
         <p>
           <b>Concordance & topics:</b> Strong’s Hebrew and Greek dictionaries (Open Scriptures, CC BY-SA), Nave’s Topical Bible, Torrey’s New Topical

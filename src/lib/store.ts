@@ -193,17 +193,25 @@ export function closeAllPopups() {
 
 type Collection = 'labels' | 'highlights' | 'notes' | 'journal' | 'bookmarks'
 
+/** Notified of every local add/edit/delete (used by sync). item is null for a delete. */
+let changeListener: ((coll: Collection, id: string, item: unknown | null) => void) | null = null
+export function setChangeListener(fn: typeof changeListener) {
+  changeListener = fn
+}
+
 export async function saveItem<K extends Collection>(coll: K, item: State[K][number]) {
   setState((s) => {
     const list = (s[coll] as { id: string }[]).filter((x) => x.id !== item.id)
     return { [coll]: [...list, item] } as Partial<State>
   })
   await db.put(coll, item as { id: string })
+  changeListener?.(coll, (item as { id: string }).id, item)
 }
 
 export async function deleteItem(coll: Collection, id: string) {
   setState((s) => ({ [coll]: (s[coll] as { id: string }[]).filter((x) => x.id !== id) }) as Partial<State>)
   await db.remove(coll, id)
+  changeListener?.(coll, id, null)
 }
 
 export async function exportData(): Promise<string> {

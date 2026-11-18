@@ -17,6 +17,7 @@ import { Editors } from './components/Editors'
 import { BottomBar } from './components/BottomBar'
 import { Icon } from './components/Icon'
 import { locString } from './lib/refs'
+import { startSync } from './lib/sync'
 
 export function useWidth() {
   const [w, setW] = useState(() => window.innerWidth)
@@ -70,7 +71,10 @@ export function App() {
 
   useEffect(() => {
     Promise.all([loadBooks(), loadVersions(), initUserData()])
-      .then(() => setState({ ready: true }))
+      .then(() => {
+        setState({ ready: true })
+        startSync()
+      })
       .catch((e) => setError(String(e)))
   }, [])
 
