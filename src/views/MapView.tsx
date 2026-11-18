@@ -193,7 +193,7 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
     for (const i of order0) {
       const m = markers[i]
       const { x, y, r } = dots[i]
-      const text = now ? m.modern || m.name : m.label ?? m.name
+      const text = m.label === '' ? '' : now ? m.modern || m.name : m.label ?? m.name
       const fs = m.focus ? fsMarker * 1.2 : fsMarker
       const w = text.length * fs * charW
       const h = fs * 1.1
@@ -223,7 +223,7 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
     }
     const markerLabels = markers.map((m, i) => {
       const { x, y, r } = dots[i]
-      const text = now ? m.modern || m.name : m.label ?? m.name
+      const text = m.label === '' ? '' : now ? m.modern || m.name : m.label ?? m.name
       const fs = m.focus ? fsMarker * 1.2 : fsMarker
       const lb = leaders.get(i)
       // leader runs from the dot's edge to the nearest point on the label box
@@ -248,7 +248,7 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
         const text = now ? l.now ?? l.then : l.then
         if (now && l.kind === 'region') return null // modern country names are shown instead
         const fs = (l.kind === 'region' ? 11.5 : l.kind === 'water' ? 12 : 11) * unit
-        const w = text.length * fs * (l.kind === 'region' ? 0.92 : l.kind === 'water' && text === text.toUpperCase() ? 0.86 : charW)
+        const w = text.length * fs * (l.kind === 'region' ? 0.92 : l.kind === 'water' && text === text.toUpperCase() ? 1.0 : charW)
         const box: Box = l.rotate ? { x: x - fs, y: y - fs, w: 2 * fs, h: 2 * fs } : l.kind === 'city' || l.kind === 'mount' ? { x: x + 5 * unit, y: y - fs * 0.7, w, h: fs * 1.1 } : { x: x - w / 2, y: y - fs * 0.8, w, h: fs * 1.1 }
         let dx = 0
         if (l.kind === 'water' && !l.rotate) {
