@@ -31,6 +31,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,woff2}', 'icons/icon-192.png', 'icons/favicon-64.png', 'data/books.json', 'data/versions.json'],
         globIgnores: ['data/**/!(books|versions).json'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        // sign-in, sync and Cloudflare Access pages must always reach the network
+        navigateFallbackDenylist: [/^\/api\//, /^\/cdn-cgi\//],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.includes('/data/'),
