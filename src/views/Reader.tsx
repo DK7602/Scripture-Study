@@ -7,6 +7,7 @@ import { formatRef } from '../lib/refs'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
 import { onShared, sharedVersions } from '../lib/shared'
+import { chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
 import type { Highlight, Label, Place } from '../lib/types'
 import { Icon, Ornament } from '../components/Icon'
@@ -176,6 +177,15 @@ function BibleReader() {
   const [runsPos, setRunsPos] = useState<{ run: HlRun; top: number; height: number }[]>([])
   const b = book(loc.book)
   const vinfo = versionInfo(settings.version)
+  const [align, setAlign] = useState<ChapterAlign | null>(null)
+  useEffect(() => {
+    let live = true
+    setAlign(null)
+    if (!vinfo?.strongs) chapterAlign(loc.book, loc.chapter).then((a) => live && setAlign(a)).catch(() => {})
+    return () => {
+      live = false
+    }
+  }, [loc.book, loc.chapter, vinfo?.strongs])
 
   useEffect(() => {
     let live = true
@@ -309,6 +319,7 @@ function BibleReader() {
               helpCount={chips ? vh : 0}
               book={loc.book}
               chapter={loc.chapter}
+              align={align}
             />
           )
         })}
@@ -393,7 +404,7 @@ function LicensedNotice({ version }: { version: string }) {
           <b>In a Scripture Study group?</b> Sign in under Settings → Sync across devices — if the owner shares the {version}, you can read it without a key.
         </p>
       )}
-      <p className="small subtle">Licensed text is shown live and is never stored on your device. Strong’s numbers and red letters are available in the KJV.</p>
+      <p className="small subtle">Licensed text is shown live and is never stored on your device.</p>
       <button className="btn primary" onClick={() => setState({ tab: 'settings', panel: true })}>
         Open Settings
       </button>{' '}
@@ -465,17 +476,27 @@ interface VerseProps {
   helpCount: number
   book: string
   chapter: number
+  align?: ChapterAlign | null
 }
 
 const VerseRow = memo(function VerseRow(p: VerseProps) {
   const ref = `${p.book}.${p.chapter}.${p.v}`
   const toks = useMemo(() => {
     let t = tokenize(p.text)
+    if (p.align) {
+      // other translations: borrow Strong's numbers from the same KJV verse
+      const va = p.align.verses.get(p.v)
+      t = t.map((x) => {
+        if (x.s || x.sp) return x
+        const n = matchWord(x.t, va, p.align!.words)
+        return n ? { ...x, s: [n], al: true } : x
+      })
+    }
     if (p.names) t = applyDivineNames(t)
     // remember the printed form so the KJV's LORD / GOD (YHWH) keep their small capitals
     t = t.map((x) => ({ ...x, o: x.t }))
     return p.caps ? capsTokens(t, ref) : t
-  }, [p.text, p.names, p.caps, ref])
+  }, [p.text, p.names, p.caps, ref, p.align])
 
   // highlight color for each token
   const colorOf = (tok: Tok): string | undefined => {
@@ -515,7 +536,9 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
     setVerse(p.v)
     if (t.s?.length) {
       const num = t.s.find((n) => !['H853'].includes(n)) ?? t.s[0]
-      openPopup({ kind: 'strongs', num, word: t.t, book: p.book, chapter: p.chapter, verse: p.v, ...pos(e) })
+      openPopup({ kind: 'strongs', num, word: t.t, book: p.book, chapter: p.chapter, verse: p.v, version: t.al ? p.version : undefined, ...pos(e) })
+    } else if (p.align) {
+      openPopup({ kind: 'origwords', word: t.t, book: p.book, chapter: p.chapter, verse: p.v, ...pos(e) })
     }
   }
 
@@ -538,7 +561,7 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
       text = parts.map((part, k) => (k % 2 ? <span key={k} className="sc">{part.charAt(0) + part.slice(1).toLowerCase()}</span> : shown[k] ?? part))
     }
     return (
-      <span key={t.i} data-t={t.i} className={cls.join(' ')} onClick={t.s ? (e) => onWord(e, t) : undefined} title={t.name ? t.nameInfo : undefined}>
+      <span key={t.i} data-t={t.i} className={cls.join(' ')} onClick={t.s || p.align ? (e) => onWord(e, t) : undefined} title={t.name ? t.nameInfo : undefined}>
         {text}
       </span>
     )

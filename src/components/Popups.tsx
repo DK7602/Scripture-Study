@@ -9,6 +9,7 @@ import { Icon } from './Icon'
 import { useCaps } from '../lib/caps'
 import { Popover } from './Popover'
 import { PlacePhoto } from '../views/PlacePhoto'
+import { chapterAlign } from '../lib/align'
 import { JournalCard, NoteCard } from './Cards'
 
 export function Popups() {
@@ -19,6 +20,8 @@ export function Popups() {
   switch (popup.kind) {
     case 'strongs':
       return <StrongsPopup key={popup.num + popup.verse} {...popup} onBack={back} />
+    case 'origwords':
+      return <OrigWordsPopup {...popup} onBack={back} />
     case 'ref':
       return <RefPopup key={popup.ref} refStr={popup.ref} x={popup.x} y={popup.y} onBack={back} />
     case 'notes':
@@ -69,7 +72,7 @@ function writtenLine(bg: BookBackground | undefined): string {
   return `${date}${bg.author ? ` by ${bg.author.replace(/^Unknown/, 'an unknown author')}` : ''}${bg.audience ? `, to ${bg.audience.replace(/^to /i, '')}` : ''}.`
 }
 
-function StrongsPopup(p: { num: string; word: string; book: string; chapter: number; verse: number; x: number; y: number; onBack?: () => void }) {
+function StrongsPopup(p: { num: string; word: string; book: string; chapter: number; verse: number; x: number; y: number; version?: string; onBack?: () => void }) {
   const [e, setE] = useState<StrongsEntry | null | undefined>(undefined)
   const [bg, setBg] = useState<BookBackground>()
   const [mode, setMode] = useState<'def' | 'word' | 'book'>('def')
@@ -159,7 +162,17 @@ function StrongsPopup(p: { num: string; word: string; book: string; chapter: num
             </p>
           )}
           <p style={{ margin: '0 0 8px' }}>
-            <b>Context:</b> In {locString(p.book, p.chapter, p.verse)} the KJV translates <i>{e.l}</i> as “{caps(word)}”.
+            <b>Context:</b>{' '}
+            {p.version ? (
+              <>
+                In {locString(p.book, p.chapter, p.verse)} the {p.version} reads “{caps(word)}”, matched to <i>{e.l}</i> from the Strong’s numbers of the
+                same verse in the KJV.
+              </>
+            ) : (
+              <>
+                In {locString(p.book, p.chapter, p.verse)} the KJV translates <i>{e.l}</i> as “{caps(word)}”.
+              </>
+            )}
             {e.u.length > 0 && (
               <>
                 {' '}It occurs {usageTotal.toLocaleString()} time{usageTotal === 1 ? '' : 's'} in the KJV, most often as{' '}
@@ -245,6 +258,47 @@ function VidList({ title, vids, loading }: { title: string; vids: number[]; load
         </button>
       )}
     </div>
+  )
+}
+
+/** Other translations: a word with no match — choose from the original-language words of the verse. */
+function OrigWordsPopup(p: { word: string; book: string; chapter: number; verse: number; x: number; y: number; onBack?: () => void }) {
+  const [rows, setRows] = useState<{ t: string; num: string; e: StrongsEntry | null }[] | null>(null)
+  const caps = useCaps()
+  useEffect(() => {
+    chapterAlign(p.book, p.chapter).then(async (a) => {
+      const toks = a.verses.get(p.verse)?.toks ?? []
+      const out: { t: string; num: string; e: StrongsEntry | null }[] = []
+      for (const tk of toks) {
+        const num = tk.s.find((n) => n !== 'H853') ?? tk.s[0]
+        if (out.some((o) => o.num === num)) continue
+        out.push({ t: tk.t, num, e: await strongs(num) })
+      }
+      setRows(out)
+    })
+  }, [p.book, p.chapter, p.verse])
+  return (
+    <Popover x={p.x} y={p.y} width={460} title={`Original words — ${locString(p.book, p.chapter, p.verse)}`} onClose={closeAllPopups} onBack={p.onBack}>
+      <p className="small subtle" style={{ marginTop: 0 }}>
+        “{caps(p.word.replace(/[^\p{L}'’-]/gu, ''))}” has no direct match. These are the Hebrew/Greek words in this verse (with the KJV’s wording) — tap one:
+      </p>
+      {!rows && <div className="spinner" />}
+      {rows?.map((r) => (
+        <button
+          key={r.num}
+          className="result"
+          onClick={(ev) => {
+            const rr = (ev.currentTarget as HTMLElement).getBoundingClientRect()
+            openPopup({ kind: 'strongs', num: r.num, word: r.t, book: p.book, chapter: p.chapter, verse: p.verse, x: rr.left, y: rr.top }, true)
+          }}
+        >
+          <span className="r">{caps(r.t)}</span>
+          <span lang={r.num[0] === 'H' ? 'he' : 'el'}>{r.e?.l}</span> <span className="vtag">{r.num}</span>
+          {r.e && <div className="faint small">{caps(r.e.d.slice(0, 110))}</div>}
+        </button>
+      ))}
+      {rows && !rows.length && <p className="empty">No Strong’s data for this verse.</p>}
+    </Popover>
   )
 }
 

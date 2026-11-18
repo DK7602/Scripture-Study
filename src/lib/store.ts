@@ -3,7 +3,8 @@ import * as db from './db'
 import type { Bookmark, Highlight, JournalEntry, Label, Loc, Note, Settings, Tab } from './types'
 
 export type Popup =
-  | { kind: 'strongs'; num: string; word: string; book: string; chapter: number; verse: number; x: number; y: number }
+  | { kind: 'strongs'; num: string; word: string; book: string; chapter: number; verse: number; x: number; y: number; version?: string }
+  | { kind: 'origwords'; word: string; book: string; chapter: number; verse: number; x: number; y: number }
   | { kind: 'ref'; ref: string; x: number; y: number }
   | { kind: 'notes'; book: string; chapter: number; verse?: number; x: number; y: number }
   | { kind: 'journal'; book: string; chapter: number; verse?: number; x: number; y: number }

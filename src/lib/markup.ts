@@ -8,6 +8,7 @@ export interface Tok {
   i: number // token index within the verse (stable for highlights)
   t: string // display text
   o?: string // original printed text (before display transforms)
+  al?: boolean // Strong's number matched from the KJV (other translations)
   s?: string[] // Strong's numbers
   red?: boolean
   it?: boolean
