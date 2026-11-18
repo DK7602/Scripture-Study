@@ -1065,6 +1065,113 @@ def stage_mysword():
     write_json("comm/index.json", meta)
 
 
+# ---------------------------------------------------------------------------------------------
+# Relief backdrops for the maps (Natural Earth II land cover + shaded relief, public domain;
+# Holy Land detail sharpened with a hillshade from the AWS / Mapzen Terrain Tiles)
+# ---------------------------------------------------------------------------------------------
+HOLY_LAND = (33.8, 29.3, 37.0, 33.6)  # lon0, lat0, lon1, lat1
+
+
+def stage_relief():
+    log("== Map relief")
+    import math
+    import numpy as np
+    from PIL import Image, ImageFilter
+    Image.MAX_IMAGE_PIXELS = None
+    lon0, lat0, lon1, lat1 = BBOX
+    W, H = 1600, 848  # basemap units (stage_maps)
+    zp = fetch("https://naciscdn.org/naturalearth/10m/raster/NE2_HR_LC_SR_W_DR.zip")
+    tif = os.path.join(CACHE, "relief", "NE2_HR_LC_SR_W_DR.tif")
+    if not os.path.exists(tif):
+        os.makedirs(os.path.dirname(tif), exist_ok=True)
+        with zipfile.ZipFile(zp) as z:
+            name = [n for n in z.namelist() if n.lower().endswith(".tif")][0]
+            with z.open(name) as src, open(tif, "wb") as dst:
+                while True:
+                    b = src.read(1 << 24)
+                    if not b:
+                        break
+                    dst.write(b)
+    world = Image.open(tif).convert("RGB")
+    ppd = world.width / 360.0
+
+    def crop(b):
+        x0, x1 = (b[0] + 180) * ppd, (b[2] + 180) * ppd
+        y0, y1 = (90 - b[3]) * ppd, (90 - b[1]) * ppd
+        return world.crop((int(x0), int(y0), int(math.ceil(x1)), int(math.ceil(y1))))
+
+    os.makedirs(os.path.join(OUT, "geo"), exist_ok=True)
+    region = crop(BBOX).resize((2400, 1272), Image.LANCZOS)
+    region = region.filter(ImageFilter.UnsharpMask(radius=1.2, percent=60, threshold=2))
+    region.save(os.path.join(OUT, "geo", "relief-region.webp"), quality=80, method=6)
+    log("  region relief", region.size, os.path.getsize(os.path.join(OUT, "geo", "relief-region.webp")) // 1024, "KB")
+
+    # --- Holy Land detail: land-cover colour from NE2, relief from SRTM-based terrain tiles ---
+    b = HOLY_LAND
+    uw = (b[2] - b[0]) / (lon1 - lon0) * W
+    uh = (b[3] - b[1]) / (lat1 - lat0) * H
+    ow = 1500
+    oh = int(round(ow * uh / uw))
+    colour = crop(b).resize((ow, oh), Image.BICUBIC).filter(ImageFilter.GaussianBlur(1.2))
+    z = 10
+    n = 2 ** z
+
+    def tile_xy(lon, lat):
+        x = (lon + 180) / 360 * n
+        y = (1 - math.log(math.tan(math.radians(lat)) + 1 / math.cos(math.radians(lat))) / math.pi) / 2 * n
+        return x, y
+
+    tx0, ty0 = tile_xy(b[0], b[3])
+    tx1, ty1 = tile_xy(b[2], b[1])
+    tiles = {}
+    for tx in range(int(tx0), int(tx1) + 1):
+        for ty in range(int(ty0), int(ty1) + 1):
+            p = os.path.join(CACHE, "relief", "tiles", f"{z}-{tx}-{ty}.png")
+            if not os.path.exists(p):
+                os.makedirs(os.path.dirname(p), exist_ok=True)
+                req = urllib.request.Request(f"https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{tx}/{ty}.png",
+                                             headers={"User-Agent": "ScriptureStudy-databuild/1.0"})
+                with urllib.request.urlopen(req, timeout=120) as r, open(p, "wb") as f:
+                    f.write(r.read())
+            a = np.asarray(Image.open(p).convert("RGB"), dtype=np.float64)
+            tiles[(tx, ty)] = a[..., 0] * 256 + a[..., 1] + a[..., 2] / 256 - 32768
+    # mosaic, then sample at every output pixel (equirectangular grid -> mercator tile pixels)
+    xs0, ys0 = int(tx0), int(ty0)
+    mos = np.zeros(((int(ty1) - ys0 + 1) * 256, (int(tx1) - xs0 + 1) * 256))
+    for (tx, ty), e in tiles.items():
+        mos[(ty - ys0) * 256:(ty - ys0 + 1) * 256, (tx - xs0) * 256:(tx - xs0 + 1) * 256] = e
+    lons = b[0] + (np.arange(ow) + 0.5) / ow * (b[2] - b[0])
+    lats = b[3] - (np.arange(oh) + 0.5) / oh * (b[3] - b[1])
+    px = ((lons + 180) / 360 * n - xs0) * 256
+    lat_r = np.radians(lats)
+    py = ((1 - np.log(np.tan(lat_r) + 1 / np.cos(lat_r)) / np.pi) / 2 * n - ys0) * 256
+    PX, PY = np.meshgrid(px, py)
+    x0i = np.clip(np.floor(PX).astype(int), 0, mos.shape[1] - 2)
+    y0i = np.clip(np.floor(PY).astype(int), 0, mos.shape[0] - 2)
+    fx, fy = PX - x0i, PY - y0i
+    elev = (mos[y0i, x0i] * (1 - fx) * (1 - fy) + mos[y0i, x0i + 1] * fx * (1 - fy)
+            + mos[y0i + 1, x0i] * (1 - fx) * fy + mos[y0i + 1, x0i + 1] * fx * fy)
+    # hillshade (sun from the north-west, 45°)
+    dx = (b[2] - b[0]) / ow * 111320 * math.cos(math.radians((b[1] + b[3]) / 2))
+    dy = (b[3] - b[1]) / oh * 110540
+    gy, gx = np.gradient(elev * 2.2, dy, dx)
+    slope = np.arctan(np.hypot(gx, gy))
+    aspect = np.arctan2(-gx, gy)
+    az, alt = math.radians(315), math.radians(45)
+    shade = np.sin(alt) * np.cos(slope) + np.cos(alt) * np.sin(slope) * np.cos(az - aspect)
+    shade = np.clip(shade, 0, 1)
+    c = np.asarray(colour, dtype=np.float64)
+    water = (c[..., 2] - c[..., 0] > 22) & (elev < 5)
+    k = 0.55 + 0.62 * shade
+    out = np.clip(c * k[..., None], 0, 255)
+    out[water] = c[water]
+    img = Image.fromarray(out.astype(np.uint8))
+    img.save(os.path.join(OUT, "geo", "relief-holyland.webp"), quality=80, method=6)
+    meta = {"region": {"bbox": BBOX, "size": [2400, 1272]}, "holyland": {"bbox": HOLY_LAND, "size": [ow, oh]}}
+    write_json("geo/relief.json", meta)
+    log("  holy land relief", img.size, os.path.getsize(os.path.join(OUT, "geo", "relief-holyland.webp")) // 1024, "KB")
+
+
 STAGES = {
     "bibles": stage_bibles,
     "strongs": stage_strongs,
@@ -1074,6 +1181,7 @@ STAGES = {
     "topics": stage_topics,
     "geo": stage_geo,
     "maps": stage_maps,
+    "relief": stage_relief,
     "manifest": stage_manifest,
 }
 

@@ -623,3 +623,15 @@ table.chart th { font-family: var(--serif); font-size: 15.5px; background: var(-
 /* keyboard focus only (no ring after taps / programmatic focus) */
 :focus:not(:focus-visible) { outline: none; }
 :focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 2px; }
+
+/* atlas maps */
+.map-wrap.atlas { background: #77acd3; }
+:root[data-mode='dark'] .map-wrap.atlas { background: #1f3446; }
+.map-legend {
+  position: absolute; right: 10px; bottom: 34px; display: grid; justify-items: center; pointer-events: none;
+  background: color-mix(in srgb, var(--panel) 70%, transparent); border-radius: 8px; padding: 3px 5px 2px; color: var(--ink);
+}
+.map-scale { position: absolute; left: 10px; bottom: 26px; pointer-events: none; font-size: 11px; font-family: var(--sans); color: var(--ink); }
+.map-scale div { height: 6px; border: 2px solid var(--ink); border-top: 0; margin-bottom: 2px; background: color-mix(in srgb, var(--panel) 60%, transparent); }
+.map-scale span { background: color-mix(in srgb, var(--panel) 75%, transparent); border-radius: 4px; padding: 0 4px; }
+.map-credit { position: absolute; right: 6px; bottom: 4px; font-size: 9.5px; color: var(--ink-soft); background: color-mix(in srgb, var(--panel) 70%, transparent); padding: 0 5px; border-radius: 4px; pointer-events: none; }
