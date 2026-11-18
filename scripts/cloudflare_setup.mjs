@@ -53,7 +53,7 @@ if (!account) {
   const accounts = await cf('/accounts')
   if (!accounts.length) throw new Error('The token cannot see any account (add Account Settings: Read).')
   account = accounts[0].id
-  console.log(`  using ${accounts[0].name}`)
+  console.log('  using the token\'s account') // (names are not printed: CI logs can be public)
 }
 const A = `/accounts/${account}`
 
