@@ -5,6 +5,7 @@ import { go, openPopup, updateSettings, useStore } from '../lib/store'
 import type { CommentaryChapter, CommentaryInfo } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { useCapsHtml } from '../lib/caps'
+import { FathersPanel } from './History'
 
 interface Chip {
   id: string
@@ -21,6 +22,7 @@ export const CHIPS: Chip[] = [
   { id: 'jfb', label: 'JFB' },
   { id: 'gundry', label: 'Gundry' },
   { id: 'geneva', label: 'Geneva 1599' },
+  { id: 'fathers', label: 'Church Fathers' },
 ]
 
 const UNBUNDLED: Record<string, { name: string; body: string; link?: (b: string, c: number) => string; linkLabel?: string; alt?: string }> = {
@@ -181,7 +183,9 @@ export function StudyPanel() {
         )}
       </div>
 
-      {unbundled ? (
+      {cid === 'fathers' ? (
+        <FathersPanel bookId={view.book} chapter={view.chapter} verse={view.verse} onVerse={(v) => setView({ ...view, verse: v })} />
+      ) : unbundled ? (
         <div className="notice">
           <h4>{unbundled.name}</h4>
           <p style={{ marginTop: 0 }}>{unbundled.body}</p>

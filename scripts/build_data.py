@@ -758,10 +758,23 @@ def stage_geo():
                 verses.append(ref)
         idx = len(places)
         names = d.get("translation_name_counts", {})
+        # photo of the site today (Wikimedia Commons), shown with its credit
+        photo = None
+        thumb = (d.get("media") or {}).get("thumbnail") or {}
+        if not thumb:
+            for a in json.loads(d.get("extra") or "{}").get("associations", []):
+                if a.get("thumbnail"):
+                    thumb = a["thumbnail"]
+                    break
+        cu = thumb.get("credit_url") or ""
+        if "commons.wikimedia.org/wiki/File:" in cu:
+            photo = {"f": cu.split("File:", 1)[1], "c": thumb.get("credit", ""),
+                     "d": re.sub(r"<[^>]+>", "", thumb.get("description", ""))}
         alt = [n for n in names if n != d["friendly_id"]][:3]
         places.append({
             "n": d["friendly_id"], "a": alt, "lon": lon, "lat": lat,
             "m": modern or "", "ty": types[0] if types else "", "c": conf, "v": verses[:400],
+            **({"ph": photo} if photo else {}),
         })
         for ref in set(".".join(r.split(".")[:2]) for r in verses):
             by_chapter[ref].append(idx)

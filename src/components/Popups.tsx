@@ -8,6 +8,7 @@ import type { Place, StrongsEntry } from '../lib/types'
 import { Icon } from './Icon'
 import { useCaps } from '../lib/caps'
 import { Popover } from './Popover'
+import { PlacePhoto } from '../views/PlacePhoto'
 import { JournalCard, NoteCard } from './Cards'
 
 export function Popups() {
@@ -390,15 +391,18 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
             <Icon name="pin" size={18} /> Places in this verse
           </div>
           {pl.map((x) => (
-            <button key={x.n} className="help-card" onClick={() => open('map:chapter', x.n)}>
+            <div key={x.n}>
+            {pl.length <= 2 && <PlacePhoto place={x} width={420} />}
+            <button className="help-card" onClick={() => open('map:chapter', x.n)}>
               <span className="thumb">
                 <Icon name="pin" />
               </span>
               <span>
-                {x.n}
+                {x.n.replace(/ \d+$/, '')}
                 <div className="small subtle">Now: {x.m || 'location uncertain'}</div>
               </span>
             </button>
+            </div>
           ))}
         </>
       )}

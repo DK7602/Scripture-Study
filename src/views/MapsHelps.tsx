@@ -8,6 +8,7 @@ import { useCaps } from '../lib/caps'
 import { Icon } from '../components/Icon'
 import { MapView, type Marker } from './MapView'
 import { RefLinks } from './RefLinks'
+import { PlacePhoto } from './PlacePhoto'
 import { BreastplateDiagram, HerodTemple, NewJerusalem, SolomonTemple, Tabernacle, ThroneRoom } from './Diagrams'
 
 const CATS: { id: 'all' | HelpKind; label: string }[] = [
@@ -48,6 +49,11 @@ const ROUTES: Record<string, { stops: [string, string?][]; route: boolean }> = {
     route: false,
     stops: [['Bethlehem 1', 'MAT.2.1'], ['Nazareth', 'LUK.4.16'], ['Cana', 'JHN.2.1-11'], ['Capernaum', 'MAT.4.13'], ['Bethsaida 1', 'MRK.8.22'], ['Chorazin', 'MAT.11.21'], ['Magdala', 'MAT.15.39'], ['Nain', 'LUK.7.11-17'], ['Caesarea Philippi', 'MAT.16.13'], ['Sychar', 'JHN.4.5'], ['Jericho 2', 'LUK.19.1'], ['Bethany 1', 'JHN.11.1'], ['Jerusalem', 'LUK.19.41'], ['Emmaus', 'LUK.24.13'], ['Gennesaret', 'MAT.14.34'], ['Tiberias', 'JHN.6.23']],
   },
+}
+
+/** OpenBible ids number places that share a name ("Bethlehem 2"); show the plain name. */
+export function placeName(id: string): string {
+  return id.replace(/ \d+$/, '')
 }
 
 export function MapsHelps() {
@@ -154,7 +160,7 @@ export function MapsHelps() {
         <button key={p.n} className="help-card" onClick={() => open(`place:${p.n}`)}>
           <span className="thumb"><Icon name="pin" /></span>
           <span>
-            {p.n}
+            {placeName(p.n)}
             <div className="small subtle">Now: {p.m || 'location uncertain'} · {p.v.length} verse{p.v.length === 1 ? '' : 's'}</div>
           </span>
         </button>
@@ -245,8 +251,8 @@ function ChapterMap({ focus }: { focus?: string }) {
     if (focus) loadPlaces().then((all) => setFocusPlace(all.find((p) => p.n === focus) ?? null))
   }, [loc.book, loc.chapter, focus])
   if (!list) return <div className="spinner" />
-  const markers: Marker[] = list.map(({ p }) => ({ name: p.n, lon: p.lon, lat: p.lat, modern: p.m, focus: p.n === focus }))
-  if (focusPlace && !list.some((x) => x.p.n === focusPlace.n)) markers.push({ name: focusPlace.n, lon: focusPlace.lon, lat: focusPlace.lat, modern: focusPlace.m, focus: true })
+  const markers: Marker[] = list.map(({ p }) => ({ name: placeName(p.n), lon: p.lon, lat: p.lat, modern: p.m, focus: p.n === focus }))
+  if (focusPlace && !list.some((x) => x.p.n === focusPlace.n)) markers.push({ name: placeName(focusPlace.n), lon: focusPlace.lon, lat: focusPlace.lat, modern: focusPlace.m, focus: true })
   if (!markers.length) return <p className="empty">No mapped places are named in {locString(loc.book, loc.chapter)}.</p>
   const shown = focusPlace && !list.some((x) => x.p.n === focusPlace.n) ? [{ p: focusPlace, verses: [] as number[] }, ...list] : list
   return (
@@ -256,7 +262,8 @@ function ChapterMap({ focus }: { focus?: string }) {
       <div className="place-list">
         {shown.map(({ p, verses }) => (
           <div key={p.n} className="place" style={p.n === focus ? { borderColor: 'var(--accent)' } : undefined}>
-            <b>{p.n}</b>
+            <PlacePhoto place={p} />
+            <b>{placeName(p.n)}</b>
             {p.a.length > 0 && <span className="faint small"> ({p.a.join(', ')})</span>}
             <div className="small">
               <span className="subtle">Now:</span> {p.m || 'location uncertain'}

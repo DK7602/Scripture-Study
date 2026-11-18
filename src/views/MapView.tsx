@@ -51,8 +51,8 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
     const [x0, y1] = proj(b[0], b[1])
     const [x1, y0] = proj(b[2], b[3])
     const aspect = height ? 1.5 : 1.45
-    let w = Math.max(x1 - x0, 50) * 1.35
-    let h = Math.max(y1 - y0, 40) * 1.35
+    let w = Math.max((x1 - x0) * 1.35, 130)
+    let h = Math.max((y1 - y0) * 1.35, 90)
     if (w / h < aspect) w = h * aspect
     else h = w / aspect
     return { x: (x0 + x1) / 2 - w / 2, y: (y0 + y1) / 2 - h / 2, w, h }
@@ -116,7 +116,7 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
   })
 
   if (!base || !proj) return <div className="spinner" />
-  const fs = vb.w / 55
+  const fs = vb.w / 46
   const pts = markers.map((m) => ({ ...m, p: proj(m.lon, m.lat) }))
   const dark = document.documentElement.dataset.mode === 'dark'
   const land = dark ? '#3a3a30' : now ? '#efe6cf' : '#e9dcb8'

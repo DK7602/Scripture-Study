@@ -152,4 +152,5 @@ export interface Place {
   ty: string
   c: number
   v: string[]
+  ph?: { f: string; c: string; d: string } // Wikimedia Commons photo of the site today
 }

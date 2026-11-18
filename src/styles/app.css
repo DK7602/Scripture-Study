@@ -619,3 +619,7 @@ table.chart th { font-family: var(--serif); font-size: 15.5px; background: var(-
   .topbar, .sidebar, .panel, .reader-toolbar, .bottombar, .margin, .chapter-nav { display: none !important; }
   .page { box-shadow: none; margin: 0; }
 }
+
+/* keyboard focus only (no ring after taps / programmatic focus) */
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 2px; }

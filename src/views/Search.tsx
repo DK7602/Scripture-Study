@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { bibleBook, books, getJSON, strongs, topicEntry, topicIndex, versions } from '../lib/data'
+import { bibleBook, books, concordance, getJSON, strongs, topicEntry, topicIndex, versions } from '../lib/data'
 import { plainText } from '../lib/markup'
-import { formatRef, locString, parseHumanRef, refToString } from '../lib/refs'
+import { decodeVid, formatRef, locString, parseHumanRef, refToString } from '../lib/refs'
 import { go, openPopup, useStore } from '../lib/store'
 import type { StrongsEntry } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { loadPassage, passagePlain } from '../lib/passage'
 import { useCaps, useCapsHtml } from '../lib/caps'
+import { HistorySearch } from './History'
 
-type Mode = 'topical' | 'word'
+type Mode = 'topical' | 'word' | 'history'
 
 export function SearchView() {
   const [mode, setMode] = useState<Mode>('topical')
@@ -27,6 +28,9 @@ export function SearchView() {
         <button className="pill" aria-pressed={mode === 'word'} onClick={() => setMode('word')}>
           Word (Literal)
         </button>
+        <button className="pill" aria-pressed={mode === 'history'} onClick={() => setMode('history')}>
+          Church History
+        </button>
       </div>
       <form
         className="searchbox"
@@ -40,7 +44,13 @@ export function SearchView() {
           ref={inputRef}
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={mode === 'topical' ? 'A topic or word — e.g. abide, prayer, grace' : 'Words or "an exact phrase" in the Bible'}
+          placeholder={
+            mode === 'topical'
+              ? 'A topic or word — e.g. abide, prayer, grace'
+              : mode === 'word'
+                ? 'Words or "an exact phrase" in the Bible'
+                : 'A topic, or a creed, catechism, council or father'
+          }
           aria-label="Search"
           enterKeyHint="search"
         />
@@ -51,13 +61,13 @@ export function SearchView() {
         )}
         <button className="btn small primary" type="submit">Search</button>
       </form>
-      {asRef && q.match(/\d/) && (
+      {asRef && q.match(/\d/) && mode !== 'history' && (
         <button className="help-card" style={{ marginTop: 10 }} onClick={() => go({ book: asRef.book, chapter: asRef.c1, verse: asRef.v1 ?? 1 }, { tab: 'bible' })}>
           <span className="thumb"><Icon name="book" /></span>
           <span>Go to {formatRef(asRef)}</span>
         </button>
       )}
-      {mode === 'topical' ? <Topical q={submitted} live={q} /> : <WordSearch q={submitted} />}
+      {mode === 'topical' ? <Topical q={submitted} live={q} /> : mode === 'word' ? <WordSearch q={submitted} /> : <HistorySearch q={submitted} />}
     </div>
   )
 }
@@ -139,6 +149,7 @@ function Topical({ q, live }: { q: string; live: string }) {
           ))}
         </>
       )}
+      {q && lex.length > 0 && <KeyVerses word={q} lex={lex} />}
       {q && lex.length > 0 && (
         <>
           <div className="section-title" style={{ marginTop: 16 }}>
@@ -165,6 +176,72 @@ function Topical({ q, live }: { q: string; live: string }) {
       {!matches.length && !lex.length && q && <p className="empty">No topics found for “{q}”. Try the Word (Literal) search.</p>}
       {!q && matches.length === 0 && <p className="faint">Press Search to look up “{live}”.</p>}
     </div>
+  )
+}
+
+/** "Topical results": the verses where the KJV uses the word for its main Hebrew/Greek terms. */
+function KeyVerses({ word, lex }: { word: string; lex: [string, StrongsEntry][] }) {
+  const [vids, setVids] = useState<{ vid: number; num: string }[] | null>(null)
+  const [texts, setTexts] = useState<Record<number, string>>({})
+  const [shown, setShown] = useState(25)
+  const caps = useCaps()
+  useEffect(() => {
+    let live = true
+    const w = word.toLowerCase()
+    const forms = new Set([w, w + 's', w + 'th', w + 'eth', w + 'ed', w + 'est', w + 'ing', w.replace(/e$/, '') + 'ing', w.replace(/e$/, '') + 'eth'])
+    ;(async () => {
+      const out = new Map<number, string>()
+      for (const [num, e] of lex.slice(0, 6)) {
+        if (!e.u.some(([r]) => forms.has(r.toLowerCase()))) continue
+        const c = await concordance(num)
+        for (const [r, list] of Object.entries(c ?? {})) if (forms.has(r.toLowerCase())) for (const v of list) if (!out.has(v)) out.set(v, num)
+      }
+      if (live) setVids([...out].sort((a, b) => a[0] - b[0]).map(([vid, num]) => ({ vid, num })))
+    })()
+    return () => {
+      live = false
+    }
+  }, [word, lex])
+  useEffect(() => {
+    if (!vids) return
+    let live = true
+    ;(async () => {
+      const add: Record<number, string> = {}
+      for (const { vid } of vids.slice(0, shown)) {
+        if (texts[vid] !== undefined) continue
+        const d = decodeVid(vid)
+        const res = await loadPassage(`${d.book}.${d.chapter}.${d.verse}`, 1)
+        add[vid] = res.verses[0] ? passagePlain(res.verses[0]) : ''
+      }
+      if (live) setTexts((t) => ({ ...t, ...add }))
+    })()
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vids, shown])
+  if (!vids?.length) return null
+  return (
+    <>
+      <div className="section-title" style={{ marginTop: 16 }}>
+        Topical Results: {word.charAt(0).toUpperCase() + word.slice(1)} <span className="faint small">({vids.length})</span>
+      </div>
+      {vids.slice(0, shown).map(({ vid, num }) => {
+        const d = decodeVid(vid)
+        return (
+          <button key={vid} className="result" onClick={() => go({ book: d.book, chapter: d.chapter, verse: d.verse }, { tab: window.innerWidth < 900 ? 'bible' : undefined })}>
+            <span className="r">{locString(d.book, d.chapter, d.verse)}</span>
+            <span className="vtag">{num}</span>
+            <div className="subtle">{texts[vid] !== undefined ? caps(texts[vid], `${d.book}.${d.chapter}.${d.verse}`) : '…'}</div>
+          </button>
+        )
+      })}
+      {vids.length > shown && (
+        <button className="btn small" style={{ marginTop: 8 }} onClick={() => setShown(shown + 50)}>
+          Show more
+        </button>
+      )}
+    </>
   )
 }
 
