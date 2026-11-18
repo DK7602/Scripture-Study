@@ -84,62 +84,55 @@ if (!sub) {
 const host = `${PROJECT}.${sub}.workers.dev`
 console.log('  site will be https://' + host)
 
-// 4. Zero Trust organization (team domain)
+// 4. Zero Trust organization (team domain) + email one-time-code login in front of /api
 step('Zero Trust (Access)')
-let org
+let org = null
+let app = null
 try {
   org = await cf(`${A}/access/organizations`)
 } catch (e) {
-  if (e.status !== 404) throw e
+  if (String(e.message).includes('not_enabled')) {
+    console.warn('  Access is not enabled on this account yet — deploying without sign-in/sync.')
+    console.warn('  Enable it once in the dashboard (Zero Trust → choose a team name → Free plan), then run this script again.')
+  } else if (e.status !== 404) throw e
 }
-if (!org || !org.auth_domain) {
-  const team = `${PROJECT}-${account.slice(0, 6)}`
-  try {
-    org = await cf(`${A}/access/organizations`, {
+if (org && !org.auth_domain) org = null
+if (org) {
+  console.log('  team', org.auth_domain)
+  const idps = await cf(`${A}/access/identity_providers`)
+  let otp = idps.find((i) => i.type === 'onetimepin')
+  if (!otp) {
+    otp = await cf(`${A}/access/identity_providers`, {
       method: 'POST',
-      body: JSON.stringify({ name: 'Scripture Study', auth_domain: `${team}.cloudflareaccess.com` }),
+      body: JSON.stringify({ name: 'Email one-time code', type: 'onetimepin', config: {} }),
     })
-    console.log('  created team', org.auth_domain)
-  } catch (e) {
-    console.error(`  Could not create a Zero Trust organization automatically (${e.message}).`)
-    console.error('  In the Cloudflare dashboard open Zero Trust, choose a team name and the FREE plan, then run this again.')
-    process.exit(2)
-  }
-} else console.log('  team', org.auth_domain)
+    console.log('  added email one-time code login')
+  } else console.log('  email one-time code login present')
 
-const idps = await cf(`${A}/access/identity_providers`)
-let otp = idps.find((i) => i.type === 'onetimepin')
-if (!otp) {
-  otp = await cf(`${A}/access/identity_providers`, {
-    method: 'POST',
-    body: JSON.stringify({ name: 'Email one-time code', type: 'onetimepin', config: {} }),
-  })
-  console.log('  added email one-time code login')
-} else console.log('  email one-time code login present')
-
-const appDomain = `${host}/api`
-const apps = await cf(`${A}/access/apps`)
-let app = apps.find((a) => a.domain === appDomain)
-if (!app) {
-  app = await cf(`${A}/access/apps`, {
-    method: 'POST',
-    body: JSON.stringify({
-      name: 'Scripture Study sync',
-      domain: appDomain,
-      type: 'self_hosted',
-      session_duration: '720h', // stay signed in for 30 days per device
-      allowed_idps: [otp.id],
-      auto_redirect_to_identity: true,
-      app_launcher_visible: false,
-    }),
-  })
-  // Anyone may request a code; the app itself only lets in people who joined with the invite link.
-  await cf(`${A}/access/apps/${app.id}/policies`, {
-    method: 'POST',
-    body: JSON.stringify({ name: 'Email code', decision: 'allow', include: [{ everyone: {} }], precedence: 1 }),
-  })
-  console.log('  protected', appDomain)
-} else console.log('  already protecting', appDomain)
+  const appDomain = `${host}/api`
+  const apps = await cf(`${A}/access/apps`)
+  app = apps.find((a) => a.domain === appDomain)
+  if (!app) {
+    app = await cf(`${A}/access/apps`, {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'Scripture Study sync',
+        domain: appDomain,
+        type: 'self_hosted',
+        session_duration: '720h', // stay signed in for 30 days per device
+        allowed_idps: [otp.id],
+        auto_redirect_to_identity: true,
+        app_launcher_visible: false,
+      }),
+    })
+    // Anyone may request a code; the app itself only lets in people who joined with the invite link.
+    await cf(`${A}/access/apps/${app.id}/policies`, {
+      method: 'POST',
+      body: JSON.stringify({ name: 'Email code', decision: 'allow', include: [{ everyone: {} }], precedence: 1 }),
+    })
+    console.log('  protected', appDomain)
+  } else console.log('  already protecting', appDomain)
+}
 
 // 5. Worker config
 step('wrangler.toml')
@@ -163,8 +156,8 @@ database_name = "${DB_NAME}"
 database_id = "${db.uuid}"
 
 [vars]
-TEAM_DOMAIN = "${org.auth_domain}"
-POLICY_AUD = "${app.aud}"
+TEAM_DOMAIN = "${org ? org.auth_domain : ''}"
+POLICY_AUD = "${app ? app.aud : ''}"
 MAX_USERS = "25"
 `,
 )
@@ -187,4 +180,5 @@ if (OWNER) {
 }
 
 console.log(`\n✓ Scripture Study is at https://${host}`)
+if (!org) console.log('  (Sign-in/sync will appear after Access is enabled and this script is run again.)')
 console.log(`  Sign in there (Settings → Sync across devices). ${OWNER ? 'Your owner email' : 'The first person to sign in'} becomes the owner and sees the invite link to share.`)

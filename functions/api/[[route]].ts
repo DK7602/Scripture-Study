@@ -145,7 +145,7 @@ async function user(db: D1, email: string) {
 export const onRequest = async ({ request, env }: Ctx): Promise<Response> => {
   const url = new URL(request.url)
   const route = url.pathname.replace(/^\/api\/?/, '').replace(/\/$/, '')
-  if (!env.DB) return json({ error: 'Sync is not configured on this site.' }, 503)
+  if (!env.DB || !env.TEAM_DOMAIN || !env.POLICY_AUD) return json({ error: 'Sync is not configured on this site yet.' }, 503)
 
   const email = await verifyAccess(request, env).catch(() => null)
   if (!email) return json({ error: 'Not signed in.' }, 401)
