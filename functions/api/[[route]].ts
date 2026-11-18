@@ -277,9 +277,11 @@ async function licensed(route: string, request: Request, env: Env, owner: boolea
   const key = await cfg(db, 'apibible_key')
 
   if (route === 'licensed' && request.method === 'GET') {
-    const body: Record<string, unknown> = { versions: key ? Object.keys(ids).filter((v) => ids[v]) : [] }
+    const esvKey = await cfg(db, 'esv_key')
+    const body: Record<string, unknown> = { versions: [...(key ? Object.keys(ids).filter((v) => ids[v]) : []), ...(esvKey ? ['ESV'] : [])] }
     if (owner) {
       body.hasKey = !!key
+      body.hasEsvKey = !!esvKey
       body.ids = ids
       const month = new Date().toISOString().slice(0, 7)
       body.usedThisMonth = Number((await cfg(db, `lic_month_${month}`)) || 0)
@@ -293,6 +295,20 @@ async function licensed(route: string, request: Request, env: Env, owner: boolea
       }
     }
     return json(body)
+  }
+
+  if (route === 'licensed/esv' && request.method === 'POST') {
+    if (!owner) return json({ error: 'Only the owner can set the ESV key.' }, 403)
+    const { key: esv } = (await request.json().catch(() => ({}))) as { key?: string }
+    if (!esv || esv.length > 200) return json({ error: 'Paste your ESV API key.' }, 400)
+    const r = await fetch('https://api.esv.org/v3/passage/text/?q=John+3:16&include-footnotes=false', { headers: { Authorization: `Token ${esv.trim()}` } })
+    if (!r.ok) return json({ error: r.status === 401 || r.status === 403 ? 'That ESV key was not accepted.' : `ESV API error ${r.status}` }, 400)
+    await setCfg(db, 'esv_key', esv.trim())
+    return json({ ok: true })
+  }
+
+  if (route === 'licensed/chapter' && request.method === 'GET' && new URL(request.url).searchParams.get('v')?.toUpperCase() === 'ESV') {
+    return esvChapter(request, db, email)
   }
 
   if (route === 'licensed/key' && request.method === 'POST') {
@@ -364,4 +380,63 @@ async function licensed(route: string, request: Request, env: Env, owner: boolea
   }
 
   return json({ error: 'Not found.' }, 404)
+}
+
+// ---------------------------------------------------------------------------------------------
+// ESV (Crossway API): free for non-commercial use; 5,000 queries a day; an app may store at most
+// 500 verses, so only a small rolling in-memory set of recent chapters is kept (no database copy).
+// ---------------------------------------------------------------------------------------------
+const ESV_NAMES: Record<string, string> = {
+  GEN: 'Genesis', EXO: 'Exodus', LEV: 'Leviticus', NUM: 'Numbers', DEU: 'Deuteronomy', JOS: 'Joshua', JDG: 'Judges', RUT: 'Ruth',
+  '1SA': '1 Samuel', '2SA': '2 Samuel', '1KI': '1 Kings', '2KI': '2 Kings', '1CH': '1 Chronicles', '2CH': '2 Chronicles', EZR: 'Ezra',
+  NEH: 'Nehemiah', EST: 'Esther', JOB: 'Job', PSA: 'Psalm', PRO: 'Proverbs', ECC: 'Ecclesiastes', SNG: 'Song of Solomon', ISA: 'Isaiah',
+  JER: 'Jeremiah', LAM: 'Lamentations', EZK: 'Ezekiel', DAN: 'Daniel', HOS: 'Hosea', JOL: 'Joel', AMO: 'Amos', OBA: 'Obadiah', JON: 'Jonah',
+  MIC: 'Micah', NAM: 'Nahum', HAB: 'Habakkuk', ZEP: 'Zephaniah', HAG: 'Haggai', ZEC: 'Zechariah', MAL: 'Malachi', MAT: 'Matthew',
+  MRK: 'Mark', LUK: 'Luke', JHN: 'John', ACT: 'Acts', ROM: 'Romans', '1CO': '1 Corinthians', '2CO': '2 Corinthians', GAL: 'Galatians',
+  EPH: 'Ephesians', PHP: 'Philippians', COL: 'Colossians', '1TH': '1 Thessalonians', '2TH': '2 Thessalonians', '1TI': '1 Timothy',
+  '2TI': '2 Timothy', TIT: 'Titus', PHM: 'Philemon', HEB: 'Hebrews', JAS: 'James', '1PE': '1 Peter', '2PE': '2 Peter', '1JN': '1 John',
+  '2JN': '2 John', '3JN': '3 John', JUD: 'Jude', REV: 'Revelation',
+}
+const ESV_COPYRIGHT =
+  'Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.'
+const esvMemo = new Map<string, { content: string; verses: number }>() // in-memory only, ≤ 450 verses
+const ESV_LIMITS = { siteDay: 3000, userDay: 150 }
+
+async function esvChapter(request: Request, db: D1, email: string): Promise<Response> {
+  const u = new URL(request.url)
+  const book = (u.searchParams.get('book') || '').toUpperCase()
+  const ch = parseInt(u.searchParams.get('ch') || '', 10)
+  const key = await cfg(db, 'esv_key')
+  if (!key) return json({ error: 'The ESV is not shared with the group.' }, 404)
+  if (!ESV_NAMES[book] || !(ch >= 1 && ch <= 150)) return json({ error: 'Bad reference.' }, 400)
+  const ref = `${book}.${ch}`
+  const hit = esvMemo.get(ref)
+  if (hit) {
+    esvMemo.delete(ref)
+    esvMemo.set(ref, hit)
+    return json({ content: hit.content, copyright: ESV_COPYRIGHT, cached: true })
+  }
+  const day = Math.floor(Date.now() / 86400000)
+  if ((await bump(db, `esv:${day}`, 86400000)) > ESV_LIMITS.siteDay) return json({ error: 'The group has reached today’s ESV limit — try again tomorrow.' }, 429)
+  if ((await bump(db, `esvu:${email}:${day}`, 86400000)) > ESV_LIMITS.userDay) return json({ error: 'Daily ESV limit reached — try again tomorrow.' }, 429)
+  const q = encodeURIComponent(`${ESV_NAMES[book]} ${ch}`)
+  const r = await fetch(
+    `https://api.esv.org/v3/passage/text/?q=${q}&include-passage-references=false&include-verse-numbers=true&include-first-verse-numbers=true` +
+      `&include-footnotes=false&include-headings=false&include-short-copyright=false&include-selahs=true&indent-paragraphs=0&indent-poetry=false` +
+      `&indent-declares=0&indent-psalm-doxology=0`,
+    { headers: { Authorization: `Token ${key}` } },
+  )
+  if (!r.ok) return json({ error: `ESV API error ${r.status}` }, 502)
+  const d = (await r.json()) as { passages?: string[] }
+  const content = (d.passages ?? [])[0] ?? ''
+  const verses = (content.match(/\[\d+\]/g) ?? []).length
+  esvMemo.set(ref, { content, verses })
+  let total = 0
+  for (const e of esvMemo.values()) total += e.verses
+  for (const k of esvMemo.keys()) {
+    if (total <= 450) break
+    total -= esvMemo.get(k)!.verses
+    esvMemo.delete(k)
+  }
+  return json({ content, copyright: ESV_COPYRIGHT, cached: false })
 }

@@ -40,8 +40,9 @@ async function load(version: string, bookId: string, chapter: number): Promise<C
   const s = getState().settings
   try {
     if (info.licensed === 'esv') {
-      if (!s.esvKey) return { verses: [], error: 'needs-key' }
-      return await esv(bookId, chapter, s.esvKey)
+      if (s.esvKey) return await esv(bookId, chapter, s.esvKey)
+      if (sharedVersions().includes('ESV')) return await sharedChapter('ESV', bookId, chapter)
+      return { verses: [], error: 'needs-key' }
     }
     const id = s.apiBibleIds[version]
     if (s.apiBibleKey && id) return await apiBible(id, bookId, chapter, s.apiBibleKey)

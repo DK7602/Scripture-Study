@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { newInvite, onSync, pendingInvite, refreshLicensed, saveLicensedIds, saveLicensedKey, signIn, signOut, syncInfo, syncNow, type LicensedInfo } from '../lib/sync'
+import { newInvite, onSync, pendingInvite, refreshLicensed, saveEsvKey, saveLicensedIds, saveLicensedKey, signIn, signOut, syncInfo, syncNow, type LicensedInfo } from '../lib/sync'
 import { onShared, sharedVersions } from '../lib/shared'
 import { Icon } from '../components/Icon'
 
@@ -115,6 +115,7 @@ function SharedTranslations() {
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
   const [ids, setIds] = useState<Record<string, string>>({})
+  const [esvKey, setEsvKey] = useState('')
   useEffect(() => {
     refreshLicensed(true).then((d) => {
       setData(d)
@@ -149,7 +150,7 @@ function SharedTranslations() {
   }
   return (
     <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--rule)' }}>
-      <div className="small" style={{ fontWeight: 600 }}>Share CSB, NKJV, NASB or NIV with your group</div>
+      <div className="small" style={{ fontWeight: 600 }}>Share CSB, NIV, NKJV, NASB or ESV with your group</div>
       <div className="small subtle" style={{ marginBottom: 6 }}>
         Paste your API.Bible key once. It stays on your Cloudflare server (never on members’ devices), and everyone you invited can read these
         translations when signed in. Chapters are kept for 25 days so the group shares your free monthly allowance.
@@ -181,6 +182,30 @@ function SharedTranslations() {
           </button>
         </>
       )}
+      <div className="small" style={{ fontWeight: 600, marginTop: 12 }}>ESV {data?.hasEsvKey && <span style={{ fontWeight: 400 }}>— ✓ shared with your group</span>}</div>
+      <div className="small subtle" style={{ marginBottom: 6 }}>Paste your free ESV key from api.esv.org (non-commercial use).</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <input className="input" type="password" autoComplete="off" placeholder={data?.hasEsvKey ? 'Replace ESV key' : 'ESV API key'} value={esvKey} onChange={(e) => setEsvKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: 15 }} />
+        <button
+          className="btn small primary"
+          disabled={busy || !esvKey.trim()}
+          onClick={async () => {
+            setBusy(true)
+            setMsg('')
+            try {
+              await saveEsvKey(esvKey.trim())
+              setData(await refreshLicensed(true))
+              setEsvKey('')
+              setMsg('ESV key saved — members can now choose ESV.')
+            } catch (e) {
+              setMsg((e as Error).message)
+            }
+            setBusy(false)
+          }}
+        >
+          Save ESV key
+        </button>
+      </div>
       {data?.error && <p className="small" style={{ color: '#a3271c' }}>{data.error}</p>}
       {msg && <p className="small" style={{ marginBottom: 0 }}>{msg}</p>}
     </div>

@@ -254,6 +254,7 @@ export async function newInvite(): Promise<void> {
 export interface LicensedInfo {
   versions: string[]
   hasKey?: boolean
+  hasEsvKey?: boolean
   ids?: Record<string, string>
   usedThisMonth?: number
   monthLimit?: number
@@ -283,6 +284,11 @@ export async function saveLicensedKey(key: string): Promise<LicensedInfo> {
   const d = await licApi('licensed/key', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key }) })
   await refreshLicensed()
   return d
+}
+
+export async function saveEsvKey(key: string): Promise<void> {
+  await licApi('licensed/esv', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key }) })
+  await refreshLicensed()
 }
 
 export async function saveLicensedIds(ids: Record<string, string>): Promise<void> {
