@@ -267,6 +267,7 @@ export function DocViewer({ id, section, find, onBack }: { id: string; section?:
       <div className="faint" style={{ marginBottom: 8 }}>
         {[TYPE_LABEL[doc.type], doc.year, doc.author, doc.tradition].filter(Boolean).join(' · ')}
       </div>
+      {doc.source && <div className="faint small" style={{ marginBottom: 8 }}>Text: {doc.source}</div>}
       {doc.intro && <p style={{ fontFamily: 'var(--serif)', fontSize: 16.5 }}>{caps(doc.intro)}</p>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         <div className="searchbox" style={{ flex: '1 1 200px' }}>

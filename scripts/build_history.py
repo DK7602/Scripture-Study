@@ -9,14 +9,25 @@ Run:  python3 scripts/build_history.py
 Sources
   * Creeds, confessions, catechisms: github.com/NonlinearFruit/Creeds.json (raw files).  The repo is
     Unlicense except eight texts it lists as copyrighted; those are skipped (see COPYRIGHTED_CREEDS).
+    Texts that Creeds.json has in a modern (copyrighted or unverifiable) English translation are replaced
+    from Schaff, Creeds of Christendom (CCEL ThML, public domain): Heidelberg, Belgic and Second Helvetic
+    (vol. 3), Apostles', Nicene, Chalcedonian and Ignatius (vol. 2); see SCHAFF_REPLACEMENTS.  Where no
+    public-domain English exists the document is dropped (DROPPED_CREEDS), and the Canons of Dort keep
+    only the articles (the Rejection of Errors is not in Schaff's English).  Every doc has a "source".
   * The Thirty-Nine Articles: Schaff, Creeds of Christendom vol. 3 (CCEL ThML, public domain).
   * Ecumenical councils: Percival (ed.), The Seven Ecumenical Councils, NPNF series 2 vol. 14 (1900),
     CCEL ThML (public domain).  Only the creeds/definitions/decrees and canons are kept; editors'
     notes, excursuses and the "Ancient Epitome" summaries are dropped.
   * Church fathers: github.com/HistoricalChristianFaith/Commentaries-Database (public-domain
-    dedication for its public-domain excerpts).  Downloaded as the repo archive (TOML) when GitHub
-    allows it, otherwise as the project's compiled SQLite release.  Only comments that cite a
-    public-domain online source are kept (fair-use excerpts of copyrighted translations are skipped).
+    dedication for its public-domain excerpts; the rest are fair-use excerpts).  Downloaded as the repo
+    archive (TOML) when GitHub allows it, otherwise as the project's compiled SQLite release.  Kept:
+    comments that cite a public-domain online text (ANF/NPNF, CCEL, New Advent, Roger Pearse, the
+    project's Writings-Database), minus works whose title page shows a modern copyrighted translation
+    (COPYRIGHTED_WORKS, Aquinas outside the Catena Aurea), minus modern authors, and minus
+    anthology-style (ALL-CAPS) citations whose wording is not found verbatim in the text they cite.
+    Many Writings-Database texts are the project's own (partly machine-made) translations from Migne.
+    If everything does not fit in TOTAL_BUDGET_MB, the longest comments are trimmed (at a sentence
+    boundary, marked "[…]") to the largest common length that fits.
 
 Output (public/data/history/)
   index.json                      {"docs": [...], "fathers": [...]}
@@ -38,6 +49,7 @@ import urllib.parse
 import urllib.request
 import zipfile
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CACHE = os.path.join(ROOT, ".cache", "history")
@@ -45,6 +57,7 @@ OUT = os.path.join(ROOT, "public", "data", "history")
 BOOKS_JSON = os.path.join(ROOT, "public", "data", "books.json")
 
 TOTAL_BUDGET_MB = 59.0      # keep public/data/history under ~60 MB
+INCLUDE_ERAS = ("patristic", "medieval", "reformation", "modern")   # drop eras here to give the rest more room
 MAX_COMMENT_CHARS = 4000    # never keep more than this per comment
 MIN_COMMENT_CHARS = 400     # never trim below this, even if the budget is exceeded
 
@@ -69,13 +82,14 @@ def log(*a):
 # ---------------------------------------------------------------------------------------------
 # Downloads
 # ---------------------------------------------------------------------------------------------
-def fetch(url, name, quiet_fail=False):
+def fetch(url, name, quiet_fail=False, verbose=True):
     """Download url into .cache/history/<name> once; return the path (None if quiet_fail and it fails)."""
     path = os.path.join(CACHE, name)
     os.makedirs(os.path.dirname(path), exist_ok=True)
     if os.path.exists(path):
         return path
-    log("  downloading", url)
+    if verbose:
+        log("  downloading", url)
     req = urllib.request.Request(url, headers={"User-Agent": "ScriptureStudy-databuild/1.0"})
     try:
         with urllib.request.urlopen(req, timeout=600) as r, open(path + ".part", "wb") as f:
@@ -84,7 +98,8 @@ def fetch(url, name, quiet_fail=False):
         if os.path.exists(path + ".part"):
             os.remove(path + ".part")
         if quiet_fail:
-            log("    failed:", e)
+            if verbose:
+                log("    failed:", e)
             return None
         raise
     os.replace(path + ".part", path)
@@ -284,9 +299,23 @@ CONT_RE = re.compile(r"\s*(?:f{1,2}\.|sqq?\.)?\s*([,;])\s*(?:(\d{1,3})\s*:\s*)?(
 RANGE_RE = re.compile(r"\s*[-–]\s*(\d{1,3})(?:\s*:\s*(\d{1,3}))?")
 
 
+ROMAN_REF_RE = re.compile(r"(?<![A-Za-z])((?:[1-3]|I{1,3})\s?)?([A-Z][a-z]+)\.?\s+([ivxlc]{1,7})\.\s*(\d{1,3})\b")
+
+
 def text_refs(s):
-    """Free-text references: 'Rom. 5:12, 15 ff., 23', 'I Cor. 15:21 f.', '1 Chron. 16:28, 29', 'Psalm 100:3'."""
-    out = []
+    """Free-text references: 'Rom. 5:12, 15 ff., 23', 'I Cor. 15:21 f.', '1 Chron. 16:28, 29', 'Psalm 100:3',
+    and the 19th-century style with a Roman chapter number, 'Rev. xxii. 18, 19'."""
+    s = ROMAN_REF_RE.sub(lambda m: f"{m.group(1) or ''}{m.group(2)} {roman_to_int(m.group(3))}:{m.group(4)}"
+                         if book_code((m.group(1) or "") + m.group(2)) else m.group(0), s or "")
+    spans = []          # [code, c1, v1, c2, v2]
+
+    def add(code, c1, v1, c2, v2):
+        p = spans[-1] if spans else None
+        if p and p[0] == code and p[3] == c1 == c2 and v1 == p[4] + 1:
+            p[4] = v2                                   # "Luke 7:41, 42" -> LUK.7.41-42
+        else:
+            spans.append([code, c1, v1, c2, v2])
+
     for m in TEXT_REF_RE.finditer(s or ""):
         prefix, word, of, c, v = m.groups()
         code = book_code((prefix or "") + word + (of or ""))
@@ -297,13 +326,13 @@ def text_refs(s):
         r = RANGE_RE.match(s, pos)
         if r:
             if r.group(2):
-                out.append(make_ref(code, c, v, int(r.group(1)), int(r.group(2))))
+                add(code, c, v, int(r.group(1)), int(r.group(2)))
                 c = int(r.group(1))
             else:
-                out.append(make_ref(code, c, v, c, int(r.group(1))))
+                add(code, c, v, c, int(r.group(1)))
             pos = r.end()
         else:
-            out.append(make_ref(code, c, v))
+            add(code, c, v, c, v)
         while True:
             k = CONT_RE.match(s, pos)
             if not k:
@@ -317,9 +346,9 @@ def text_refs(s):
             if k.group(2):
                 c = int(k.group(2))
             v = int(k.group(3))
-            out.append(make_ref(code, c, v, c, int(k.group(4)) if k.group(4) else None))
+            add(code, c, v, c, int(k.group(4)) if k.group(4) else v)
             pos = k.end()
-    return [r for r in out if r]
+    return [r for r in (make_ref(*sp) for sp in spans) if r]
 
 
 def dedupe(seq):
@@ -450,6 +479,27 @@ CREED_YEAR = {
     "keachs_catechism": "1693", "canons_of_dort": "1619",
 }
 DORT_HEADS = ["1", "2", "3/4", "5"]
+SCHAFF2 = "Schaff, Creeds of Christendom vol. 2 (1877)"
+SCHAFF3 = "Schaff, Creeds of Christendom vol. 3 (1877)"
+CREED_SOURCE = {   # default: "Creeds.json (public domain)"
+    "tetrapolitan_confession": "Creeds.json (public domain; H. E. Jacobs' translation, Book of Concord vol. 2, 1883)",
+    "zwinglis_67_articles": "Creeds.json (public domain; S. M. Jackson's translation, 1901)",
+    "consensus_tigurinus": "Creeds.json (public domain; H. Beveridge's translation, 1849)",
+    "first_helvetic_confession": "Creeds.json (public domain; George Wishart's translation, c. 1537)",
+    "zwinglis_fidei_ratio": "Creeds.json (public domain; Thomas Cotsforde's translation, 1555)",
+    "french_confession_of_faith": "Creeds.json (public domain; Emily O. Butler's translation as in Schaff vol. 3)",
+    "canons_of_dort": "Creeds.json (public domain; the Reformed Church in America text as in Schaff vol. 3, 1877)",
+    "athanasian_creed": "Creeds.json (public domain; the Book of Common Prayer text, as in Schaff vol. 2)",
+    "irenaeus_rule_of_faith": "Creeds.json (public domain; Ante-Nicene Fathers translation)",
+    "tertullians_rule_of_faith": "Creeds.json (public domain; Ante-Nicene Fathers translation)",
+    "gregorys_declaration_of_faith": "Creeds.json (public domain; Ante-Nicene Fathers translation)",
+    "ten_theses_of_berne": "Creeds.json (public domain; Schaff, History of the Christian Church vol. 8, 1910)",
+}
+# Creeds.json texts in a 20th-century translation for which no public-domain English text was found.
+DROPPED_CREEDS = {
+    "first_confession_of_basel": "modern translation; Schaff gives no English text and none in the public domain was found",
+    "council_of_orange": "modern translation (Leith, Creeds of the Churches); Hefele's 1895 English gives only summaries",
+}
 
 
 def join_names(names):
@@ -508,7 +558,9 @@ def creed_doc(key, d):
             for si, s in enumerate(ch.get("Sections") or []):
                 sec = str(s.get("Section"))
                 if key == "canons_of_dort":
-                    kind = {"A": "Article", "R": "Rejection"}.get(sec[:1], "Article")
+                    if sec.startswith("R"):
+                        continue        # Rejection of Errors: not in Schaff's English; translation of unknown date
+                    kind = "Article"
                     n = f"Head {head}, {kind} {sec.lstrip('AR')}"
                 else:
                     n = f"Chapter {head}.{sec}"
@@ -537,6 +589,8 @@ def creed_doc(key, d):
                                  "q": clean_text(sq.get("Question")), "text": ans,
                                  "refs": dedupe(text_refs(ans))})
     for s in sections:
+        if not s.get("refs"):           # no proof texts: use references cited in the text itself
+            s["refs"] = dedupe(text_refs(s.get("text", "")))
         if not s.get("title"):
             s.pop("title", None)
         if not s.get("refs"):
@@ -558,6 +612,7 @@ def creed_doc(key, d):
         "year": CREED_YEAR.get(key, str(meta.get("Year") or "")),
         "author": CREED_AUTHOR.get(key, join_names(meta.get("Authors"))),
         "tradition": CREED_TRADITION.get(key, "Reformed"),
+        "source": CREED_SOURCE.get(key, "Creeds.json (public domain)"),
     }
     if intro:
         doc["intro"] = intro
@@ -580,7 +635,13 @@ def build_creeds():
         if "copyright" in (d["Metadata"].get("SourceAttribution") or "").lower():
             skipped.append(key)
             continue
-        docs.append(creed_doc(key, d))
+        if key in DROPPED_CREEDS:
+            log(f"  dropped {key}: {DROPPED_CREEDS[key]}")
+            continue
+        doc = creed_doc(key, d)
+        if key in SCHAFF_REPLACEMENTS:
+            doc = SCHAFF_REPLACEMENTS[key](doc)
+        docs.append(doc)
     log(f"  {len(docs)} documents, skipped as copyrighted: {', '.join(skipped)}")
     return docs
 
@@ -789,12 +850,11 @@ def build_councils():
                                **{k: v for k, v in secs[0].items() if k not in ("n", "title")}}
                 sections += secs
         for s in sections:
-            if not s.get("refs"):
-                s.pop("refs", None)
+            with_refs(s, s.get("refs", []))
         n_canons = sum(1 for s in sections if s["n"])
         log(f"  {c['id']}: {len(sections)} sections ({n_canons} canons/anathemas)")
         docs.append({"id": c["id"], "title": c["title"], "type": "council", "year": c["year"],
-                     "author": c["author"], "tradition": "Ecumenical",
+                     "author": c["author"], "tradition": "Ecumenical", "source": "NPNF2 vol. 14 (1900)",
                      "intro": c["intro"] + " " + NPNF_SOURCE, "sections": sections})
     return docs
 
@@ -802,6 +862,234 @@ def build_councils():
 def label_title(label):
     return {"Anathematism": "The Twelve Anathematisms of St. Cyril against Nestorius",
             "Anathema": "The Capitula (Anathemas) of the Council"}.get(label, "")
+
+
+# ---------------------------------------------------------------------------------------------
+# 2b. Public-domain replacements from Schaff, Creeds of Christendom (CCEL ThML)
+# ---------------------------------------------------------------------------------------------
+CREEDS2_URL = "https://www.ccel.org/ccel/schaff/creeds2.xml"
+_THML = {}
+
+
+def schaff_src(vol):
+    if vol not in _THML:
+        url, name = (CREEDS2_URL, "creeds2.xml") if vol == 2 else (CREEDS3_URL, "creeds3.xml")
+        with open(fetch(url, name), encoding="utf-8") as f:
+            _THML[vol] = f.read()
+    return _THML[vol]
+
+
+def thml_rows(h, col):
+    """[(kind, text)] for one column of the parallel-text tables: kind is 'center' (a heading),
+    'para' (an indented cell, i.e. a new paragraph) or 'cont' (a paragraph continued after a page break)."""
+    out = []
+    for row in re.finditer(r"<tr\b([^>]*)>(.*?)</tr>", h, flags=re.S):
+        cells = re.findall(r"<(t[hd])\b([^>]*)>(.*?)</t[hd]>", row.group(2), flags=re.S)
+        if len(cells) <= col:
+            continue
+        text = thml_text(cells[col][2])
+        if not text:
+            continue
+        style = cells[col][1] + row.group(1)
+        kind = "center" if "center" in style else "para" if "indent" in cells[col][1] else "cont"
+        out.append((kind, text))
+    return out
+
+
+def add_text(parts, kind, text):
+    if kind == "cont" and parts:
+        parts[-1] = (parts[-1] + " " + text).strip()
+    else:
+        parts.append(text)
+
+
+def with_refs(sec, extra=()):
+    refs = dedupe(list(extra) + text_refs(sec.get("text", "")))
+    if refs:
+        sec["refs"] = refs
+    else:
+        sec.pop("refs", None)
+    return sec
+
+
+def schaff_heidelberg(old):
+    """Heidelberg Catechism, Schaff's English (the American tercentenary translation, 1863).
+    Schaff prints no proof texts; the proofs of the previous version are kept (same Q numbering)."""
+    rows = thml_rows(thml_prep(thml_div(schaff_src(3), "iv.vi")), 1)
+    old_refs = {s["n"]: s.get("refs", []) for s in old["sections"]}
+    qs, cur, field, pending = [], None, None, []
+    for kind, text in rows:
+        if kind == "center":
+            m = re.match(r"\(?Question\s*(\d+)\.?", text)
+            if m:
+                title = " — ".join(nice_title(t.rstrip(".")) for t in pending if not set(t) <= set("—-–"))
+                cur = {"num": int(m.group(1)), "title": title, "q": [], "a": []}
+                qs.append(cur)
+                field, pending = "q", []
+            elif re.match(r"Answer\.?$", text):
+                field = "a"
+            else:
+                pending.append(text)
+            continue
+        if cur is None:
+            continue
+        if pending and field == "a":         # headings inside an answer (the Ten Commandments in Q. 92)
+            for t in pending:
+                if not set(t) <= set("—-–"):
+                    cur["a"].append(nice_title(t.rstrip(".")) + ".")
+            pending = []
+        add_text(cur[field], kind, text)
+    sections = []
+    for q in qs:
+        a = "\n\n".join(q["a"]).strip()
+        if a.endswith(")") and a.count(")") > a.count("("):
+            a = a[:-1].rstrip()                       # Q. 80 is printed in parentheses
+        sec = {"n": f"Q. {q['num']}"}
+        if q["title"]:
+            sec["title"] = q["title"]
+        sec["q"] = re.sub(r"\bthon\b", "thou", " ".join(q["q"]).strip())     # OCR slip in the CCEL text
+        sec["text"] = re.sub(r"\bthon\b", "thou", a)
+        sections.append(with_refs(sec, old_refs.get(sec["n"], [])))
+    assert len(sections) == 129, len(sections)
+    old.update(source=SCHAFF3, sections=sections,
+               intro="Composed at Heidelberg in 1563 at the command of Elector Frederick III of the Palatinate. "
+                     "English text: the translation of the American tercentenary edition (1863) as printed by "
+                     "Schaff; Scripture proofs from the standard proof-text edition.")
+    return old
+
+
+def schaff_belgic(old):
+    """Belgic Confession, Schaff's English (the Reformed Church in America text)."""
+    rows = thml_rows(thml_prep(thml_div(schaff_src(3), "iv.viii")), 1)
+    old_refs = {s["n"]: s.get("refs", []) for s in old["sections"]}
+    arts, cur = [], None
+    for kind, text in rows:
+        m = re.match(r"Art\.\s*([IVXLC]+)\.?$", text)
+        if kind == "center" and m:
+            cur = {"num": roman_to_int(m.group(1)), "title": None, "text": []}
+            arts.append(cur)
+            continue
+        if cur is None:
+            continue
+        if kind == "center" and cur["title"] is None:
+            cur["title"] = nice_title(text.rstrip("."))
+            continue
+        add_text(cur["text"], kind, text)
+    sections = []
+    for a in arts:
+        sec = {"n": f"Article {a['num']}", "title": a["title"] or "", "text": "\n\n".join(a["text"])}
+        if not sec["title"]:
+            del sec["title"]
+        sections.append(with_refs(sec, old_refs.get(sec["n"], [])))
+    assert len(sections) == 37, len(sections)
+    old.update(source=SCHAFF3, sections=sections,
+               intro="Written in French by Guido de Brès in 1561 for the Reformed churches of the Low Countries "
+                     "and revised at the Synod of Dort (1619). English text: the version authorized by the "
+                     "Reformed (Dutch) Church in America, as printed by Schaff.")
+    return old
+
+
+def schaff_second_helvetic(old):
+    """Second Helvetic Confession, the English version Schaff added in his 3rd edition (1882)."""
+    h = thml_prep(thml_div(schaff_src(3), "v.ix"))
+    chapters, cur = [], None
+    for m in re.finditer(r"<p\b([^>]*)>(.*?)</p>", h, flags=re.S):
+        text = thml_text(m.group(2))
+        head = re.match(r"CHAPTER\s+([IVXLC]+)\.?\s*[—–-]+\s*(.*)", text)
+        if head:
+            cur = {"num": roman_to_int(head.group(1)), "title": nice_title(head.group(2).rstrip(".")), "paras": []}
+            chapters.append(cur)
+        elif cur is not None and text:
+            cur["paras"].append(text)
+    sections = []
+    for ch in chapters:
+        for i, para in enumerate(ch["paras"], 1):
+            sec = {"n": f"Chapter {ch['num']}.{i}"}
+            if i == 1:
+                sec["title"] = ch["title"]
+            sec["text"] = para
+            sections.append(with_refs(sec))
+    assert len(chapters) == 30, len(chapters)
+    old.update(source="Schaff, Creeds of Christendom vol. 3 (3rd ed., 1882)", sections=sections,
+               intro="Written by Heinrich Bullinger in 1562 and published in 1566 as the confession of the Swiss "
+                     "Reformed churches. English text: the version Schaff added in 1882, partly from the old "
+                     "translation in The Harmony of Confessions (1586).")
+    return old
+
+
+def schaff2_english_rows(div_id, start=None, stop=None, col=1):
+    h = thml_prep(thml_div(schaff_src(2), div_id))
+    if start:
+        h = h[h.find(start):]
+    if stop and stop in h:
+        h = h[:h.find(stop)]
+    return [t for k, t in thml_rows(h, col)]
+
+
+def schaff_simple(old, text, intro, source=SCHAFF2):
+    text = re.sub(r"[ \t]+([,;.])", r"\1", text).strip()
+    old.update(source=source, intro=intro, sections=[with_refs({"n": "", "text": text}, [])])
+    return old
+
+
+def schaff_apostles(old):
+    h = thml_prep(thml_div(schaff_src(2), "iv.i.i"))
+    h = h[re.search(r"APOSTLES' CREED\.\s*\((?:<i>)?a(?:</i>)?\)\s*RECEIVED FORM", h).end():]
+    paras = [thml_text(m.group(1)) for m in re.finditer(r"<p\b[^>]*>(.*?)</p>", h, flags=re.S)]
+    paras = [p for p in paras if p][:3]
+    # Schaff marks variant readings in brackets/parentheses: "his only (begotten) Son", "the body [flesh]"
+    paras = [re.sub(r"\s*[\[(][^\])]*[\])]", "", p) for p in paras]
+    return schaff_simple(old, "\n\n".join(paras),
+                         "The baptismal creed of the Western Church, which grew out of the Old Roman Creed of the "
+                         "second century and reached its received form by the eighth century. English text: "
+                         "the received form as given by Schaff (his bracketed variant readings omitted).")
+
+
+def schaff_nicene(old):
+    rows = schaff2_english_rows("iv.i.ii.ii")        # (b) Forma Recepta Ecclesiae Occidentalis
+    assert rows[0].startswith("The Received Text of the Protestant"), rows[:1]
+    paras = []
+    for t in rows[1:]:                                   # rows[0] is the column heading
+        t = t.replace("worlds [God of God]", "worlds, God of God").replace(" [essence]", "")
+        t = re.sub(r"[\[\]]", "", t)                    # Schaff's brackets mark the Western additions
+        if paras and not paras[-1].endswith("."):
+            paras[-1] += " " + t                         # a sentence split across table rows
+        else:
+            paras.append(t)
+    return schaff_simple(old, "\n\n".join(paras),
+                         "The creed of the Council of Nicaea (325) as enlarged by the Council of Constantinople "
+                         "(381). English text: the received text of the Protestant churches as given by Schaff, "
+                         "including the Western additions (\"God of God\", \"and the Son\").")
+
+
+def schaff_chalcedon(old):
+    rows = schaff2_english_rows("iv.i.iii", stop="VERSIO LATINA")
+    return schaff_simple(old, " ".join(rows),
+                         "The definition of the person of Christ adopted by the Council of Chalcedon on 22 October "
+                         "451: one Christ in two natures, without confusion, change, division or separation. "
+                         "English text as given by Schaff.")
+
+
+def schaff_ignatius(old):
+    rows = schaff2_english_rows("iii.i.i")
+    text = " ".join(rows)
+    text = re.sub(r"\s*\[[^\]]*\]", "", text)                     # interpolations of the longer recension
+    text = re.sub(r"\s+", " ", text).strip()
+    return schaff_simple(old, text,
+                         "Not a creed itself but the summary of the gospel facts in Ignatius of Antioch's Epistle "
+                         "to the Trallians, ch. 9 (c. 107). English text as given by Schaff (shorter Greek "
+                         "recension; his bracketed additions from the longer recension omitted).")
+
+
+SCHAFF_REPLACEMENTS = {
+    "heidelberg_catechism": schaff_heidelberg,
+    "belgic_confession_of_faith": schaff_belgic,
+    "second_helvetic_confession": schaff_second_helvetic,
+    "apostles_creed": schaff_apostles,
+    "nicene_creed": schaff_nicene,
+    "chalcedonian_definition": schaff_chalcedon,
+    "ignatius_creed": schaff_ignatius,
+}
 
 
 # ---------------------------------------------------------------------------------------------
@@ -845,6 +1133,7 @@ def build_39_articles():
         # The 1801 American revision omits or rewrites VIII, XXI and XXXVII: keep the 1571 English there.
         use_en = a["num"] in (8, 21, 37) or not us or len(us) < 200 and "omitted" in us.lower()
         text = "\n\n".join(a["en"]) if use_en else us
+        text = re.sub(r"\s*\[[^\]]*(?:omitted|American)[^\]]*\]", "", text).strip()   # Schaff's notes
         title = a["title_en"] if use_en else a["title"]
         sec = {"n": f"Article {a['num']}", "title": title, "text": text}
         refs = dedupe(text_refs(text))
@@ -855,6 +1144,7 @@ def build_39_articles():
     return [{
         "id": "thirty-nine-articles", "title": "Thirty-Nine Articles of Religion", "type": "confession",
         "year": "1571", "author": "Church of England (Convocation)", "tradition": "Anglican",
+        "source": SCHAFF3,
         "intro": "The doctrinal standard of the Church of England, drafted under Archbishop Thomas Cranmer "
                  "(Forty-two Articles, 1553), revised by Matthew Parker in 1563 and finalised in 1571. "
                  "Text: Schaff, The Creeds of Christendom, vol. 3 (public domain), using the modern-spelling "
@@ -872,6 +1162,17 @@ def build_39_articles():
 PD_HOSTS = {"historicalchristian.faith", "newadvent.org", "ccel.org", "tertullian.org",
             "earlychristianwritings.com", "archive.org", "web.archive.org", "sacred-texts.com",
             "catholiclibrary.org", "gutenberg.org"}
+# Works hosted on historicalchristian.faith whose own title pages show a modern, copyrighted translation
+# (checked against the head of each cited file in the project's Writings-Database, Nov 2026).
+COPYRIGHTED_WORKS = (
+    "Alcuin of York/Commentary and the Questions and Answers Manual/",   # © Consolamini Publications 2016
+    "Theophylact of Ohrid/Commentary on Matthew.html",                   # Chrysostom Press ("please buy")
+    "Clement of Alexandria/The Stromata Book 3.html",                    # Library of Christian Classics 1954
+    "Augustine of Hippo/Sermons/Sermon 229U.html",                       # placeholder, no text
+)
+# Thomas Aquinas's own commentaries there are Larcher/Magi Books (1966-80), Mulladay (2002), McInerny
+# (Penguin 1998) etc.; only his Catena Aurea (Newman's 1841 translation, public domain) is kept.
+CATENA_ONLY_AUTHORS = {"Thomas Aquinas"}
 SKIP_CATEGORIES = {"Canonical Scriptures", "Second Temple Judaism"}
 SKIP_AUTHORS = {"Book of Biblical Antiquities"}   # Jewish (Pseudo-Philo)
 COPYRIGHT_YEAR = 1930                              # authors dated after this are not public domain
@@ -884,7 +1185,8 @@ DISPLAY_NAMES = {
     "Martyrdom Of Polycarp": "Martyrdom of Polycarp", "Theognostus Of Alexandria": "Theognostus of Alexandria",
     "Tyrannius Rufinus": "Rufinus of Aquileia", "Marcus Minucius Felix": "Minucius Felix",
     "Gaius Marius Victorinus": "Marius Victorinus", "Hermias Sozomen": "Sozomen",
-    "Besa The Copt": "Besa the Copt", "Ishodad of Merv": "Isho'dad of Merv",
+    "Besa The Copt": "Besa the Copt", "Ishodad of Merv": "Isho'dad of Merv", "JB Lightfoot": "J. B. Lightfoot",
+    "The Liturgy Of The Blessed Apostles": "The Liturgy of the Blessed Apostles",
 }
 FATHER_IDS = {
     "Augustine of Hippo": "augustine", "John Chrysostom": "chrysostom", "Jerome": "jerome",
@@ -1034,11 +1336,51 @@ def source_label(title, app):
     return s
 
 
+WRITINGS_RAW = "https://raw.githubusercontent.com/HistoricalChristianFaith/Writings-Database/master/"
+
+
+def is_accs_style(title):
+    """ALL-CAPS citations ("HOMILIES ON NUMBERS 23.5") were imported from a modern anthology."""
+    letters = re.sub(r"[^A-Za-z]", "", title or "")
+    return len(letters) >= 4 and letters.isupper()
+
+
+def letters_only(s):
+    s = html.unescape(re.sub(r"<[^>]+>", " ", s))
+    return re.sub(r"[^a-z]+", "", s.lower())
+
+
+def found_verbatim(quote, work_letters):
+    """True if most of five 40-letter windows of the quote occur in the cited work."""
+    q = letters_only(quote)
+    if len(q) < 40:
+        return q in work_letters
+    step = max(40, len(q) // 5)
+    wins = [q[i:i + 40] for i in range(0, len(q) - 39, step)][:5]
+    return sum(w in work_letters for w in wins) * 2 >= len(wins)
+
+
+def load_writings(works):
+    """Download the cited Writings-Database files (cached) and return {path: letters-only text}."""
+    def one(path):
+        if path.lower().endswith(".pdf"):
+            return path, ""
+        local = "writings/" + re.sub(r"[^A-Za-z0-9._-]+", "_", path)
+        f = fetch(WRITINGS_RAW + urllib.parse.quote(path), local, quiet_fail=True, verbose=False)
+        if not f:
+            return path, ""
+        with open(f, encoding="utf-8", errors="replace") as fh:
+            return path, letters_only(fh.read())
+    with ThreadPoolExecutor(8) as ex:
+        return dict(ex.map(one, sorted(works)))
+
+
 def build_fathers(docs_bytes):
     log("Church fathers (Commentaries-Database) …")
     meta, rows = fathers_source()
     skipped = Counter()
     entries = []          # (code, c1, v1, c2, v2, father, text, source, year)
+    to_check = {}         # entry index -> cited Writings-Database path ("" if it cannot be checked)
     seen = set()
     for fn, book, c1, v1, c2, v2, txt, url, title, app, ts in rows:
         m = meta.get(fn)
@@ -1056,6 +1398,15 @@ def build_fathers(docs_bytes):
         host = host.removeprefix("www.")
         if host not in PD_HOSTS:
             skipped["no public-domain source cited (fair-use excerpt)"] += 1
+            continue
+        work = urllib.parse.unquote(urllib.parse.unquote(
+            urllib.parse.parse_qs(urllib.parse.urlparse(url).query).get("file", [""])[0]))
+        if work.startswith(COPYRIGHTED_WORKS) or (fn in CATENA_ONLY_AUTHORS and "Catena Aurea" not in work
+                                                   and "Catena Aurea" not in title):
+            skipped["modern copyrighted translation"] += 1
+            continue
+        if era_for(y) not in INCLUDE_ERAS:
+            skipped["era not included"] += 1
             continue
         code = book_code(book)
         if not code:
@@ -1081,6 +1432,17 @@ def build_fathers(docs_bytes):
         c2 = int(rc.group(3)) if rc.group(3) else c1
         v2 = int(rc.group(4)) if rc.group(4) else v1
         entries.append((code, c1, v1, c2, v2, fn, text, source_label(title, app), y))
+        if is_accs_style(title):
+            to_check[len(entries) - 1] = work if host == "historicalchristian.faith" else ""
+
+    # ALL-CAPS citations come from a modern anthology; keep them only when the quoted text really is
+    # the public-domain translation that the entry links to.
+    works = {w for w in to_check.values() if w}
+    log(f"  checking {len(to_check)} anthology-style citations against {len(works)} cited texts …")
+    texts = load_writings(works)
+    drop = {i for i, w in to_check.items() if not (w and texts.get(w) and found_verbatim(entries[i][6], texts[w]))}
+    skipped["anthology wording not found in the cited public-domain text"] += len(drop)
+    entries = [e for i, e in enumerate(entries) if i not in drop]
     for k, v in skipped.most_common():
         log(f"  skipped {v:6d}  {k}")
 
@@ -1177,10 +1539,13 @@ def main():
     ids = Counter(d["id"] for d in docs)
     assert all(v == 1 for v in ids.values()), ids
     sizes = Counter()
+    key_order = ["id", "title", "type", "year", "author", "tradition", "source", "intro", "sections"]
+    docs = [{k: d[k] for k in key_order if k in d} for d in docs]
     for d in docs:
         sizes["docs/*.json"] += write_json(f"docs/{d['id']}.json", d)
     doc_index = [{"id": d["id"], "title": d["title"], "type": d["type"], "year": d["year"],
-                  "author": d["author"], "tradition": d["tradition"], "sections": len(d["sections"])}
+                  "author": d["author"], "tradition": d["tradition"], "source": d["source"],
+                  "sections": len(d["sections"])}
                  for d in docs]
 
     fathers, fsizes, fstats = build_fathers(sizes["docs/*.json"])

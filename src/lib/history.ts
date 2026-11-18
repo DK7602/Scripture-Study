@@ -9,6 +9,7 @@ export interface DocMeta {
   year: string
   author: string
   tradition: string
+  source?: string
   sections: number
 }
 
