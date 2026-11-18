@@ -7,7 +7,7 @@ import { formatRef } from '../lib/refs'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
 import { onShared, sharedVersions } from '../lib/shared'
-import { chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
+import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
 import type { Highlight, Label, Place } from '../lib/types'
 import { Icon, Ornament } from '../components/Icon'
@@ -24,7 +24,7 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
   const [hlOpen, setHlOpen] = useState(false)
   const b = book(loc.book)
   const label = labels.find((l) => l.id === hlLabel) ?? labels[0]
-  const showNames = versionInfo(settings.version)?.strongs
+  const showNames = true
 
   return (
     <div className="reader-toolbar">
@@ -302,14 +302,15 @@ function BibleReader() {
               key={`${settings.version}-${v}`}
               v={v}
               text={text}
-              para={settings.layout === 'paragraph' && !!data.paras?.includes(v)}
+              para={settings.layout === 'paragraph' && !!(data.paras ?? align?.paras)?.includes(v)}
               pilcrow={settings.layout === 'verse' && settings.version === 'KJV' && !!data.paras?.includes(v) && v > 1}
               focus={loc.verse === v && !selected.size}
               selected={selected.has(v)}
               highlights={chapterHl.filter((h) => h.v1 <= v && h.v2 >= v)}
               labelMap={labelMap}
               version={settings.version}
-              names={settings.namesOfGod && !!vinfo?.strongs}
+              names={settings.namesOfGod && (!!vinfo?.strongs || !!align)}
+              redFromKjv={!vinfo?.redLetter}
               caps={settings.capsNames}
               red={settings.redLetters}
               compound={settings.namesOfGod ? COMPOUND_NAMES[`${loc.book}.${loc.chapter}.${v}`] : undefined}
@@ -477,6 +478,7 @@ interface VerseProps {
   book: string
   chapter: number
   align?: ChapterAlign | null
+  redFromKjv?: boolean
 }
 
 const VerseRow = memo(function VerseRow(p: VerseProps) {
@@ -484,19 +486,20 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
   const toks = useMemo(() => {
     let t = tokenize(p.text)
     if (p.align) {
-      // other translations: borrow Strong's numbers from the same KJV verse
+      // other translations: borrow Strong's numbers (and, where missing, the words of Christ) from the KJV
       const va = p.align.verses.get(p.v)
       t = t.map((x) => {
         if (x.s || x.sp) return x
         const n = matchWord(x.t, va, p.align!.words)
         return n ? { ...x, s: [n], al: true } : x
       })
+      if (p.redFromKjv) t = applyRed(t, va)
     }
     if (p.names) t = applyDivineNames(t)
     // remember the printed form so the KJV's LORD / GOD (YHWH) keep their small capitals
     t = t.map((x) => ({ ...x, o: x.t }))
     return p.caps ? capsTokens(t, ref) : t
-  }, [p.text, p.names, p.caps, ref, p.align])
+  }, [p.text, p.names, p.caps, ref, p.align, p.redFromKjv])
 
   // highlight color for each token
   const colorOf = (tok: Tok): string | undefined => {

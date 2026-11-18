@@ -223,6 +223,23 @@ export function applyDivineNames(toks: Tok[]): Tok[] {
       }
     }
   }
+  for (let k = 0; k < out.length; k++) {
+    const t = out[k]
+    if (!t.name) continue
+    // keep the punctuation of words folded into the name ("God Almighty;" -> "El Shaddai;")
+    let last = -1
+    for (let j = k + 1; j < out.length && (drop.has(j) || out[j].sp); j++) if (drop.has(j) && !out[j].sp) last = j
+    if (last >= 0) {
+      const m = out[last].t.match(/[^\p{L}\p{N}]+$/u)
+      if (m) t.t = t.t.replace(/[^\p{L}\p{N}]*$/u, '') + m[0]
+    }
+    // "the LORD" -> "Jehovah" (the article belongs to the English title, not the name)
+    if (/^(Jehovah|Adonai Jehovah|El |Shaddai|Elyon)/.test(t.name)) {
+      let p = k - 1
+      while (p >= 0 && out[p].sp) p--
+      if (p >= 0 && /^(the|The)$/.test(out[p].t) && !out[p].s) for (let q = p; q < k; q++) drop.add(q)
+    }
+  }
   return out.filter((_, k) => !drop.has(k))
 }
 
