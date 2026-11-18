@@ -10,6 +10,7 @@
 import * as db from './db'
 import { getState, setChangeListener, setState, type State } from './store'
 import type { Settings } from './types'
+import { setSharedVersions } from './shared'
 
 type Coll = 'labels' | 'highlights' | 'notes' | 'journal' | 'bookmarks' | 'settings'
 interface Change {
@@ -211,6 +212,7 @@ export async function checkSignIn(): Promise<void> {
   const me = (await r.json()) as { email: string; registered: boolean; role: string | null; invite?: string }
   if (!me.registered) return set({ status: 'not-invited', email: me.email })
   set({ status: 'signed-in', email: me.email, role: me.role ?? undefined, invite: me.invite })
+  void refreshLicensed()
   // first sync on this device: send everything already saved here
   if (!localStorage.getItem(SEEDED)) {
     const s = getState()
@@ -237,12 +239,55 @@ export function signIn() {
 
 export function signOut() {
   for (const k of [CURSOR, SEEDED, OUTBOX]) localStorage.removeItem(k)
+  setSharedVersions([])
   window.location.href = `${import.meta.env.BASE_URL}cdn-cgi/access/logout`
 }
 
 export async function newInvite(): Promise<void> {
   const r = await api('invite', { method: 'POST' })
   if (r?.ok) set({ invite: ((await r.json()) as { invite: string }).invite })
+}
+
+// ---------------------------------------------------------------------------------------------
+// Licensed translations shared by the owner
+// ---------------------------------------------------------------------------------------------
+export interface LicensedInfo {
+  versions: string[]
+  hasKey?: boolean
+  ids?: Record<string, string>
+  usedThisMonth?: number
+  monthLimit?: number
+  bibles?: { id: string; abbreviation: string; name: string }[]
+  error?: string
+}
+
+async function licApi(path: string, init: RequestInit = {}): Promise<LicensedInfo & { ok?: boolean }> {
+  const r = await fetch(`${import.meta.env.BASE_URL}api/${path}`, { ...init, redirect: 'manual', credentials: 'same-origin', cache: 'no-store' })
+  if (r.type === 'opaqueredirect' || r.status === 401) throw new Error('Please sign in again.')
+  const d = await r.json().catch(() => ({}))
+  if (!r.ok) throw new Error(d.error || `Error ${r.status}`)
+  return d
+}
+
+export async function refreshLicensed(withBibles = false): Promise<LicensedInfo | null> {
+  try {
+    const d = await licApi(`licensed${withBibles ? '?bibles=1' : ''}`)
+    setSharedVersions(d.versions ?? [])
+    return d
+  } catch {
+    return null
+  }
+}
+
+export async function saveLicensedKey(key: string): Promise<LicensedInfo> {
+  const d = await licApi('licensed/key', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key }) })
+  await refreshLicensed()
+  return d
+}
+
+export async function saveLicensedIds(ids: Record<string, string>): Promise<void> {
+  await licApi('licensed/ids', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ids }) })
+  await refreshLicensed()
 }
 
 // ---------------------------------------------------------------------------------------------

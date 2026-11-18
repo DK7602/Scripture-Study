@@ -20,3 +20,14 @@ CREATE INDEX IF NOT EXISTS items_stamp ON items (email, stamp);
 CREATE TABLE IF NOT EXISTS config (k TEXT PRIMARY KEY, v TEXT NOT NULL);
 -- rate limiting buckets
 CREATE TABLE IF NOT EXISTS hits (k TEXT PRIMARY KEY, n INTEGER NOT NULL, exp INTEGER NOT NULL);
+-- licensed translations shared with members (API.Bible): chapters cached up to 25 days
+-- (API.Bible allows caching if refreshed at least every 30 days)
+CREATE TABLE IF NOT EXISTS lic_cache (
+  v TEXT NOT NULL,                          -- version label, e.g. CSB
+  ref TEXT NOT NULL,                        -- BOOK.chapter
+  content TEXT NOT NULL,
+  copyright TEXT,
+  fums TEXT,
+  fetched INTEGER NOT NULL,
+  PRIMARY KEY (v, ref)
+);

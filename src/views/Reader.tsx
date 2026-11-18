@@ -6,6 +6,8 @@ import { capsText, capsTokens } from '../lib/caps'
 import { formatRef } from '../lib/refs'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
+import { onShared, sharedVersions } from '../lib/shared'
+import { useSyncExternalStore } from 'react'
 import type { Highlight, Label, Place } from '../lib/types'
 import { Icon, Ornament } from '../components/Icon'
 
@@ -46,7 +48,7 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
         {versions().map((v) => (
           <option key={v.id} value={v.id} title={v.name}>
             {v.id}
-            {v.licensed ? ' (key)' : ''}
+            {v.licensed && !sharedVersions().includes(v.id) && !(v.licensed === 'apibible' && settings.apiBibleKey && settings.apiBibleIds[v.id]) && !(v.licensed === 'esv' && settings.esvKey) ? ' (key)' : ''}
           </option>
         ))}
       </select>
@@ -165,6 +167,7 @@ function BibleReader() {
   const selection = useStore((s) => s.selection)
   const focusTick = useStore((s) => s.focusTick)
   const [data, setData] = useState<ChapterResult | null>(null)
+  const shared = useSyncExternalStore(onShared, sharedVersions)
   const [xref, setXref] = useState<Record<string, string[]>>({})
   const [helps, setHelps] = useState<Map<number, VerseHelp[]>>(new Map())
   const [placeMap, setPlaceMap] = useState<Map<number, Place[]>>(new Map())
@@ -185,7 +188,7 @@ function BibleReader() {
     return () => {
       live = false
     }
-  }, [loc.book, loc.chapter, settings.version, settings.placeChips])
+  }, [loc.book, loc.chapter, settings.version, settings.placeChips, shared])
 
   // scroll to the focused verse after navigation
   useEffect(() => {
@@ -263,7 +266,7 @@ function BibleReader() {
 
   let content: React.ReactNode
   if (!data) content = <div className="spinner" />
-  else if (data.error === 'needs-key')
+  else if (data.error === 'needs-key' || data.error === 'needs-signin')
     content = <LicensedNotice version={settings.version} />
   else if (data.error) content = <div className="notice">Could not load {settings.version}: {data.error}</div>
   else
@@ -385,6 +388,11 @@ function LicensedNotice({ version }: { version: string }) {
           <> get one at <a href="https://scripture.api.bible/" target="_blank" rel="noreferrer">scripture.api.bible</a> and choose the version your licence includes.</>
         )}
       </p>
+      {info?.licensed === 'apibible' && (
+        <p className="small" style={{ marginTop: 0 }}>
+          <b>In a Scripture Study group?</b> Sign in under Settings → Sync across devices — if the owner shares the {version}, you can read it without a key.
+        </p>
+      )}
       <p className="small subtle">Licensed text is shown live and is never stored on your device. Strong’s numbers and red letters are available in the KJV.</p>
       <button className="btn primary" onClick={() => setState({ tab: 'settings', panel: true })}>
         Open Settings

@@ -1,5 +1,6 @@
 import { bibleBook, book, versionInfo } from './data'
 import { getState } from './store'
+import { reportFums, sharedVersions } from './shared'
 
 /**
  * Chapter text for any version. Public-domain versions ship with the app; licensed versions
@@ -43,8 +44,9 @@ async function load(version: string, bookId: string, chapter: number): Promise<C
       return await esv(bookId, chapter, s.esvKey)
     }
     const id = s.apiBibleIds[version]
-    if (!s.apiBibleKey || !id) return { verses: [], error: 'needs-key' }
-    return await apiBible(id, bookId, chapter, s.apiBibleKey)
+    if (s.apiBibleKey && id) return await apiBible(id, bookId, chapter, s.apiBibleKey)
+    if (sharedVersions().includes(version)) return await sharedChapter(version, bookId, chapter)
+    return { verses: [], error: 'needs-key' }
   } catch (e) {
     return { verses: [], error: String((e as Error).message || e) }
   }
@@ -85,7 +87,22 @@ async function apiBible(bibleId: string, bookId: string, chapter: number, key: s
   const r = await fetch(url, { headers: { 'api-key': key } })
   if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'The API.Bible key was not accepted for this version.' : `API.Bible error ${r.status}`)
   const d = await r.json()
+  reportFums(d.meta?.fumsToken ?? (d.meta?.fumsId ? `v2:${d.meta.fumsId}` : null))
   return { verses: splitNumbered(d.data?.content ?? '', b.v[chapter - 1]), copyright: d.data?.copyright }
+}
+
+/** A licensed chapter through the group's shared key (members only; cached up to 25 days on the server). */
+async function sharedChapter(version: string, bookId: string, chapter: number): Promise<ChapterResult> {
+  const b = book(bookId)
+  const r = await fetch(`${import.meta.env.BASE_URL}api/licensed/chapter?v=${version}&book=${bookId}&ch=${chapter}`, {
+    redirect: 'manual',
+    credentials: 'same-origin',
+  })
+  if (r.type === 'opaqueredirect' || r.status === 401) return { verses: [], error: 'needs-signin' }
+  const d = await r.json().catch(() => ({}))
+  if (!r.ok) return { verses: [], error: d.error || `Error ${r.status}` }
+  reportFums(d.fums)
+  return { verses: splitNumbered(d.content ?? '', b.v[chapter - 1]), copyright: d.copyright ?? undefined }
 }
 
 export interface ApiBibleVersion {

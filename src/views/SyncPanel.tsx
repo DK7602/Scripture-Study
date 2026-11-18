@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { newInvite, onSync, pendingInvite, signIn, signOut, syncInfo, syncNow } from '../lib/sync'
+import { newInvite, onSync, pendingInvite, refreshLicensed, saveLicensedIds, saveLicensedKey, signIn, signOut, syncInfo, syncNow, type LicensedInfo } from '../lib/sync'
+import { onShared, sharedVersions } from '../lib/shared'
 import { Icon } from '../components/Icon'
 
 /** Settings section: sign in with email to sync notes, journal and highlights across devices. */
@@ -69,6 +70,7 @@ export function SyncPanel() {
             </button>
             <button className="btn small" onClick={signOut}>Sign out</button>
           </div>
+          {info.role === 'owner' ? <SharedTranslations /> : <MemberTranslations />}
           {info.role === 'owner' && info.invite && (
             <div style={{ marginTop: 12 }}>
               <div className="small" style={{ fontWeight: 600 }}>Invite someone</div>
@@ -90,6 +92,97 @@ export function SyncPanel() {
         </>
       )}
       {info.message && info.status !== 'error' && <p className="small" style={{ color: '#a3271c', marginBottom: 0 }}>{info.message}</p>}
+    </div>
+  )
+}
+
+function MemberTranslations() {
+  const shared = useSyncExternalStore(onShared, sharedVersions)
+  if (!shared.length) return null
+  return (
+    <p className="small" style={{ marginBottom: 0 }}>
+      Your group can read: <b>{shared.join(', ')}</b> (choose it in the version menu above the Bible).
+    </p>
+  )
+}
+
+const LICENSED = ['CSB', 'NKJV', 'NASB', 'NIV']
+
+/** Owner: paste the API.Bible key once; every signed-in member can then read those translations. */
+function SharedTranslations() {
+  const [data, setData] = useState<LicensedInfo | null>(null)
+  const [key, setKey] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+  const [ids, setIds] = useState<Record<string, string>>({})
+  useEffect(() => {
+    refreshLicensed(true).then((d) => {
+      setData(d)
+      setIds(d?.ids ?? {})
+    })
+  }, [])
+  const saveKey = async () => {
+    setBusy(true)
+    setMsg('')
+    try {
+      const d = await saveLicensedKey(key.trim())
+      const fresh = await refreshLicensed(true)
+      setData(fresh)
+      setIds(d.ids ?? fresh?.ids ?? {})
+      setKey('')
+      setMsg('Key saved. Check the versions below.')
+    } catch (e) {
+      setMsg((e as Error).message)
+    }
+    setBusy(false)
+  }
+  const saveIds = async () => {
+    setBusy(true)
+    try {
+      await saveLicensedIds(ids)
+      setData(await refreshLicensed(true))
+      setMsg('Saved — members can now pick these in the version menu.')
+    } catch (e) {
+      setMsg((e as Error).message)
+    }
+    setBusy(false)
+  }
+  return (
+    <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--rule)' }}>
+      <div className="small" style={{ fontWeight: 600 }}>Share CSB, NKJV, NASB or NIV with your group</div>
+      <div className="small subtle" style={{ marginBottom: 6 }}>
+        Paste your API.Bible key once. It stays on your Cloudflare server (never on members’ devices), and everyone you invited can read these
+        translations when signed in. Chapters are kept for 25 days so the group shares your free monthly allowance.
+      </div>
+      {data?.hasKey && <div className="small" style={{ marginBottom: 6 }}>✓ Key saved{data.usedThisMonth !== undefined && ` · ${data.usedThisMonth} of ${data.monthLimit} live loads used this month`}</div>}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+        <input className="input" type="password" autoComplete="off" placeholder={data?.hasKey ? 'Replace API.Bible key' : 'API.Bible key'} value={key} onChange={(e) => setKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: 15 }} />
+        <button className="btn small primary" disabled={busy || !key.trim()} onClick={saveKey}>
+          Save key
+        </button>
+      </div>
+      {data?.hasKey && data.bibles && (
+        <>
+          {LICENSED.map((v) => (
+            <div className="setting-row" key={v} style={{ padding: '6px 0' }}>
+              <span>{v}</span>
+              <select className="select" style={{ maxWidth: 230, fontSize: 14 }} value={ids[v] ?? ''} onChange={(e) => setIds({ ...ids, [v]: e.target.value })} aria-label={`API.Bible version for ${v}`}>
+                <option value="">Not shared</option>
+                {data.bibles!.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.abbreviation} — {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+          <button className="btn small" disabled={busy} onClick={saveIds} style={{ marginTop: 6 }}>
+            Save versions
+          </button>
+        </>
+      )}
+      {data?.error && <p className="small" style={{ color: '#a3271c' }}>{data.error}</p>}
+      {msg && <p className="small" style={{ marginBottom: 0 }}>{msg}</p>}
     </div>
   )
 }

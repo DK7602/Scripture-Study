@@ -13,6 +13,10 @@
  *   GET  /api/sync?since=N          changes since cursor N
  *   POST /api/sync                  { items: [{ coll, id, data|null, updated, deleted }] }
  *   POST /api/invite                owner only: make a new invite link (old one stops working)
+ *   GET  /api/licensed              which licensed Bibles (CSB, NKJV…) the group can read
+ *   GET  /api/licensed/chapter?v=CSB&book=JHN&ch=15   a chapter, via the owner's API.Bible key
+ *   POST /api/licensed/key          owner: save/replace the API.Bible key (returns the Bibles it unlocks)
+ *   POST /api/licensed/ids          owner: { ids: { CSB: "<bible id>", … } }
  */
 
 interface D1Result<T> {
@@ -184,6 +188,8 @@ export const onRequest = async ({ request, env }: Ctx): Promise<Response> => {
     return json({ invite: `${origin}/?invite=${await rotateInvite(env.DB)}` })
   }
 
+  if (route.startsWith('licensed')) return licensed(route, request, env, me.role === 'owner', email)
+
   if (route === 'sync' && request.method === 'GET') {
     const since = parseInt(url.searchParams.get('since') || '0', 10) || 0
     const rows = await env.DB.prepare(
@@ -230,6 +236,131 @@ export const onRequest = async ({ request, env }: Ctx): Promise<Response> => {
     }
     if (stmts.length) await env.DB.batch(stmts)
     return json({ ok: true, saved: stmts.length })
+  }
+
+  return json({ error: 'Not found.' }, 404)
+}
+
+// ---------------------------------------------------------------------------------------------
+// Licensed translations through the owner's API.Bible key
+// ---------------------------------------------------------------------------------------------
+const LIC = {
+  cacheDays: 25, // API.Bible: cached text must be refreshed at least every 30 days
+  monthLive: 4500, // live API.Bible calls per month for the whole group (free plan: 5,000)
+  dayLivePerUser: 120, // live calls per person per day (cached chapters don't count)
+}
+const LIC_VERSIONS = ['NKJV', 'NASB', 'CSB', 'NIV']
+const ABIBLE = 'https://rest.api.bible/v1'
+
+async function cfg(db: D1, k: string): Promise<string | null> {
+  return (await db.prepare('SELECT v FROM config WHERE k = ?1').bind(k).first<{ v: string }>())?.v ?? null
+}
+async function setCfg(db: D1, k: string, v: string) {
+  await db.prepare('INSERT INTO config (k, v) VALUES (?1, ?2) ON CONFLICT(k) DO UPDATE SET v = ?2').bind(k, v).run()
+}
+
+/** Forget cached chapters only for versions whose API.Bible edition changed. */
+async function clearChanged(db: D1, before: Record<string, string>, after: Record<string, string>) {
+  for (const v of LIC_VERSIONS) if ((before[v] || '') !== (after[v] || '')) await db.prepare('DELETE FROM lic_cache WHERE v = ?1').bind(v).run()
+}
+
+async function listBibles(key: string) {
+  const r = await fetch(`${ABIBLE}/bibles?language=eng`, { headers: { 'api-key': key } })
+  if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? 'That API.Bible key was not accepted.' : `API.Bible error ${r.status}`)
+  const d = (await r.json()) as { data?: { id: string; abbreviation: string; abbreviationLocal?: string; name: string }[] }
+  return (d.data ?? []).map((b) => ({ id: b.id, abbreviation: b.abbreviationLocal || b.abbreviation, name: b.name }))
+}
+
+async function licensed(route: string, request: Request, env: Env, owner: boolean, email: string): Promise<Response> {
+  const db = env.DB
+  const ids: Record<string, string> = JSON.parse((await cfg(db, 'apibible_ids')) || '{}')
+  const key = await cfg(db, 'apibible_key')
+
+  if (route === 'licensed' && request.method === 'GET') {
+    const body: Record<string, unknown> = { versions: key ? Object.keys(ids).filter((v) => ids[v]) : [] }
+    if (owner) {
+      body.hasKey = !!key
+      body.ids = ids
+      const month = new Date().toISOString().slice(0, 7)
+      body.usedThisMonth = Number((await cfg(db, `lic_month_${month}`)) || 0)
+      body.monthLimit = LIC.monthLive
+      if (key && new URL(request.url).searchParams.get('bibles')) {
+        try {
+          body.bibles = await listBibles(key)
+        } catch (e) {
+          body.error = (e as Error).message
+        }
+      }
+    }
+    return json(body)
+  }
+
+  if (route === 'licensed/key' && request.method === 'POST') {
+    if (!owner) return json({ error: 'Only the owner can set the API.Bible key.' }, 403)
+    const { key: newKey } = (await request.json().catch(() => ({}))) as { key?: string }
+    if (!newKey || newKey.length > 200) return json({ error: 'Paste your API.Bible key.' }, 400)
+    try {
+      const bibles = await listBibles(newKey.trim())
+      await setCfg(db, 'apibible_key', newKey.trim())
+      // pick the obvious matches automatically
+      const auto: Record<string, string> = { ...ids }
+      for (const v of LIC_VERSIONS) if (!auto[v]) auto[v] = bibles.find((b) => b.abbreviation.toUpperCase() === v)?.id ?? ''
+      await setCfg(db, 'apibible_ids', JSON.stringify(auto))
+      await clearChanged(db, ids, auto)
+      return json({ ok: true, bibles, ids: auto })
+    } catch (e) {
+      return json({ error: (e as Error).message }, 400)
+    }
+  }
+
+  if (route === 'licensed/ids' && request.method === 'POST') {
+    if (!owner) return json({ error: 'Only the owner can choose versions.' }, 403)
+    const { ids: next } = (await request.json().catch(() => ({}))) as { ids?: Record<string, string> }
+    const clean: Record<string, string> = {}
+    for (const v of LIC_VERSIONS) if (typeof next?.[v] === 'string' && next[v].length < 80) clean[v] = next[v]
+    await setCfg(db, 'apibible_ids', JSON.stringify(clean))
+    await clearChanged(db, ids, clean)
+    return json({ ok: true, ids: clean })
+  }
+
+  if (route === 'licensed/chapter' && request.method === 'GET') {
+    const u = new URL(request.url)
+    const v = (u.searchParams.get('v') || '').toUpperCase()
+    const book = (u.searchParams.get('book') || '').toUpperCase()
+    const ch = parseInt(u.searchParams.get('ch') || '', 10)
+    if (!key || !ids[v]) return json({ error: 'This translation is not shared with the group.' }, 404)
+    if (!/^[1-3A-Z]{3}$/.test(book) || !(ch >= 1 && ch <= 150)) return json({ error: 'Bad reference.' }, 400)
+    const ref = `${book}.${ch}`
+    const cached = await db
+      .prepare('SELECT content, copyright, fums, fetched FROM lic_cache WHERE v = ?1 AND ref = ?2')
+      .bind(v, ref)
+      .first<{ content: string; copyright: string | null; fums: string | null; fetched: number }>()
+    if (cached && Date.now() - cached.fetched < LIC.cacheDays * 86400000) {
+      return json({ content: cached.content, copyright: cached.copyright, fums: cached.fums, cached: true })
+    }
+    // live call: protect the group's monthly allowance
+    const month = new Date().toISOString().slice(0, 7)
+    const used = Number((await cfg(db, `lic_month_${month}`)) || 0)
+    if (used >= LIC.monthLive) return json({ error: 'The group has used this month’s licensed-translation allowance. The KJV, BSB, WEB and ASV are always available.' }, 429)
+    const today = await bump(db, `lic:${email}:${Math.floor(Date.now() / 86400000)}`, 86400000)
+    if (today > LIC.dayLivePerUser) return json({ error: 'Daily limit for licensed translations reached — try again tomorrow.' }, 429)
+    const r = await fetch(
+      `${ABIBLE}/bibles/${encodeURIComponent(ids[v])}/chapters/${ref}?content-type=text&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true&include-verse-spans=false`,
+      { headers: { 'api-key': key } },
+    )
+    await setCfg(db, `lic_month_${month}`, String(used + 1))
+    if (!r.ok) return json({ error: `API.Bible error ${r.status}` }, r.status === 404 ? 404 : 502)
+    const d = (await r.json()) as { data?: { content?: string; copyright?: string }; meta?: { fumsToken?: string; fumsId?: string } }
+    const content = d.data?.content ?? ''
+    const fums = d.meta?.fumsToken ?? (d.meta?.fumsId ? `v2:${d.meta.fumsId}` : null)
+    await db
+      .prepare(
+        `INSERT INTO lic_cache (v, ref, content, copyright, fums, fetched) VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+         ON CONFLICT(v, ref) DO UPDATE SET content = ?3, copyright = ?4, fums = ?5, fetched = ?6`,
+      )
+      .bind(v, ref, content, d.data?.copyright ?? null, fums, Date.now())
+      .run()
+    return json({ content, copyright: d.data?.copyright ?? null, fums, cached: false })
   }
 
   return json({ error: 'Not found.' }, 404)
