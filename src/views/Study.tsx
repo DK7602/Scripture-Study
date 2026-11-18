@@ -18,8 +18,10 @@ export const CHIPS: Chip[] = [
   { id: 'barnes', label: 'Barnes' },
   { id: 'calvin', label: 'Calvin' },
   { id: 'poole', label: 'Poole' },
+  { id: 'gill', label: 'Gill' },
   { id: 'jfb', label: 'JFB' },
   { id: 'geneva', label: 'Geneva 1599' },
+  { id: 'spurgeon', label: 'Spurgeon (Psalms)' },
   { id: 'fathers', label: 'Church Fathers' },
 ]
 
@@ -224,6 +226,7 @@ export function StudyPanel() {
 
 function describeCoverage(info: CommentaryInfo): string {
   const ids = Object.keys(info.books)
+  if (ids.length <= 3) return `${ids.map((b) => book(b)?.name).join(', ')} only`
   const nt = ids.filter((b) => book(b)?.t === 'NT').length
   const ot = ids.length - nt
   if (ot === 0) return 'the New Testament only'

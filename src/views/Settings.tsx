@@ -355,7 +355,8 @@ function About() {
         </p>
         <p>
           <b>Commentaries:</b> Matthew Henry’s Complete Commentary, Calvin’s Commentaries, Jamieson-Fausset-Brown and the 1599 Geneva Bible notes (CrossWire
-          Bible Society); Barnes’ Notes on the Bible and Matthew Poole’s English Annotations (MySword modules) — all public domain.
+          Bible Society); Barnes’ Notes on the Bible, Matthew Poole’s English Annotations, John Gill’s Exposition of the Entire Bible and Spurgeon’s
+          Treasury of David (MySword modules) — all public domain.
         </p>
         <p>
           <b>Concordance & topics:</b> Strong’s Hebrew and Greek dictionaries (Open Scriptures, CC BY-SA), Nave’s Topical Bible, Torrey’s New Topical

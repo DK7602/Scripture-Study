@@ -904,6 +904,8 @@ MYSWORD = [
     # id, module file, display name, author, year
     ("poole", "poole", "Matthew Poole's English Annotations on the Holy Bible", "Matthew Poole", "1683–1685"),
     ("barnes", "barnes", "Barnes' Notes on the Bible", "Albert Barnes", "1832–1872"),
+    ("gill", "gill", "John Gill's Exposition of the Entire Bible", "John Gill", "1746–1763"),
+    ("spurgeon", "spurgeon-treasury-of-david", "The Treasury of David", "C. H. Spurgeon", "1869–1885"),
 ]
 
 
@@ -940,6 +942,62 @@ def mysword_html(h):
     return markup_to_html(h)
 
 
+def split_treasury(h, nverses):
+    """Spurgeon's Treasury of David stores each psalm as one entry. Inside it the pattern repeats
+    verse by verse: the EXPOSITION of a verse (bold "Ver. n." heading), then EXPLANATORY NOTES AND
+    QUAINT SAYINGS and HINTS TO THE VILLAGE PREACHER for that verse (whose own "Ver. n" headings
+    refer back to it). Split at each new exposition so the reader can jump to a verse."""
+    def para_start(pos):
+        p = h.rfind("<p>", 0, pos)
+        return p if p >= 0 and pos - p < 12 else pos
+
+    groups = []
+    cur = None
+    section = "intro"
+    for m in re.finditer(r"<b>([^<]{0,160})</b>", h):
+        t = m.group(1).strip()
+        if re.match(r"EXPOSITION", t):
+            section = "expo"
+            if cur is None or cur.get("notes"):
+                cur = {"v1": None, "v2": None, "start": para_start(m.start())}
+                groups.append(cur)
+            continue
+        if re.match(r"EXPLANATORY NOTES|HINTS TO", t):
+            section = "notes"
+            if cur is not None:
+                cur["notes"] = True
+            continue
+        vm = re.match(r"Ver(?:ses|se|s)?\.?\s*(\d+)(?:\s*[-–]\s*(\d+))?", t)
+        if not vm:
+            continue
+        n1 = int(vm.group(1))
+        n2 = int(vm.group(2) or n1)
+        if not 1 <= n1 <= nverses:
+            continue
+        if cur is None or section == "intro" or (section == "notes" and cur["v2"] is not None and n1 > cur["v2"]):
+            cur = {"v1": n1, "v2": max(n1, min(n2, nverses)), "start": para_start(m.start())}
+            groups.append(cur)
+            section = "expo"
+        elif section == "expo":
+            if cur["v1"] is None:
+                cur["v1"], cur["v2"] = n1, max(n1, min(n2, nverses))
+            elif n1 >= cur["v1"]:
+                cur["v2"] = max(cur["v2"], min(n2, nverses))
+    groups = [g for g in groups if g["v1"] is not None]
+    if not groups:
+        return h, []
+    intro = h[: groups[0]["start"]]
+    out = []
+    for i, g in enumerate(groups):
+        endpos = groups[i + 1]["start"] if i + 1 < len(groups) else len(h)
+        v1 = max(g["v1"], out[-1][1] + 1 if out else 1)
+        v1 = min(v1, nverses)
+        nxt = groups[i + 1]["v1"] - 1 if i + 1 < len(groups) else nverses
+        v2 = max(v1, min(max(g["v2"], nxt), nverses))
+        out.append([v1, v2, h[g["start"]:endpos]])
+    return intro, out
+
+
 def stage_mysword():
     log("== MySword commentaries")
     import gzip
@@ -973,7 +1031,12 @@ def stage_mysword():
                 continue
             if c > len(vcount[code]):
                 continue
-            if v1 == 0:
+            if v1 == 0 and cid == "spurgeon":
+                intro, groups = split_treasury(h, vcount[code][c - 1])
+                if intro:
+                    chapters[(code, c)]["i"].append(intro)
+                chapters[(code, c)]["e"].extend(groups)
+            elif v1 == 0:
                 chapters[(code, c)]["i"].append(h)
             else:
                 v2 = max(v1, v2 or v1)

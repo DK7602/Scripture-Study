@@ -9,7 +9,7 @@ A Bible study app for **PC, tablet and phone** — one installable web app (PWA)
 | Tab | What it does |
 | --- | --- |
 | **Bible** | KJV (1769) with Strong's numbers and the words of CHRIST in red, plus BSB, WEB and ASV built in. NKJV, ESV, NASB, CSB and NIV are read live with your own free API key (Settings). Tap a word with a faint dotted underline for Strong's concordance; tap verse numbers or select words to highlight, add a note, journal, bookmark or copy. Margin chips: **?** maps & helps, **N** notes, **J** journal; highlight labels appear vertically in the margin. *Divine Names* shows Jehovah, Elohim, El Shaddai, Adonai… from the Hebrew. |
-| **Study** | Matthew Henry, Barnes, Calvin, Matthew Poole, Jamieson-Fausset-Brown and the 1599 Geneva notes, synced to the verse you're reading; the Church Fathers on the chapter; cross references for every verse (tap to preview). |
+| **Study** | Matthew Henry, Barnes, Calvin, Matthew Poole, John Gill, Jamieson-Fausset-Brown, the 1599 Geneva notes and Spurgeon's Treasury of David (Psalms), synced to the verse you're reading; the Church Fathers on the chapter; cross references for every verse (tap to preview). |
 | **Maps / Helps** | Then & now maps (every place named in the chapter, the Exodus, Paul's journeys, the voyage to Rome, the twelve tribes, the seven churches, Jesus' ministry), layouts of the tabernacle, Solomon's and Herod's temples, the high priest's garments and breastplate jewels, the throne room and New Jerusalem, Old Testament prophecies of CHRIST, Revelation's Old Testament sources, seals/trumpets/bowls, the Names of GOD, and a background & outline for all 66 books. |
 | **Notes** | Notes on a verse, a range or a whole chapter, time-stamped, searchable; also lists your highlights (by label) and bookmarks. |
 | **Journal** | Templates: Blank · Observation-Interpretation-Application · Deep Study (Main theme, GOD's ways, Other Scriptures, Questions, My responsibility). Entries are time-stamped, sortable, and Scripture references you type become links. |
@@ -59,7 +59,7 @@ npm run icons                        # app icons from assets/icon-art.png
 ## Sources & licences
 
 - **Bibles:** KJV with Strong's numbers, Berean Standard Bible, World English Bible, ASV — public domain, via eBible.org.
-- **Commentaries:** Matthew Henry, Calvin, JFB, Geneva notes — public domain, via the CrossWire Bible Society; Barnes' Notes on the whole Bible and Matthew Poole's English Annotations (1685) — public domain, via MySword modules.
+- **Commentaries:** Matthew Henry, Calvin, JFB, Geneva notes — public domain, via the CrossWire Bible Society; Barnes' Notes on the whole Bible, Matthew Poole's English Annotations (1685), John Gill's Exposition (1746–63) and Spurgeon's Treasury of David (1869–85) — public domain, via MySword modules.
 - **Strong's dictionaries:** Open Scriptures (CC BY-SA), from Strong's public-domain work.
 - **Nave's, Torrey's, Easton's:** public domain (CrossWire).
 - **Cross references & Bible places:** OpenBible.info (CC BY).
