@@ -16,6 +16,6 @@ database_name = "scripture-study"
 database_id = "f43b8c33-c44e-4e46-84a4-59e2abc5cdfb"
 
 [vars]
-TEAM_DOMAIN = ""
-POLICY_AUD = ""
+TEAM_DOMAIN = "lucky-meadow-2aaf.cloudflareaccess.com"
+POLICY_AUD = "ff754904ec644dd4a55295f0c24cd8d1c83052903256424838cccab255544f76"
 MAX_USERS = "25"
