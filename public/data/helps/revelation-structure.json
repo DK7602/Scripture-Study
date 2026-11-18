@@ -1,0 +1,189 @@
+{
+ "seals": [
+  {
+   "n": 1,
+   "title": "White horse — conquest",
+   "ref": "REV.6.1-2"
+  },
+  {
+   "n": 2,
+   "title": "Red horse — war",
+   "ref": "REV.6.3-4"
+  },
+  {
+   "n": 3,
+   "title": "Black horse — famine",
+   "ref": "REV.6.5-6"
+  },
+  {
+   "n": 4,
+   "title": "Pale horse — Death and Hell",
+   "ref": "REV.6.7-8"
+  },
+  {
+   "n": 5,
+   "title": "Souls of the martyrs under the altar",
+   "ref": "REV.6.9-11"
+  },
+  {
+   "n": 6,
+   "title": "Great earthquake and cosmic signs; the day of wrath",
+   "ref": "REV.6.12-17"
+  },
+  {
+   "n": 7,
+   "title": "Silence in heaven; seven trumpets given",
+   "ref": "REV.8.1-5"
+  }
+ ],
+ "trumpets": [
+  {
+   "n": 1,
+   "title": "Hail and fire mingled with blood; a third of trees burnt",
+   "ref": "REV.8.7"
+  },
+  {
+   "n": 2,
+   "title": "Burning mountain cast into the sea; a third of the sea becomes blood",
+   "ref": "REV.8.8-9"
+  },
+  {
+   "n": 3,
+   "title": "Star Wormwood falls; a third of the waters made bitter",
+   "ref": "REV.8.10-11"
+  },
+  {
+   "n": 4,
+   "title": "A third of sun, moon and stars darkened",
+   "ref": "REV.8.12-13"
+  },
+  {
+   "n": 5,
+   "title": "Bottomless pit opened; locusts (first woe)",
+   "ref": "REV.9.1-12"
+  },
+  {
+   "n": 6,
+   "title": "Four angels loosed at the Euphrates; army of horsemen (second woe)",
+   "ref": "REV.9.13-21"
+  },
+  {
+   "n": 7,
+   "title": "The kingdoms of this world become Christ's; the ark seen in heaven",
+   "ref": "REV.11.15-19"
+  }
+ ],
+ "bowls": [
+  {
+   "n": 1,
+   "title": "Noisome and grievous sore on the beast's worshippers",
+   "ref": "REV.16.2"
+  },
+  {
+   "n": 2,
+   "title": "Sea becomes as the blood of a dead man",
+   "ref": "REV.16.3"
+  },
+  {
+   "n": 3,
+   "title": "Rivers and fountains become blood",
+   "ref": "REV.16.4-7"
+  },
+  {
+   "n": 4,
+   "title": "Sun scorches men with fire",
+   "ref": "REV.16.8-9"
+  },
+  {
+   "n": 5,
+   "title": "Darkness on the seat of the beast",
+   "ref": "REV.16.10-11"
+  },
+  {
+   "n": 6,
+   "title": "Euphrates dried up; kings gathered to Armageddon",
+   "ref": "REV.16.12-16"
+  },
+  {
+   "n": 7,
+   "title": "\"It is done\": great earthquake, Babylon remembered, great hail",
+   "ref": "REV.16.17-21"
+  }
+ ],
+ "interludes": [
+  {
+   "title": "Sealing of the 144,000 of the tribes of Israel",
+   "ref": "REV.7.1-8"
+  },
+  {
+   "title": "The great multitude from every nation before the throne",
+   "ref": "REV.7.9-17"
+  },
+  {
+   "title": "The mighty angel and the little book",
+   "ref": "REV.10.1-11"
+  },
+  {
+   "title": "Measuring the temple; the two witnesses",
+   "ref": "REV.11.1-14"
+  },
+  {
+   "title": "The woman, the man child and the dragon",
+   "ref": "REV.12.1-17"
+  },
+  {
+   "title": "The beast from the sea and the beast from the earth",
+   "ref": "REV.13.1-18"
+  },
+  {
+   "title": "The Lamb on mount Zion, three angels, and the harvest of the earth",
+   "ref": "REV.14.1-20"
+  },
+  {
+   "title": "Song of Moses and the Lamb; seven angels with the last plagues",
+   "ref": "REV.15.1-8"
+  }
+ ],
+ "outline": [
+  {
+   "title": "Prologue and vision of the glorified Christ",
+   "ref": "REV.1.1-20"
+  },
+  {
+   "title": "Letters to the seven churches",
+   "ref": "REV.2.1-3.22"
+  },
+  {
+   "title": "The throne of God and the Lamb with the sealed book",
+   "ref": "REV.4.1-5.14"
+  },
+  {
+   "title": "The seven seals",
+   "ref": "REV.6.1-8.5"
+  },
+  {
+   "title": "The seven trumpets",
+   "ref": "REV.8.6-11.19"
+  },
+  {
+   "title": "The woman, the dragon and the two beasts",
+   "ref": "REV.12.1-14.20"
+  },
+  {
+   "title": "The seven bowls (vials) of wrath",
+   "ref": "REV.15.1-16.21"
+  },
+  {
+   "title": "The fall of Babylon and the marriage of the Lamb",
+   "ref": "REV.17.1-19.10"
+  },
+  {
+   "title": "Christ's return, the thousand years and the final judgment",
+   "ref": "REV.19.11-20.15"
+  },
+  {
+   "title": "New heaven, new earth, new Jerusalem; epilogue",
+   "ref": "REV.21.1-22.21"
+  }
+ ]
+}

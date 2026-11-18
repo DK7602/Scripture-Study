@@ -1,0 +1,86 @@
+[
+ {
+  "name": "Ephesus",
+  "ref": "REV.2.1-7",
+  "christ": "He that holdeth the seven stars in his right hand and walketh in the midst of the seven golden candlesticks",
+  "commendation": "Works, labour and patience; cannot bear evil men; tested false apostles and found them liars; hates the deeds of the Nicolaitans",
+  "rebuke": "Thou hast left thy first love",
+  "exhortation": "Remember from whence thou art fallen, repent and do the first works, or the candlestick will be removed",
+  "promise": "To eat of the tree of life in the midst of the paradise of God",
+  "modern": "near Selçuk, İzmir Province, Turkey",
+  "lon": 27.341,
+  "lat": 37.941
+ },
+ {
+  "name": "Smyrna",
+  "ref": "REV.2.8-11",
+  "christ": "The first and the last, which was dead, and is alive",
+  "commendation": "Works, tribulation and poverty (yet rich); enduring the blasphemy of the synagogue of Satan",
+  "rebuke": "None",
+  "exhortation": "Fear none of the coming suffering (prison, tribulation ten days); be faithful unto death",
+  "promise": "A crown of life; shall not be hurt of the second death",
+  "modern": "İzmir, Turkey",
+  "lon": 27.139,
+  "lat": 38.419
+ },
+ {
+  "name": "Pergamos",
+  "ref": "REV.2.12-17",
+  "christ": "He which hath the sharp sword with two edges",
+  "commendation": "Holds fast Christ's name and did not deny the faith, even where Satan's seat is, in the days of Antipas the faithful martyr",
+  "rebuke": "Some hold the doctrine of Balaam (eating things sacrificed to idols, fornication) and of the Nicolaitans",
+  "exhortation": "Repent, or Christ will come quickly and fight against them with the sword of his mouth",
+  "promise": "Hidden manna and a white stone with a new name written on it",
+  "modern": "Bergama, İzmir Province, Turkey (ancient Pergamum)",
+  "lon": 27.184,
+  "lat": 39.132
+ },
+ {
+  "name": "Thyatira",
+  "ref": "REV.2.18-29",
+  "christ": "The Son of God, with eyes like a flame of fire and feet like fine brass",
+  "commendation": "Charity, service, faith and patience; the last works more than the first",
+  "rebuke": "Tolerates the woman Jezebel, a self-styled prophetess who seduces servants to fornication and idol sacrifices",
+  "exhortation": "The rest who have not known the depths of Satan: hold fast what ye have till Christ comes",
+  "promise": "Power over the nations, to rule them with a rod of iron; the morning star",
+  "modern": "Akhisar, Manisa Province, Turkey",
+  "lon": 27.84,
+  "lat": 38.918
+ },
+ {
+  "name": "Sardis",
+  "ref": "REV.3.1-6",
+  "christ": "He that hath the seven Spirits of God and the seven stars",
+  "commendation": "A few names which have not defiled their garments; they shall walk with Christ in white",
+  "rebuke": "A name that thou livest, and art dead; works not found perfect before God",
+  "exhortation": "Be watchful, strengthen the things that remain, remember, hold fast and repent, or Christ will come as a thief",
+  "promise": "Clothed in white raiment; name not blotted out of the book of life but confessed before the Father and his angels",
+  "modern": "Sart, near Salihli, Manisa Province, Turkey",
+  "lon": 28.04,
+  "lat": 38.488
+ },
+ {
+  "name": "Philadelphia",
+  "ref": "REV.3.7-13",
+  "christ": "He that is holy and true, that hath the key of David, that openeth and no man shutteth",
+  "commendation": "With little strength has kept Christ's word and not denied his name; kept the word of his patience; an open door set before it",
+  "rebuke": "None",
+  "exhortation": "Hold that fast which thou hast, that no man take thy crown",
+  "promise": "Kept from the hour of temptation; made a pillar in the temple of God, bearing the name of God, of New Jerusalem, and Christ's new name",
+  "modern": "Alaşehir, Manisa Province, Turkey",
+  "lon": 28.517,
+  "lat": 38.35
+ },
+ {
+  "name": "Laodicea",
+  "ref": "REV.3.14-22",
+  "christ": "The Amen, the faithful and true witness, the beginning of the creation of God",
+  "commendation": "None",
+  "rebuke": "Lukewarm, neither cold nor hot; says \"I am rich\" yet is wretched, miserable, poor, blind and naked",
+  "exhortation": "Buy of Christ gold tried in the fire, white raiment and eyesalve; be zealous and repent; open the door to him who knocks",
+  "promise": "To sit with Christ in his throne, as he sat down with his Father in his throne",
+  "modern": "near Denizli, Turkey",
+  "lon": 29.108,
+  "lat": 37.836
+ }
+]

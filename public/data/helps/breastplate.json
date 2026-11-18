@@ -1,0 +1,139 @@
+{
+ "intro": "The breastplate of judgment was a doubled square of the same woven work as the ephod, a span each way, set with twelve stones in four rows of three, each engraved like a signet with the name of one tribe; it held the Urim and Thummim and was bound to the ephod with golden chains and a lace of blue. Many of the Hebrew stone names are uncertain, so the identifications and colors shown are probable or conjectural. The text says only that the stones bore the names of the twelve tribes (Exodus 28:21); the tribe-to-stone assignment shown here is traditional, following birth order as on the shoulder stones (Exodus 28:10), and is not stated in the text.",
+ "refs": [
+  "EXO.28.15-30",
+  "EXO.39.8-21",
+  "REV.21.19-20"
+ ],
+ "rows": [
+  [
+   {
+    "stone": "Sardius",
+    "hebrew": "odem",
+    "identification": "carnelian or red jasper (probable); the name means \"red\"",
+    "color": "#a83c2b",
+    "tribe": "Reuben"
+   },
+   {
+    "stone": "Topaz",
+    "hebrew": "pitdah",
+    "identification": "peridot (yellow-green chrysolite) or a yellow topaz (uncertain)",
+    "color": "#b2b23a",
+    "tribe": "Simeon"
+   },
+   {
+    "stone": "Carbuncle",
+    "hebrew": "bareqeth",
+    "identification": "a \"flashing\" stone, perhaps emerald or green feldspar (uncertain)",
+    "color": "#2e8b57",
+    "tribe": "Levi"
+   }
+  ],
+  [
+   {
+    "stone": "Emerald",
+    "hebrew": "nophek",
+    "identification": "a red stone such as garnet, or possibly turquoise (uncertain)",
+    "color": "#8b1e3f",
+    "tribe": "Judah"
+   },
+   {
+    "stone": "Sapphire",
+    "hebrew": "sappir",
+    "identification": "lapis lazuli (probable)",
+    "color": "#26619c",
+    "tribe": "Dan"
+   },
+   {
+    "stone": "Diamond",
+    "hebrew": "yahalom",
+    "identification": "uncertain; perhaps onyx, jade or clear quartz (true diamond is unlikely)",
+    "color": "#d8d6cc",
+    "tribe": "Naphtali"
+   }
+  ],
+  [
+   {
+    "stone": "Ligure",
+    "hebrew": "leshem",
+    "identification": "perhaps jacinth (orange zircon) or amber (uncertain)",
+    "color": "#d2782a",
+    "tribe": "Gad"
+   },
+   {
+    "stone": "Agate",
+    "hebrew": "shebo",
+    "identification": "agate, a banded chalcedony (probable)",
+    "color": "#9a7b5f",
+    "tribe": "Asher"
+   },
+   {
+    "stone": "Amethyst",
+    "hebrew": "achlamah",
+    "identification": "amethyst, violet quartz (probable)",
+    "color": "#8e5ea2",
+    "tribe": "Issachar"
+   }
+  ],
+  [
+   {
+    "stone": "Beryl",
+    "hebrew": "tarshish",
+    "identification": "a golden-yellow stone such as chrysolite or yellow jasper (uncertain)",
+    "color": "#d4af37",
+    "tribe": "Zebulun"
+   },
+   {
+    "stone": "Onyx",
+    "hebrew": "shoham",
+    "identification": "onyx (banded black and white) or carnelian (uncertain); also the two shoulder stones of the ephod",
+    "color": "#4a4a55",
+    "tribe": "Joseph"
+   },
+   {
+    "stone": "Jasper",
+    "hebrew": "yashpheh",
+    "identification": "jasper (probable); in antiquity often green",
+    "color": "#4f7f5a",
+    "tribe": "Benjamin"
+   }
+  ]
+ ],
+ "garments": [
+  {
+   "name": "Ephod",
+   "ref": "EXO.28.6-14",
+   "description": "A shoulder garment of gold, blue, purple, scarlet and fine twined linen with a curious girdle of the same work; two onyx stones on its shoulders bore six names of the tribes each, according to their birth, as a memorial before the LORD."
+  },
+  {
+   "name": "Breastplate of judgment",
+   "ref": "EXO.28.15-30",
+   "description": "A doubled square pouch a span each way, set with twelve stones bearing the tribes' names, fastened to the ephod by golden chains, rings and a lace of blue; it held the Urim and Thummim, so Aaron bore the judgment of Israel upon his heart."
+  },
+  {
+   "name": "Robe of the ephod",
+   "ref": "EXO.28.31-35",
+   "description": "A robe all of blue, with a woven binding around the opening for the head; its hem bore pomegranates of blue, purple and scarlet alternating with golden bells, so that his sound was heard when he went into the holy place."
+  },
+  {
+   "name": "Mitre and golden plate",
+   "ref": "EXO.28.36-38",
+   "description": "A plate of pure gold engraved HOLINESS TO THE LORD, tied with a blue lace on the forefront of the fine linen mitre, so that Aaron bore the iniquity of Israel's holy gifts that they might be accepted; it is called the holy crown (Exodus 39:30)."
+  },
+  {
+   "name": "Embroidered coat",
+   "ref": "EXO.28.39",
+   "description": "A tunic of fine linen, embroidered (woven in a checkered pattern), worn beneath the robe; coats were also made for Aaron's sons."
+  },
+  {
+   "name": "Girdle",
+   "ref": "EXO.39.29",
+   "description": "A sash of needlework made of fine twined linen with blue, purple and scarlet, bound about the coat."
+  },
+  {
+   "name": "Linen breeches",
+   "ref": "EXO.28.42-43",
+   "description": "Linen undergarments reaching from the loins to the thighs, worn by Aaron and his sons whenever they ministered at the tabernacle or the altar, that they bear not iniquity and die."
+  }
+ ]
+}

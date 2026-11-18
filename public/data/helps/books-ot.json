@@ -1,0 +1,729 @@
+{
+  "GEN": {
+    "author": "Moses (traditional)",
+    "date": "c. 1445–1405 B.C.",
+    "audience": "Israel in the wilderness, before entering Canaan",
+    "setting": "From the creation of the world to Joseph's death in Egypt, spanning the primeval era and the patriarchs (c. 2100–1800 B.C.).",
+    "theme": "God's beginnings: creation, the fall, and His covenant promise to Abraham's seed",
+    "summary": "Genesis records the beginnings of the world, humanity, sin, and God's plan of redemption. Chapters 1–11 trace creation, the fall, the flood, and the scattering at Babel; chapters 12–50 follow God's covenant dealings with Abraham, Isaac, Jacob, and Joseph. It showed Israel who their God is, why the world is broken, and how they came to be His chosen people bound for Canaan. Throughout, God's sovereign grace advances His promises despite human sin.",
+    "christ": "The promised seed of the woman who will bruise the serpent's head (3:15) is narrowed to Abraham's seed, in whom all nations are blessed (Gal 3:16), and to Judah's royal line until Shiloh come (49:10).",
+    "keyVerses": ["GEN.3.15", "GEN.12.1-3", "GEN.50.20"],
+    "outline": [
+      {"title": "Creation", "ref": "GEN.1-2"},
+      {"title": "The fall and the spread of sin", "ref": "GEN.3-5"},
+      {"title": "The flood and God's covenant with Noah", "ref": "GEN.6-9"},
+      {"title": "The nations and the tower of Babel", "ref": "GEN.10-11"},
+      {"title": "Abraham: call, covenant, and faith", "ref": "GEN.12.1-25.18"},
+      {"title": "Isaac, Jacob, and Esau", "ref": "GEN.25.19-36.43"},
+      {"title": "Joseph and the move to Egypt", "ref": "GEN.37-50"}
+    ]
+  },
+  "EXO": {
+    "author": "Moses (traditional)",
+    "date": "c. 1445–1405 B.C.",
+    "audience": "Israel in the wilderness",
+    "setting": "Israel's bondage in Egypt, the exodus (c. 1446 B.C.), and the first year encamped at Mount Sinai.",
+    "theme": "The LORD redeems His people and comes to dwell among them",
+    "summary": "Exodus tells how God remembered His covenant with Abraham and delivered Israel from slavery in Egypt through Moses, the plagues, and the Passover. At Sinai He entered into covenant with the nation, giving the Ten Commandments and the law. The book closes with the building of the tabernacle and the glory of the LORD filling it, showing that the redeemed are called to worship and live in His presence.",
+    "christ": "The Passover lamb (1 Cor 5:7), the manna from heaven (John 6:32-35), and the tabernacle where God dwells with His people (John 1:14) all foreshadow Christ, the greater Moses who redeems His people from bondage.",
+    "keyVerses": ["EXO.3.14", "EXO.12.13", "EXO.19.5-6"],
+    "outline": [
+      {"title": "Bondage in Egypt and the call of Moses", "ref": "EXO.1-4"},
+      {"title": "Confrontation with Pharaoh and the plagues", "ref": "EXO.5-11"},
+      {"title": "Passover, exodus, and the Red Sea", "ref": "EXO.12.1-15.21"},
+      {"title": "The journey to Sinai", "ref": "EXO.15.22-18.27"},
+      {"title": "The covenant and the law at Sinai", "ref": "EXO.19-24"},
+      {"title": "Instructions for the tabernacle and priesthood", "ref": "EXO.25-31"},
+      {"title": "The golden calf and the covenant renewed", "ref": "EXO.32-34"},
+      {"title": "The tabernacle built and filled with glory", "ref": "EXO.35-40"}
+    ]
+  },
+  "LEV": {
+    "author": "Moses (traditional)",
+    "date": "c. 1445 B.C.",
+    "audience": "Israel at Sinai, especially the priests",
+    "setting": "Given at Mount Sinai in the month after the tabernacle was set up, in the second year after the exodus.",
+    "theme": "Be holy, for the LORD your God is holy",
+    "summary": "Leviticus is the manual of worship and holy living that God gave Israel at Sinai after the tabernacle was built. It prescribes the offerings, the consecration and duties of the priests, laws of cleanness, and the annual Day of Atonement. Its holiness laws and appointed feasts teach that a holy God may be approached only through sacrifice, and that His redeemed people must reflect His holiness in all of life.",
+    "christ": "The sacrifices and the high priest's work on the Day of Atonement picture Christ, the spotless offering and great High Priest who entered the holy place once for all by His own blood (Heb 9–10).",
+    "keyVerses": ["LEV.17.11", "LEV.19.2"],
+    "outline": [
+      {"title": "Laws of the offerings", "ref": "LEV.1-7"},
+      {"title": "Consecration of the priesthood", "ref": "LEV.8-10"},
+      {"title": "Clean and unclean", "ref": "LEV.11-15"},
+      {"title": "The Day of Atonement", "ref": "LEV.16"},
+      {"title": "Holy living for people and priests", "ref": "LEV.17-22"},
+      {"title": "Holy times: feasts, sabbaths, and jubilee", "ref": "LEV.23-25"},
+      {"title": "Blessings for obedience, curses for disobedience", "ref": "LEV.26"},
+      {"title": "Vows and things dedicated to the LORD", "ref": "LEV.27"}
+    ]
+  },
+  "NUM": {
+    "author": "Moses (traditional)",
+    "date": "c. 1445–1405 B.C.",
+    "audience": "The new generation on the plains of Moab",
+    "setting": "Israel's nearly forty years from Mount Sinai, through the wilderness, to the plains of Moab across from Jericho.",
+    "theme": "God's faithfulness and discipline in the wilderness",
+    "summary": "Numbers takes its name from the two censuses of Israel (chs 1 and 26) and follows the nation from Sinai to the plains of Moab. Because of unbelief at Kadesh, the exodus generation was condemned to wander and die in the wilderness. Yet God sustained His people, judged rebellion, turned Balaam's curse into blessing, and prepared a new generation to inherit the land.",
+    "christ": "The bronze serpent lifted up for the dying (21:8-9) points to Christ lifted up on the cross (John 3:14-15); the water from the rock also prefigures Him (1 Cor 10:4), and Balaam foresees a Star out of Jacob (24:17).",
+    "keyVerses": ["NUM.6.24-26", "NUM.14.22-24", "NUM.21.8-9"],
+    "outline": [
+      {"title": "Census and ordering of the camp at Sinai", "ref": "NUM.1-4"},
+      {"title": "Purity, the Nazirite vow, and preparations to march", "ref": "NUM.5.1-10.10"},
+      {"title": "From Sinai to Kadesh: complaints", "ref": "NUM.10.11-12.16"},
+      {"title": "Unbelief at Kadesh", "ref": "NUM.13-14"},
+      {"title": "Laws, rebellion, and Aaron's priesthood confirmed", "ref": "NUM.15-19"},
+      {"title": "The journey to Moab", "ref": "NUM.20-21"},
+      {"title": "Balaam's oracles and sin at Baal-peor", "ref": "NUM.22-25"},
+      {"title": "Preparing the new generation for Canaan", "ref": "NUM.26-36"}
+    ]
+  },
+  "DEU": {
+    "author": "Moses (traditional)",
+    "date": "c. 1405 B.C.",
+    "audience": "The new generation about to enter Canaan",
+    "setting": "Moses' farewell addresses on the plains of Moab in the fortieth year after the exodus, just before his death.",
+    "theme": "Love the LORD your God and keep His covenant",
+    "summary": "Deuteronomy ('second law') consists mainly of Moses' farewell addresses to the generation about to enter Canaan. He reviews God's faithfulness in the wilderness, restates and applies the law, and calls Israel to love the LORD with all their heart. The book renews the covenant with its blessings and curses and closes with Moses' song, blessing, and death.",
+    "christ": "Moses promises a Prophet like himself whom Israel must hear (18:15), fulfilled in Christ (Acts 3:22); Jesus answered Satan's temptations from Deuteronomy, and He bore the curse of the law by hanging on a tree (21:23; Gal 3:13).",
+    "keyVerses": ["DEU.6.4-5", "DEU.18.15", "DEU.30.19"],
+    "outline": [
+      {"title": "First address: review of the wilderness journey", "ref": "DEU.1-4"},
+      {"title": "Second address: the great commandment", "ref": "DEU.5-11"},
+      {"title": "Statutes for life in the land", "ref": "DEU.12-26"},
+      {"title": "Blessings and curses of the covenant", "ref": "DEU.27-28"},
+      {"title": "Covenant renewal: choose life", "ref": "DEU.29-30"},
+      {"title": "Joshua commissioned; Moses' song and blessing", "ref": "DEU.31-33"},
+      {"title": "The death of Moses", "ref": "DEU.34"}
+    ]
+  },
+  "JOS": {
+    "author": "Joshua (traditional)",
+    "date": "c. 1400–1370 B.C.",
+    "audience": "Israel settling in Canaan",
+    "setting": "The conquest and division of Canaan under Joshua after Moses' death (c. 1406–1380 B.C.).",
+    "theme": "The LORD gives His people the promised land",
+    "summary": "Joshua records how the LORD fulfilled His promise to the patriarchs by bringing Israel into Canaan under Moses' successor. After crossing the Jordan, Israel conquered Jericho, Ai, and the southern and northern coalitions, and the land was divided among the tribes. The book stresses that victory comes through faith in and obedience to God's word, and it ends with Joshua's call to choose to serve the LORD.",
+    "christ": "Joshua (the Hebrew form of 'Jesus') leads God's people into their inheritance, as Christ brings His people into true rest (Heb 4:8-9); the Captain of the LORD's host (5:14) and Rahab's scarlet line also point to Him.",
+    "keyVerses": ["JOS.1.8-9", "JOS.21.45", "JOS.24.15"],
+    "outline": [
+      {"title": "Joshua commissioned; spies sent to Jericho", "ref": "JOS.1-2"},
+      {"title": "Crossing the Jordan and consecration at Gilgal", "ref": "JOS.3-5"},
+      {"title": "The central campaign: Jericho and Ai", "ref": "JOS.6-8"},
+      {"title": "The southern and northern campaigns", "ref": "JOS.9-12"},
+      {"title": "Division of the land among the tribes", "ref": "JOS.13-21"},
+      {"title": "The eastern tribes and the altar of witness", "ref": "JOS.22"},
+      {"title": "Joshua's farewell and covenant renewal", "ref": "JOS.23-24"}
+    ]
+  },
+  "JDG": {
+    "author": "Samuel (traditional)",
+    "date": "c. 1050–1000 B.C.",
+    "audience": "Israel in the early monarchy",
+    "setting": "The period between Joshua's death and the rise of the monarchy (c. 1380–1050 B.C.).",
+    "theme": "Cycles of sin and deliverance when there was no king in Israel",
+    "summary": "Judges covers the turbulent era between Joshua's death and the rise of the monarchy. Israel repeatedly fell into idolatry, was oppressed by surrounding nations, cried out to the LORD, and was rescued by judges such as Deborah, Gideon, Jephthah, and Samson. The closing chapters show the depth of moral and religious chaos when 'every man did that which was right in his own eyes,' pointing to Israel's need for a godly king.",
+    "christ": "Each flawed deliverer shows Israel's need for a perfect, righteous Savior and King, fulfilled in Christ, who delivers His people once for all.",
+    "keyVerses": ["JDG.2.16", "JDG.21.25"],
+    "outline": [
+      {"title": "Incomplete conquest and the cycle of apostasy", "ref": "JDG.1.1-3.6"},
+      {"title": "Othniel, Ehud, and Shamgar", "ref": "JDG.3.7-31"},
+      {"title": "Deborah and Barak", "ref": "JDG.4-5"},
+      {"title": "Gideon and Abimelech", "ref": "JDG.6-9"},
+      {"title": "Jephthah and the minor judges", "ref": "JDG.10-12"},
+      {"title": "Samson", "ref": "JDG.13-16"},
+      {"title": "Micah's idolatry and the Danite migration", "ref": "JDG.17-18"},
+      {"title": "The outrage at Gibeah and civil war", "ref": "JDG.19-21"}
+    ]
+  },
+  "RUT": {
+    "author": "Samuel (traditional)",
+    "date": "c. 1000 B.C.",
+    "audience": "Israel in the early monarchy",
+    "setting": "Moab and Bethlehem 'in the days when the judges ruled' (c. 1100 B.C.).",
+    "theme": "God's providence and the kinsman-redeemer",
+    "summary": "Set in the dark days of the judges, Ruth tells of a Moabite widow who left her gods to follow Naomi and the God of Israel. Through ordinary events and a kinsman-redeemer named Boaz, God provided for both women and restored Naomi's family line. The book shows God's providential care and His welcome of Gentiles who trust Him, and it concludes by tracing the line to King David.",
+    "christ": "Boaz, the kinsman-redeemer who willingly redeems and marries Ruth, pictures Christ our Redeemer; the book ends in the line of David, from whom the Messiah came (Matt 1:5).",
+    "keyVerses": ["RUT.1.16", "RUT.4.14", "RUT.4.17"],
+    "outline": [
+      {"title": "Naomi's loss and Ruth's loyalty", "ref": "RUT.1"},
+      {"title": "Ruth gleans in the field of Boaz", "ref": "RUT.2"},
+      {"title": "Ruth's appeal at the threshing floor", "ref": "RUT.3"},
+      {"title": "Boaz redeems; the line of David", "ref": "RUT.4"}
+    ]
+  },
+  "1SA": {
+    "author": "Samuel, Nathan, and Gad (traditional)",
+    "date": "c. 930 B.C.",
+    "audience": "Israel under the monarchy",
+    "setting": "From Samuel's birth to Saul's death (c. 1105–1010 B.C.), the transition from judges to kings.",
+    "theme": "The LORD honors those who honor Him and chooses a king after His own heart",
+    "summary": "First Samuel records Israel's transition from the judges to the monarchy. It centers on three men: Samuel, the last judge and a faithful prophet; Saul, the first king, who was rejected for disobedience; and David, the shepherd chosen by God as 'a man after his own heart.' It teaches that the LORD looks on the heart and that obedience is better than sacrifice.",
+    "christ": "Hannah's song looks to the LORD's anointed king (2:10), and David, the shepherd anointed in place of Saul, foreshadows Christ, the Son of David and true Anointed One.",
+    "keyVerses": ["1SA.2.10", "1SA.15.22", "1SA.16.7"],
+    "outline": [
+      {"title": "Samuel's birth and call", "ref": "1SA.1-3"},
+      {"title": "The ark captured and returned", "ref": "1SA.4-7"},
+      {"title": "Israel demands a king; Saul anointed", "ref": "1SA.8-12"},
+      {"title": "Saul's disobedience and rejection", "ref": "1SA.13-15"},
+      {"title": "David anointed; Goliath defeated", "ref": "1SA.16-17"},
+      {"title": "Saul's jealousy; David and Jonathan", "ref": "1SA.18-20"},
+      {"title": "David the fugitive spares Saul", "ref": "1SA.21-26"},
+      {"title": "David among the Philistines; Saul's death", "ref": "1SA.27-31"}
+    ]
+  },
+  "2SA": {
+    "author": "Samuel, Nathan, and Gad (traditional)",
+    "date": "c. 930 B.C.",
+    "audience": "Israel under the monarchy",
+    "setting": "David's forty-year reign over Judah and then all Israel (c. 1010–970 B.C.).",
+    "theme": "God's covenant with David and the consequences of sin",
+    "summary": "Second Samuel records the reign of David, first over Judah at Hebron and then over all Israel from Jerusalem. God established David's kingdom and promised him an everlasting dynasty (ch 7). Yet David's adultery with Bathsheba and murder of Uriah brought sorrow upon his house, including Absalom's rebellion. The book displays both God's covenant faithfulness and the bitter consequences of sin, even for a forgiven king.",
+    "christ": "God's covenant with David promises an everlasting throne for his seed (7:12-16), fulfilled in Jesus, the Son of David whose kingdom shall have no end (Luke 1:32-33).",
+    "keyVerses": ["2SA.7.12-16", "2SA.12.13"],
+    "outline": [
+      {"title": "David king over Judah; war with Saul's house", "ref": "2SA.1-4"},
+      {"title": "David king over all Israel; the ark to Jerusalem", "ref": "2SA.5-6"},
+      {"title": "God's covenant with David", "ref": "2SA.7"},
+      {"title": "David's victories and kindness", "ref": "2SA.8-10"},
+      {"title": "David's sin with Bathsheba and repentance", "ref": "2SA.11-12"},
+      {"title": "Amnon's crime and Absalom's exile", "ref": "2SA.13-14"},
+      {"title": "Absalom's rebellion", "ref": "2SA.15-18"},
+      {"title": "David restored; Sheba's revolt", "ref": "2SA.19-20"},
+      {"title": "Epilogue: famine, songs, mighty men, and the census", "ref": "2SA.21-24"}
+    ]
+  },
+  "1KI": {
+    "author": "Jeremiah (traditional)",
+    "date": "c. 560–538 B.C.",
+    "audience": "Jewish exiles in Babylon",
+    "setting": "From Solomon's accession through the divided kingdom to Ahab's death (c. 971–853 B.C.).",
+    "theme": "Faithfulness to the covenant brings blessing; idolatry brings division",
+    "summary": "First Kings (originally one book with 2 Kings) begins with Solomon's glorious reign and the building of the temple. Solomon's turn to idolatry led to the division of the kingdom into Israel in the north and Judah in the south under Jeroboam and Rehoboam. The narrative evaluates each king by his faithfulness to the LORD and highlights the prophet Elijah's stand against Baal worship under Ahab and Jezebel.",
+    "christ": "Solomon's wisdom and temple point to One greater than Solomon (Matt 12:42), whose body is the true temple (John 2:19-21); Elijah's ministry foreshadows John the Baptist, the forerunner of Christ (Luke 1:17).",
+    "keyVerses": ["1KI.9.4-5", "1KI.11.11", "1KI.18.21"],
+    "outline": [
+      {"title": "Solomon secures the throne", "ref": "1KI.1-2"},
+      {"title": "Solomon's wisdom", "ref": "1KI.3-4"},
+      {"title": "The temple built and dedicated", "ref": "1KI.5-8"},
+      {"title": "Solomon's glory and decline", "ref": "1KI.9-11"},
+      {"title": "The kingdom divided: Rehoboam and Jeroboam", "ref": "1KI.12-14"},
+      {"title": "Kings of Judah and Israel", "ref": "1KI.15-16"},
+      {"title": "Elijah confronts Ahab and Baal", "ref": "1KI.17-19"},
+      {"title": "Ahab's wars and death", "ref": "1KI.20-22"}
+    ]
+  },
+  "2KI": {
+    "author": "Jeremiah (traditional)",
+    "date": "c. 560–538 B.C.",
+    "audience": "Jewish exiles in Babylon",
+    "setting": "From Elijah's departure to the fall of Jerusalem and Jehoiachin's release in Babylon (c. 853–561 B.C.).",
+    "theme": "The divided kingdom's decline into exile for covenant unfaithfulness",
+    "summary": "Second Kings continues the history of the divided kingdom from Elisha's ministry to the Babylonian exile. Israel's persistent idolatry ended in its fall to Assyria in 722 B.C., and despite reforms under Hezekiah and Josiah, Judah fell to Babylon in 586 B.C. Written for the exiles, the book explains that the exile was God's just judgment for breaking His covenant, while the release of Jehoiachin leaves hope for David's line.",
+    "christ": "Elisha's miracles of raising the dead, feeding a multitude, and cleansing a leper foreshadow Christ's ministry (Luke 4:27), and the preservation of David's line through judgment (25:27-30) keeps alive the promise of the Messiah.",
+    "keyVerses": ["2KI.17.7", "2KI.17.13-14", "2KI.23.25"],
+    "outline": [
+      {"title": "Elijah taken up; Elisha succeeds him", "ref": "2KI.1-2"},
+      {"title": "Elisha's ministry and miracles", "ref": "2KI.3.1-8.15"},
+      {"title": "Jehoram, Ahaziah, and Jehu's purge", "ref": "2KI.8.16-10.36"},
+      {"title": "From Joash to Ahaz", "ref": "2KI.11-16"},
+      {"title": "The fall of Samaria", "ref": "2KI.17"},
+      {"title": "Hezekiah and the Assyrian threat", "ref": "2KI.18-20"},
+      {"title": "Manasseh, Amon, and Josiah's reform", "ref": "2KI.21.1-23.30"},
+      {"title": "Judah's last kings and the fall of Jerusalem", "ref": "2KI.23.31-25.30"}
+    ]
+  },
+  "1CH": {
+    "author": "Ezra (traditional)",
+    "date": "c. 450–430 B.C.",
+    "audience": "Jews returned from exile",
+    "setting": "Genealogies from Adam to the return from exile, then the reign of David (c. 1010–970 B.C.).",
+    "theme": "God's covenant with David and the centrality of true worship",
+    "summary": "First Chronicles retells Israel's history from a priestly perspective for the returned exiles. Its extensive genealogies link the restored community to Adam, the patriarchs, and the twelve tribes. The narrative focuses on David's reign, especially his bringing of the ark to Jerusalem, God's covenant with him, and his preparations for the temple and its worship. It reassured the remnant that they were still God's covenant people.",
+    "christ": "The genealogies trace the royal line of Judah and David through which Christ came, and God's promise to settle David's son in His house and kingdom forever (17:11-14) is fulfilled in Christ.",
+    "keyVerses": ["1CH.16.34", "1CH.17.11-14", "1CH.29.11"],
+    "outline": [
+      {"title": "Genealogies from Adam to the returned exiles", "ref": "1CH.1-9"},
+      {"title": "The death of Saul", "ref": "1CH.10"},
+      {"title": "David made king; his mighty men", "ref": "1CH.11-12"},
+      {"title": "The ark brought to Jerusalem", "ref": "1CH.13-16"},
+      {"title": "God's covenant with David", "ref": "1CH.17"},
+      {"title": "David's victories", "ref": "1CH.18-20"},
+      {"title": "The census and the temple site", "ref": "1CH.21"},
+      {"title": "Preparations for the temple and its service", "ref": "1CH.22-27"},
+      {"title": "David's final charge and death", "ref": "1CH.28-29"}
+    ]
+  },
+  "2CH": {
+    "author": "Ezra (traditional)",
+    "date": "c. 450–430 B.C.",
+    "audience": "Jews returned from exile",
+    "setting": "From Solomon's reign to the Babylonian exile and Cyrus's decree (c. 971–538 B.C.).",
+    "theme": "Seeking the LORD brings blessing; forsaking Him brings judgment",
+    "summary": "Second Chronicles traces the history of Judah from Solomon's building of the temple to the Babylonian exile and Cyrus's decree permitting the return. It focuses on the Davidic kings and the temple, highlighting revivals under Asa, Jehoshaphat, Hezekiah, and Josiah. The book teaches the returned exiles that seeking the LORD brings blessing while forsaking Him brings judgment, and it ends on a note of hope.",
+    "christ": "The temple where God placed His name anticipates Christ, God's true dwelling with men (John 2:19-21), and the preservation of David's line through judgment looks ahead to the Son of David.",
+    "keyVerses": ["2CH.7.14", "2CH.16.9"],
+    "outline": [
+      {"title": "Solomon's wisdom and the building of the temple", "ref": "2CH.1-5"},
+      {"title": "The temple dedicated", "ref": "2CH.6-7"},
+      {"title": "Solomon's glory", "ref": "2CH.8-9"},
+      {"title": "The division; Rehoboam to Asa", "ref": "2CH.10-16"},
+      {"title": "Jehoshaphat", "ref": "2CH.17-20"},
+      {"title": "From Jehoram to Ahaz", "ref": "2CH.21-28"},
+      {"title": "Hezekiah's reformation", "ref": "2CH.29-32"},
+      {"title": "Manasseh, Amon, and Josiah", "ref": "2CH.33-35"},
+      {"title": "The last kings, the exile, and Cyrus's decree", "ref": "2CH.36"}
+    ]
+  },
+  "EZR": {
+    "author": "Ezra (traditional)",
+    "date": "c. 450 B.C.",
+    "audience": "The restored community in Judah",
+    "setting": "The returns from Babylon under Zerubbabel (538 B.C.) and under Ezra (458 B.C.) during the Persian period.",
+    "theme": "God restores His people and their worship according to His word",
+    "summary": "Ezra records two returns from Babylonian exile: the first under Zerubbabel, who led the rebuilding of the temple despite opposition, and the second, some eighty years later, under Ezra the scribe. Ezra, who had 'prepared his heart to seek the law of the LORD,' taught God's word and led the people to repent of intermarriage with pagan nations. The book shows God keeping His promises through Persian kings and His concern for a pure, worshiping people.",
+    "christ": "God's preservation of a remnant and restoration of temple worship keep the messianic line and promises alive, preparing for the coming of Christ, who fulfills the law Ezra taught.",
+    "keyVerses": ["EZR.1.3", "EZR.7.10"],
+    "outline": [
+      {"title": "Cyrus's decree and the first return", "ref": "EZR.1-2"},
+      {"title": "The altar rebuilt and the temple foundation laid", "ref": "EZR.3"},
+      {"title": "Opposition to the work", "ref": "EZR.4"},
+      {"title": "The temple completed and dedicated", "ref": "EZR.5-6"},
+      {"title": "Ezra's return to Jerusalem", "ref": "EZR.7-8"},
+      {"title": "Ezra's reform of mixed marriages", "ref": "EZR.9-10"}
+    ]
+  },
+  "NEH": {
+    "author": "Nehemiah (with Ezra, traditional)",
+    "date": "c. 430 B.C.",
+    "audience": "The restored community in Judah",
+    "setting": "Nehemiah's governorship in Jerusalem under Artaxerxes I of Persia (445–c. 432 B.C.).",
+    "theme": "Rebuilding the walls and renewing the covenant",
+    "summary": "Nehemiah, cupbearer to the Persian king Artaxerxes, returned to Jerusalem as governor to rebuild its broken walls. Through prayer, careful leadership, and perseverance against opposition, the wall was finished in fifty-two days. With Ezra he then led the people in hearing the law, confessing sin, and renewing the covenant, though the closing chapter shows the need for continued reform.",
+    "christ": "Nehemiah, who left a royal palace to restore Jerusalem and lead God's people, faintly pictures Christ, who left heaven's glory to build and restore His people.",
+    "keyVerses": ["NEH.6.15-16", "NEH.8.8", "NEH.8.10"],
+    "outline": [
+      {"title": "Nehemiah's prayer and mission", "ref": "NEH.1-2"},
+      {"title": "Rebuilding the wall", "ref": "NEH.3"},
+      {"title": "Opposition overcome and the wall finished", "ref": "NEH.4-6"},
+      {"title": "The register of returned exiles", "ref": "NEH.7"},
+      {"title": "The law read; confession and covenant", "ref": "NEH.8-10"},
+      {"title": "Jerusalem repopulated; the wall dedicated", "ref": "NEH.11-12"},
+      {"title": "Nehemiah's final reforms", "ref": "NEH.13"}
+    ]
+  },
+  "EST": {
+    "author": "Unknown (perhaps Mordecai)",
+    "date": "c. 450 B.C.",
+    "audience": "Jews in the Persian empire",
+    "setting": "The Persian court at Shushan in the reign of Ahasuerus (Xerxes I), c. 483–473 B.C.",
+    "theme": "God's hidden providence preserves His people",
+    "summary": "Esther tells how a Jewish orphan became queen of Persia and, with her cousin Mordecai, foiled Haman's plot to annihilate the Jews throughout the empire. Though God's name never appears in the book, His providence is evident in every 'coincidence' that brings deliverance. The book explains the origin of the feast of Purim and assures God's people of His care even in a foreign land.",
+    "christ": "Esther, who risks her life to intercede for her condemned people, foreshadows Christ the Mediator, and God's preservation of the Jews guarded the line through which the Messiah would come.",
+    "keyVerses": ["EST.4.14", "EST.4.16"],
+    "outline": [
+      {"title": "Vashti deposed; Esther made queen", "ref": "EST.1-2"},
+      {"title": "Haman's plot against the Jews", "ref": "EST.3"},
+      {"title": "Mordecai's appeal and Esther's resolve", "ref": "EST.4"},
+      {"title": "Esther's banquets and Haman's downfall", "ref": "EST.5-7"},
+      {"title": "Deliverance of the Jews and the feast of Purim", "ref": "EST.8-9"},
+      {"title": "The greatness of Mordecai", "ref": "EST.10"}
+    ]
+  },
+  "JOB": {
+    "author": "Unknown (Moses, per Jewish tradition)",
+    "date": "Uncertain (events c. 2000 B.C.)",
+    "audience": "God's people wrestling with suffering",
+    "setting": "The land of Uz in the patriarchal era, perhaps around the time of Abraham.",
+    "theme": "God's sovereign wisdom in the suffering of the righteous",
+    "summary": "Job, a righteous and prosperous man, loses his wealth, children, and health as Satan tests whether he serves God for nothing. His three friends insist suffering is always punishment for sin, while Job maintains his integrity and longs to plead his case with God. After Elihu speaks, the LORD answers from the whirlwind, revealing His wisdom and power; Job repents and is restored. The book teaches that God is sovereign and good even when His ways are hidden.",
+    "christ": "Job longs for a 'daysman' to mediate between God and man (9:33) and confesses 'I know that my redeemer liveth' (19:25), hopes fulfilled in Christ, the righteous sufferer and living Redeemer.",
+    "keyVerses": ["JOB.1.21", "JOB.19.25-26", "JOB.42.5-6"],
+    "outline": [
+      {"title": "Prologue: Job tested", "ref": "JOB.1-2"},
+      {"title": "Job's lament", "ref": "JOB.3"},
+      {"title": "First cycle of speeches", "ref": "JOB.4-14"},
+      {"title": "Second cycle of speeches", "ref": "JOB.15-21"},
+      {"title": "Third cycle and Job's final defense", "ref": "JOB.22-31"},
+      {"title": "Elihu's speeches", "ref": "JOB.32-37"},
+      {"title": "The LORD speaks from the whirlwind; Job repents", "ref": "JOB.38.1-42.6"},
+      {"title": "Epilogue: Job restored", "ref": "JOB.42.7-17"}
+    ]
+  },
+  "PSA": {
+    "author": "David and others (Asaph, sons of Korah, Solomon, Moses)",
+    "date": "c. 1410–450 B.C.",
+    "audience": "Israel gathered for worship",
+    "setting": "Composed over about a thousand years, from Moses to after the exile, and gathered for Israel's worship.",
+    "theme": "Praise and prayer to the LORD who reigns",
+    "summary": "Psalms is Israel's inspired book of prayer and praise, a collection of 150 songs gathered in five books. It includes hymns, laments, thanksgivings, royal psalms, wisdom psalms, and songs of repentance, nearly half of them attributed to David. The psalms express the full range of the believer's experience before God and teach His people how to worship, trust, and pray.",
+    "christ": "Christ is the Son and King (Ps 2), the forsaken sufferer (Ps 22), the Shepherd (Ps 23), and the Priest-King after the order of Melchizedek (Ps 110); Jesus said the Psalms spoke of Him (Luke 24:44).",
+    "keyVerses": ["PSA.1.1-2", "PSA.23.1", "PSA.150.6"],
+    "outline": [
+      {"title": "Book I", "ref": "PSA.1-41"},
+      {"title": "Book II", "ref": "PSA.42-72"},
+      {"title": "Book III", "ref": "PSA.73-89"},
+      {"title": "Book IV", "ref": "PSA.90-106"},
+      {"title": "Book V", "ref": "PSA.107-150"}
+    ]
+  },
+  "PRO": {
+    "author": "Solomon, with Agur and Lemuel",
+    "date": "c. 970–700 B.C.",
+    "audience": "Israel's young people, and all who seek wisdom",
+    "setting": "Largely from Solomon's reign (c. 970–930 B.C.), with collections copied out by Hezekiah's men (c. 700 B.C.).",
+    "theme": "The fear of the LORD is the beginning of wisdom",
+    "summary": "Proverbs is a collection of inspired wisdom, much of it from Solomon, designed to teach skill in godly living. Chapters 1–9 present a father's appeals to choose wisdom over folly, followed by short sayings on speech, work, money, family, and friendship. Its foundation is the fear of the LORD, which it applies to everyday life.",
+    "christ": "Personified Wisdom (ch 8) finds its fulfillment in Christ, 'in whom are hid all the treasures of wisdom and knowledge' (Col 2:3), who is made unto us wisdom from God (1 Cor 1:30).",
+    "keyVerses": ["PRO.1.7", "PRO.3.5-6", "PRO.9.10"],
+    "outline": [
+      {"title": "Wisdom's call: a father's instruction", "ref": "PRO.1-9"},
+      {"title": "Proverbs of Solomon", "ref": "PRO.10.1-22.16"},
+      {"title": "Words of the wise", "ref": "PRO.22.17-24.34"},
+      {"title": "Proverbs copied by Hezekiah's men", "ref": "PRO.25-29"},
+      {"title": "Words of Agur", "ref": "PRO.30"},
+      {"title": "Words of King Lemuel", "ref": "PRO.31.1-9"},
+      {"title": "The virtuous woman", "ref": "PRO.31.10-31"}
+    ]
+  },
+  "ECC": {
+    "author": "Solomon (traditional)",
+    "date": "c. 935 B.C.",
+    "audience": "Israel, and all who seek the meaning of life",
+    "setting": "Late in Solomon's reign, as the aged king reflects on life 'under the sun.'",
+    "theme": "Life apart from God is vanity; fear God and keep His commandments",
+    "summary": "In Ecclesiastes 'the Preacher' surveys life 'under the sun' (wisdom, pleasure, work, wealth, and power) and finds it all vanity, fleeting and unable to satisfy. He wrestles with injustice, death, and the limits of human understanding, while repeatedly commending the grateful enjoyment of God's gifts. He concludes that the whole duty of man is to fear God and keep His commandments, for God will bring every work into judgment.",
+    "christ": "By exposing the emptiness of life 'under the sun,' the book drives us to Christ, One greater than Solomon, in whom life and labor are not in vain (1 Cor 15:58).",
+    "keyVerses": ["ECC.1.2", "ECC.12.13"],
+    "outline": [
+      {"title": "Prologue: all is vanity", "ref": "ECC.1.1-11"},
+      {"title": "The Preacher's search: wisdom, pleasure, and toil", "ref": "ECC.1.12-2.26"},
+      {"title": "A time for everything; God's sovereignty", "ref": "ECC.3"},
+      {"title": "Oppression, toil, riches, and their vanity", "ref": "ECC.4-6"},
+      {"title": "Wisdom and its limits", "ref": "ECC.7-8"},
+      {"title": "Living wisely in an uncertain world", "ref": "ECC.9-10"},
+      {"title": "Cast thy bread; remember thy Creator", "ref": "ECC.11.1-12.8"},
+      {"title": "Conclusion: fear God and keep His commandments", "ref": "ECC.12.9-14"}
+    ]
+  },
+  "SNG": {
+    "author": "Solomon (traditional)",
+    "date": "c. 965 B.C.",
+    "audience": "Israel",
+    "setting": "Early in Solomon's reign, celebrating the love of the king and the Shulamite bride.",
+    "theme": "The beauty and devotion of covenant love",
+    "summary": "The Song of Solomon is a lyric poem celebrating the love between a bridegroom, Solomon, and his bride, the Shulamite. Through dialogues and songs it traces their courtship, wedding, a time of separation, and their deepening devotion. It honors the purity and beauty of marital love as God's gift, and the church has long read it also as a picture of the love between the Lord and His people.",
+    "christ": "Long read in the church as a picture of the love between Christ and His bride, the church (Eph 5:25-32), the Song points to the Bridegroom whose love is strong as death.",
+    "keyVerses": ["SNG.2.16", "SNG.8.6-7"],
+    "outline": [
+      {"title": "Courtship and longing", "ref": "SNG.1.1-3.5"},
+      {"title": "The wedding procession and union", "ref": "SNG.3.6-5.1"},
+      {"title": "Separation and restoration", "ref": "SNG.5.2-6.13"},
+      {"title": "Delight in the beloved", "ref": "SNG.7.1-8.4"},
+      {"title": "Love strong as death", "ref": "SNG.8.5-14"}
+    ]
+  },
+  "ISA": {
+    "author": "Isaiah son of Amoz",
+    "date": "c. 740–680 B.C.",
+    "audience": "Judah and Jerusalem",
+    "setting": "Isaiah's ministry under Uzziah, Jotham, Ahaz, and Hezekiah amid the Assyrian threat (c. 740–681 B.C.).",
+    "theme": "Salvation is of the LORD, the Holy One of Israel",
+    "summary": "Isaiah prophesied in Jerusalem during the Assyrian crisis, rebuking Judah's sin and calling the nation to trust the LORD rather than foreign alliances. Chapters 1–39 focus on judgment on Judah and the nations, along with Jerusalem's deliverance from Sennacherib; chapters 40–66 offer comfort, foretelling release from Babylon and redemption through the LORD's Servant. Its vision of the Holy One, the coming Messiah, and the new heavens and new earth makes it one of the most quoted books in the New Testament.",
+    "christ": "Isaiah foretells the virgin-born Immanuel (7:14), the Wonderful Counsellor on David's throne (9:6-7), the Branch from Jesse (11:1), and the Suffering Servant wounded for our transgressions (ch 53), all fulfilled in Jesus.",
+    "keyVerses": ["ISA.7.14", "ISA.9.6", "ISA.53.5-6"],
+    "outline": [
+      {"title": "Judgment and hope for Judah; Isaiah's call", "ref": "ISA.1-6"},
+      {"title": "The book of Immanuel", "ref": "ISA.7-12"},
+      {"title": "Oracles against the nations", "ref": "ISA.13-23"},
+      {"title": "The LORD's judgment and triumph over the earth", "ref": "ISA.24-27"},
+      {"title": "Woes and promises", "ref": "ISA.28-35"},
+      {"title": "Hezekiah: deliverance from Assyria", "ref": "ISA.36-39"},
+      {"title": "Comfort: the LORD alone is God and Redeemer", "ref": "ISA.40-48"},
+      {"title": "The Servant's redeeming work", "ref": "ISA.49-57"},
+      {"title": "The future glory of Zion", "ref": "ISA.58-66"}
+    ]
+  },
+  "JER": {
+    "author": "Jeremiah (recorded by Baruch)",
+    "date": "c. 627–580 B.C.",
+    "audience": "Judah before and after the fall of Jerusalem",
+    "setting": "From Josiah's thirteenth year (627 B.C.) through the fall of Jerusalem (586 B.C.) and its aftermath.",
+    "theme": "Judgment for covenant unfaithfulness and the promise of a new covenant",
+    "summary": "Jeremiah, the 'weeping prophet,' ministered for some forty years during Judah's final decline. He warned that Babylon would destroy Jerusalem unless the people repented, and he suffered rejection, imprisonment, and persecution for his message. He witnessed the city's fall in 586 B.C., yet he also proclaimed restoration after seventy years and a new covenant. The book combines sermons, symbolic acts, personal laments, and history.",
+    "christ": "Jeremiah promises a righteous Branch of David called 'THE LORD OUR RIGHTEOUSNESS' (23:5-6) and a new covenant written on the heart (31:31-34), which Christ established in His blood (Luke 22:20; Heb 8).",
+    "keyVerses": ["JER.1.5", "JER.23.5-6", "JER.31.31-33"],
+    "outline": [
+      {"title": "Jeremiah's call", "ref": "JER.1"},
+      {"title": "Warnings to unfaithful Judah", "ref": "JER.2-20"},
+      {"title": "Against kings and false prophets; seventy years", "ref": "JER.21-25"},
+      {"title": "Conflict with priests and false prophets", "ref": "JER.26-29"},
+      {"title": "The book of consolation: the new covenant", "ref": "JER.30-33"},
+      {"title": "Jerusalem's last days and fall", "ref": "JER.34-39"},
+      {"title": "After the fall: Gedaliah and flight to Egypt", "ref": "JER.40-45"},
+      {"title": "Oracles against the nations", "ref": "JER.46-51"},
+      {"title": "Historical appendix: the fall of Jerusalem", "ref": "JER.52"}
+    ]
+  },
+  "LAM": {
+    "author": "Jeremiah (traditional)",
+    "date": "c. 586 B.C.",
+    "audience": "Judah mourning Jerusalem's fall",
+    "setting": "Jerusalem just after its destruction by the Babylonians in 586 B.C.",
+    "theme": "Grief over sin's judgment and hope in God's faithfulness",
+    "summary": "Lamentations is a series of five poems mourning the destruction of Jerusalem and the temple by the Babylonians. Four of the poems are acrostics following the Hebrew alphabet. The poet confesses that the calamity is God's righteous judgment for sin, yet at the center of the book he affirms the LORD's unfailing compassion and faithfulness. It closes with a prayer for restoration.",
+    "christ": "Jerusalem's cry 'Is it nothing to you, all ye that pass by?' (1:12) echoes the sufferings of Christ, and the LORD's unfailing mercies (3:22-23) are supremely shown in Him who bore judgment for His people.",
+    "keyVerses": ["LAM.1.12", "LAM.3.22-23"],
+    "outline": [
+      {"title": "Jerusalem's desolation", "ref": "LAM.1"},
+      {"title": "The LORD's anger against Zion", "ref": "LAM.2"},
+      {"title": "Hope in the LORD's mercies", "ref": "LAM.3"},
+      {"title": "The horrors of the siege", "ref": "LAM.4"},
+      {"title": "A prayer for restoration", "ref": "LAM.5"}
+    ]
+  },
+  "EZK": {
+    "author": "Ezekiel",
+    "date": "c. 593–570 B.C.",
+    "audience": "Jewish exiles in Babylon",
+    "setting": "Among the exiles by the river Chebar, before and after the fall of Jerusalem (593–571 B.C.).",
+    "theme": "The glory of the LORD in judgment and restoration: 'they shall know that I am the LORD'",
+    "summary": "Ezekiel, a priest taken to Babylon in 597 B.C., received visions of God's glory and ministered to the exiles. Before Jerusalem fell, he announced its certain destruction and saw the glory of the LORD depart from the defiled temple. After the fall his message turned to hope: a new heart, the revival of the nation, the defeat of its enemies, and a renewed temple where God dwells. Throughout, God acts so that 'they shall know that I am the LORD.'",
+    "christ": "Ezekiel promises one Shepherd, God's servant David, over His flock (34:23-24), a new heart and Spirit (36:26-27), and the LORD dwelling among His people again, all fulfilled in Christ the Good Shepherd (John 10:11).",
+    "keyVerses": ["EZK.34.23", "EZK.36.26-27"],
+    "outline": [
+      {"title": "Ezekiel's vision of glory and call", "ref": "EZK.1-3"},
+      {"title": "Signs of Jerusalem's siege", "ref": "EZK.4-7"},
+      {"title": "The glory departs from the temple", "ref": "EZK.8-11"},
+      {"title": "Judgment on Judah is certain", "ref": "EZK.12-24"},
+      {"title": "Oracles against the nations", "ref": "EZK.25-32"},
+      {"title": "Restoration: shepherd, new heart, dry bones", "ref": "EZK.33-37"},
+      {"title": "The defeat of Gog", "ref": "EZK.38-39"},
+      {"title": "The new temple and the land", "ref": "EZK.40-48"}
+    ]
+  },
+  "DAN": {
+    "author": "Daniel",
+    "date": "c. 536–530 B.C.",
+    "audience": "Jewish exiles under Gentile rule",
+    "setting": "Babylon and the early Persian empire, from Nebuchadnezzar's first siege to Cyrus (605–536 B.C.).",
+    "theme": "The Most High rules in the kingdom of men",
+    "summary": "Daniel, taken to Babylon as a youth in 605 B.C., served faithfully in the courts of Babylonian and Persian kings. The first half (chs 1–6) recounts the faithfulness of Daniel and his friends and God's deliverance, as in the fiery furnace and the lions' den. The second half (chs 7–12) records visions of successive world empires and the final triumph of God's kingdom. The book assures God's people that the Most High rules over history.",
+    "christ": "Daniel sees a stone that becomes an everlasting kingdom (2:44-45) and one like the Son of man receiving everlasting dominion (7:13-14), the title Jesus took for Himself; the seventy weeks foretell Messiah the Prince being 'cut off' (9:25-26).",
+    "keyVerses": ["DAN.2.44", "DAN.4.17", "DAN.7.13-14"],
+    "outline": [
+      {"title": "Daniel and his friends faithful in Babylon", "ref": "DAN.1"},
+      {"title": "Nebuchadnezzar's dream of the great image", "ref": "DAN.2"},
+      {"title": "The fiery furnace", "ref": "DAN.3"},
+      {"title": "Nebuchadnezzar humbled", "ref": "DAN.4"},
+      {"title": "Belshazzar's feast and the lions' den", "ref": "DAN.5-6"},
+      {"title": "The four beasts and the Son of man", "ref": "DAN.7"},
+      {"title": "The ram and the he goat", "ref": "DAN.8"},
+      {"title": "Daniel's prayer and the seventy weeks", "ref": "DAN.9"},
+      {"title": "The final vision", "ref": "DAN.10-12"}
+    ]
+  },
+  "HOS": {
+    "author": "Hosea",
+    "date": "c. 755–715 B.C.",
+    "audience": "The northern kingdom of Israel",
+    "setting": "The last decades of the northern kingdom, from Jeroboam II to shortly before Samaria's fall in 722 B.C.",
+    "theme": "God's steadfast love for His unfaithful people",
+    "summary": "Hosea prophesied to the northern kingdom during its final decades of prosperity and decline. God commanded him to marry Gomer, who proved unfaithful, as a living picture of Israel's spiritual adultery in worshiping Baal. The book alternates between stern warnings of judgment and tender appeals, revealing God's steadfast, redeeming love for His wayward people.",
+    "christ": "God's redeeming love for an unfaithful wife pictures Christ's love for His church; 'called my son out of Egypt' (11:1) is fulfilled in Jesus (Matt 2:15), and the victory over death (13:14) is sung in Christ's resurrection (1 Cor 15:55).",
+    "keyVerses": ["HOS.3.1", "HOS.6.6", "HOS.14.4"],
+    "outline": [
+      {"title": "Hosea's marriage: a picture of God and Israel", "ref": "HOS.1-3"},
+      {"title": "Israel's unfaithfulness exposed", "ref": "HOS.4-7"},
+      {"title": "Judgment for idolatry", "ref": "HOS.8-10"},
+      {"title": "God's enduring love and just discipline", "ref": "HOS.11-13"},
+      {"title": "A call to return and promised healing", "ref": "HOS.14"}
+    ]
+  },
+  "JOL": {
+    "author": "Joel",
+    "date": "c. 835 B.C. (uncertain)",
+    "audience": "Judah and Jerusalem",
+    "setting": "A devastating locust plague in Judah, seen as a foretaste of the day of the LORD.",
+    "theme": "The great and terrible day of the LORD",
+    "summary": "Joel uses a devastating locust plague as a warning of the coming day of the LORD. He calls the people to genuine repentance, 'rend your heart, and not your garments,' and promises the restoration of the land. He then foretells the outpouring of God's Spirit on all flesh, the judgment of the nations, and the final blessing of Zion.",
+    "christ": "The promised outpouring of the Spirit (2:28-32) was fulfilled at Pentecost through the risen Christ (Acts 2:16-21), and 'whosoever shall call on the name of the LORD shall be delivered' points to salvation in Jesus (Rom 10:13).",
+    "keyVerses": ["JOL.2.13", "JOL.2.28-29", "JOL.2.32"],
+    "outline": [
+      {"title": "The locust plague and a call to mourn", "ref": "JOL.1"},
+      {"title": "The day of the LORD and a call to repent", "ref": "JOL.2.1-17"},
+      {"title": "The LORD's pity and restoration", "ref": "JOL.2.18-27"},
+      {"title": "The outpouring of the Spirit", "ref": "JOL.2.28-32"},
+      {"title": "Judgment of the nations and blessing of Judah", "ref": "JOL.3"}
+    ]
+  },
+  "AMO": {
+    "author": "Amos",
+    "date": "c. 760–750 B.C.",
+    "audience": "The northern kingdom of Israel",
+    "setting": "The prosperous reigns of Jeroboam II of Israel and Uzziah of Judah, two years before the earthquake.",
+    "theme": "Let judgment run down as waters: God judges injustice and empty worship",
+    "summary": "Amos, a herdsman and gatherer of sycamore fruit from Tekoa in Judah, was sent to prophesy against the northern kingdom at the height of its prosperity. He condemned Israel's oppression of the poor, corrupt courts, luxury, and empty religion. Through sermons and visions he announced that the LORD would judge Israel by exile, yet he ends with the promise of raising up David's fallen tabernacle.",
+    "christ": "God promises to raise up the fallen tabernacle of David (9:11-12), fulfilled in Christ's kingdom as the Gentiles are gathered into His people (Acts 15:15-17).",
+    "keyVerses": ["AMO.4.12", "AMO.5.24", "AMO.9.11"],
+    "outline": [
+      {"title": "Judgment on the nations, Judah, and Israel", "ref": "AMO.1-2"},
+      {"title": "Sermons against Israel", "ref": "AMO.3-6"},
+      {"title": "Visions of judgment", "ref": "AMO.7.1-9.10"},
+      {"title": "The tabernacle of David restored", "ref": "AMO.9.11-15"}
+    ]
+  },
+  "OBA": {
+    "author": "Obadiah",
+    "date": "c. 586 B.C. (uncertain)",
+    "audience": "Judah, concerning Edom",
+    "setting": "Edom's gloating and plunder when Jerusalem was overrun, most likely by Babylon in 586 B.C.",
+    "theme": "Edom's pride brought low; the kingdom shall be the LORD's",
+    "summary": "Obadiah, the shortest book of the Old Testament, is an oracle against Edom, the descendants of Esau. Edom had rejoiced over and plundered Jerusalem in its day of calamity instead of helping its brother Jacob. The prophet announces Edom's destruction for its pride and violence and promises that Zion will be delivered and the kingdom will belong to the LORD.",
+    "christ": "The book closes with saviours on mount Zion and the promise that 'the kingdom shall be the LORD's' (v. 21), realized in Christ's reign over all nations.",
+    "keyVerses": ["OBA.1.15", "OBA.1.21"],
+    "outline": [
+      {"title": "Edom's pride and coming downfall", "ref": "OBA.1.1-9"},
+      {"title": "Edom's violence against Jacob", "ref": "OBA.1.10-14"},
+      {"title": "The day of the LORD on all nations", "ref": "OBA.1.15-16"},
+      {"title": "Deliverance on mount Zion", "ref": "OBA.1.17-21"}
+    ]
+  },
+  "JON": {
+    "author": "Jonah (traditional)",
+    "date": "c. 760 B.C.",
+    "audience": "Israel",
+    "setting": "The reign of Jeroboam II, when Assyria, with its capital at Nineveh, was Israel's feared enemy.",
+    "theme": "God's compassion reaches even Israel's enemies",
+    "summary": "Jonah was commanded to preach against Nineveh, capital of Israel's enemy Assyria, but fled by ship in the opposite direction. God pursued him through a storm and a great fish, and when he finally preached, the whole city repented and was spared. Jonah's anger at God's mercy exposes his narrow heart, and the book ends with God's question about His compassion for the lost.",
+    "christ": "Jesus cited Jonah's three days and three nights in the fish as the sign of His own death and resurrection (Matt 12:40), and Nineveh's repentance shows the reach of His saving mercy to the Gentiles.",
+    "keyVerses": ["JON.2.9", "JON.4.2", "JON.4.11"],
+    "outline": [
+      {"title": "Jonah flees from the LORD", "ref": "JON.1"},
+      {"title": "Jonah's prayer from the fish", "ref": "JON.2"},
+      {"title": "Nineveh repents", "ref": "JON.3"},
+      {"title": "Jonah's anger and God's mercy", "ref": "JON.4"}
+    ]
+  },
+  "MIC": {
+    "author": "Micah",
+    "date": "c. 735–700 B.C.",
+    "audience": "Samaria and Jerusalem",
+    "setting": "The reigns of Jotham, Ahaz, and Hezekiah of Judah, during the Assyrian crisis that destroyed Samaria.",
+    "theme": "Who is a God like unto thee, judging sin and pardoning iniquity?",
+    "summary": "Micah, a contemporary of Isaiah from the country town of Moresheth, prophesied to both Samaria and Jerusalem. He denounced oppression by the rich and the corruption of rulers, priests, and false prophets, and foretold the fall of both capitals. Alternating with judgment are promises of a future kingdom of peace and a ruler from Bethlehem, and the book ends by celebrating the God who pardons iniquity.",
+    "christ": "Micah foretells that the ruler of Israel, 'whose goings forth have been from of old, from everlasting,' would come out of Bethlehem (5:2), fulfilled in the birth of Jesus (Matt 2:6).",
+    "keyVerses": ["MIC.5.2", "MIC.6.8", "MIC.7.18"],
+    "outline": [
+      {"title": "Judgment on Samaria and Judah", "ref": "MIC.1-2"},
+      {"title": "Corrupt leaders condemned", "ref": "MIC.3"},
+      {"title": "The coming kingdom and the ruler from Bethlehem", "ref": "MIC.4-5"},
+      {"title": "The LORD's controversy with His people", "ref": "MIC.6"},
+      {"title": "Lament and confident hope", "ref": "MIC.7"}
+    ]
+  },
+  "NAM": {
+    "author": "Nahum",
+    "date": "c. 650 B.C.",
+    "audience": "Judah",
+    "setting": "Assyria at the height of its power, between the fall of Thebes (663 B.C.) and Nineveh's fall (612 B.C.).",
+    "theme": "The LORD avenges His enemies and is a stronghold to those who trust Him",
+    "summary": "Nahum announces the destruction of Nineveh, the cruel capital of Assyria, about a century after the city repented at Jonah's preaching. He portrays the LORD as jealous, avenging, and powerful, yet good and a stronghold to those who trust Him. Nineveh's fall in 612 B.C. brought comfort to Judah, which had long suffered under Assyrian oppression.",
+    "christ": "The LORD who will not acquit the wicked also sends a herald 'that bringeth good tidings, that publisheth peace' (1:15), anticipating the gospel of peace proclaimed in Christ (Rom 10:15).",
+    "keyVerses": ["NAM.1.3", "NAM.1.7", "NAM.1.15"],
+    "outline": [
+      {"title": "The majesty and justice of the LORD", "ref": "NAM.1.1-8"},
+      {"title": "Nineveh's doom and Judah's comfort", "ref": "NAM.1.9-15"},
+      {"title": "The siege and fall of Nineveh", "ref": "NAM.2"},
+      {"title": "Woe to the bloody city", "ref": "NAM.3"}
+    ]
+  },
+  "HAB": {
+    "author": "Habakkuk",
+    "date": "c. 607 B.C.",
+    "audience": "Judah",
+    "setting": "Judah's moral decline in the years just before the Babylonian invasion of 605 B.C.",
+    "theme": "The just shall live by his faith",
+    "summary": "Habakkuk records a dialogue between the prophet and God. Troubled by violence and injustice in Judah, Habakkuk asks why God tolerates it, and God answers that He is raising up the Chaldeans to judge them. When the prophet asks how a holy God can use a more wicked nation, God declares that the proud will fall but 'the just shall live by his faith.' The book ends with a psalm of trust and joy in God despite loss.",
+    "christ": "'The just shall live by his faith' (2:4) is the gospel principle of justification by faith in Christ (Rom 1:17; Gal 3:11; Heb 10:38), and the earth filled with the knowledge of the LORD's glory (2:14) looks to His kingdom.",
+    "keyVerses": ["HAB.2.4", "HAB.2.14", "HAB.3.17-18"],
+    "outline": [
+      {"title": "First complaint: why does evil go unpunished?", "ref": "HAB.1.1-4"},
+      {"title": "God's answer: the Chaldeans are coming", "ref": "HAB.1.5-11"},
+      {"title": "Second complaint: why use the wicked?", "ref": "HAB.1.12-2.1"},
+      {"title": "God's answer: the just live by faith; woes on the proud", "ref": "HAB.2.2-20"},
+      {"title": "Habakkuk's prayer of faith", "ref": "HAB.3"}
+    ]
+  },
+  "ZEP": {
+    "author": "Zephaniah",
+    "date": "c. 635–625 B.C.",
+    "audience": "Judah and Jerusalem",
+    "setting": "The reign of Josiah, likely before his reforms of 621 B.C.",
+    "theme": "The great day of the LORD: wrath and restoration",
+    "summary": "Zephaniah, a descendant of King Hezekiah, prophesied during Josiah's reign, likely before his reforms took hold. He warned of the coming day of the LORD's wrath against Judah's idolatry and complacency and against the surrounding nations. He urged the meek to seek the LORD and ended with a joyful promise of a purified remnant in whom God rejoices.",
+    "christ": "The LORD as King in the midst of His people, mighty to save and rejoicing over them (3:15-17), is fulfilled in Christ, who gathers a purified people from all nations to call on His name (3:9).",
+    "keyVerses": ["ZEP.1.14", "ZEP.2.3", "ZEP.3.17"],
+    "outline": [
+      {"title": "The day of the LORD against Judah", "ref": "ZEP.1"},
+      {"title": "A call to seek the LORD", "ref": "ZEP.2.1-3"},
+      {"title": "Judgment on the nations", "ref": "ZEP.2.4-15"},
+      {"title": "Woe to rebellious Jerusalem", "ref": "ZEP.3.1-8"},
+      {"title": "A purified remnant and rejoicing", "ref": "ZEP.3.9-20"}
+    ]
+  },
+  "HAG": {
+    "author": "Haggai",
+    "date": "520 B.C.",
+    "audience": "The returned exiles in Jerusalem",
+    "setting": "The second year of Darius I, when the temple rebuilding had stalled for some sixteen years.",
+    "theme": "Consider your ways: rebuild the house of the LORD",
+    "summary": "Haggai delivered four dated messages in 520 B.C. to the returned exiles, who had neglected the temple while building their own houses. He called them to 'consider your ways' and resume the work, and the leaders and people obeyed. He encouraged them that the glory of the latter house would be greater than the former, and promised blessing and the LORD's choice of Zerubbabel.",
+    "christ": "The promise that 'the desire of all nations shall come' and fill the latter house with glory (2:7-9) points to Christ's coming, and Zerubbabel, made as a signet (2:23), stands in the line of the Messiah (Matt 1:12).",
+    "keyVerses": ["HAG.1.7-8", "HAG.2.7", "HAG.2.9"],
+    "outline": [
+      {"title": "First message: rebuild the house", "ref": "HAG.1.1-11"},
+      {"title": "The people obey", "ref": "HAG.1.12-15"},
+      {"title": "Second message: the glory of the latter house", "ref": "HAG.2.1-9"},
+      {"title": "Third message: blessing for a cleansed people", "ref": "HAG.2.10-19"},
+      {"title": "Fourth message: Zerubbabel the signet", "ref": "HAG.2.20-23"}
+    ]
+  },
+  "ZEC": {
+    "author": "Zechariah",
+    "date": "c. 520–480 B.C.",
+    "audience": "The returned exiles in Jerusalem",
+    "setting": "The rebuilding of the temple under Darius I (from 520 B.C.), with later oracles from after its completion.",
+    "theme": "The LORD remembers Zion, and her King is coming",
+    "summary": "Zechariah, a priest and contemporary of Haggai, encouraged the returned exiles to complete the temple and to return to the LORD. Eight night visions assure them of God's care for Jerusalem, judgment on the nations, cleansing of sin, and empowerment by His Spirit. The later oracles (chs 9–14) look beyond the prophet's day to the coming of Israel's King, His rejection, and the final triumph of God's kingdom.",
+    "christ": "Zechariah foresees the BRANCH who is both priest and king (6:12-13), the lowly King riding upon an ass (9:9), the thirty pieces of silver (11:12-13), the One pierced (12:10), and the smitten Shepherd (13:7), all fulfilled in Jesus.",
+    "keyVerses": ["ZEC.4.6", "ZEC.9.9", "ZEC.12.10"],
+    "outline": [
+      {"title": "A call to return to the LORD", "ref": "ZEC.1.1-6"},
+      {"title": "Eight night visions", "ref": "ZEC.1.7-6.8"},
+      {"title": "The crowning of Joshua the high priest", "ref": "ZEC.6.9-15"},
+      {"title": "Questions about fasting; promises to Zion", "ref": "ZEC.7-8"},
+      {"title": "First burden: the coming and rejection of the King", "ref": "ZEC.9-11"},
+      {"title": "Second burden: Israel's cleansing and the LORD's reign", "ref": "ZEC.12-14"}
+    ]
+  },
+  "MAL": {
+    "author": "Malachi",
+    "date": "c. 430 B.C.",
+    "audience": "Postexilic Judah, priests and people",
+    "setting": "Jerusalem around Nehemiah's time, when worship had grown careless after the temple's rebuilding.",
+    "theme": "God's love and a call to covenant faithfulness before the day of the LORD",
+    "summary": "Malachi, the last of the Old Testament prophets, addressed a postexilic community that had grown cold and cynical. Through a series of charges, objections, and replies, he rebuked careless priests, blemished offerings, divorce, and the withholding of tithes. He announced the coming of the Lord's messenger and the day of the LORD, and closed with the promise of Elijah's coming before that day.",
+    "christ": "Malachi promises the messenger who prepares the way and the Lord who shall suddenly come to His temple (3:1), fulfilled in John the Baptist and Jesus (Mark 1:2), the Sun of righteousness with healing in His wings (4:2).",
+    "keyVerses": ["MAL.3.1", "MAL.3.6", "MAL.4.5-6"],
+    "outline": [
+      {"title": "The LORD's love for Israel", "ref": "MAL.1.1-5"},
+      {"title": "Priests rebuked for polluted offerings", "ref": "MAL.1.6-2.9"},
+      {"title": "Treachery in marriage", "ref": "MAL.2.10-16"},
+      {"title": "The messenger of the covenant and coming judgment", "ref": "MAL.2.17-3.6"},
+      {"title": "Robbing God in tithes and offerings", "ref": "MAL.3.7-12"},
+      {"title": "The book of remembrance", "ref": "MAL.3.13-18"},
+      {"title": "The day of the LORD and the coming of Elijah", "ref": "MAL.4"}
+    ]
+  }
+}

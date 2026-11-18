@@ -1,0 +1,1088 @@
+{
+  "MAT": {
+    "author": "the apostle Matthew (Levi), a former tax collector",
+    "date": "c. A.D. 50–70",
+    "audience": "Jewish Christians (traditionally in Palestine or Syria)",
+    "setting": "Written in a Jewish-Christian setting before the fall of Jerusalem in A.D. 70, as the church was defining itself over against the synagogue.",
+    "theme": "Jesus the Messiah, the promised King of the Jews",
+    "summary": "Matthew, one of the Twelve, wrote to show that Jesus of Nazareth is the long-promised Messiah, the Son of David and heir of Abraham. He repeatedly cites the Old Testament (\"that it might be fulfilled\") and gathers Jesus' teaching into five great discourses, beginning with the Sermon on the Mount. The Gospel traces the King's offer of the kingdom of heaven, His rejection by Israel's leaders, and His death and resurrection, closing with the Great Commission to make disciples of all nations.",
+    "christ": "Jesus is the royal Messiah, Son of David and Son of God, who fulfills the Law and the Prophets and to whom all power in heaven and in earth is given.",
+    "keyVerses": [
+      "MAT.5.17",
+      "MAT.16.16",
+      "MAT.28.18-20"
+    ],
+    "outline": [
+      {
+        "title": "The King's genealogy, birth, and infancy",
+        "ref": "MAT.1-2"
+      },
+      {
+        "title": "The King prepared: John, baptism, and temptation",
+        "ref": "MAT.3.1-4.11"
+      },
+      {
+        "title": "Ministry begins; the Sermon on the Mount",
+        "ref": "MAT.4.12-7.29"
+      },
+      {
+        "title": "The King's power: miracles and the sending of the Twelve",
+        "ref": "MAT.8-10"
+      },
+      {
+        "title": "Growing opposition and the parables of the kingdom",
+        "ref": "MAT.11-13"
+      },
+      {
+        "title": "Training the disciples: Peter's confession and the church",
+        "ref": "MAT.14-18"
+      },
+      {
+        "title": "On the way to Jerusalem",
+        "ref": "MAT.19-20"
+      },
+      {
+        "title": "The King in Jerusalem: entry, conflict, and the Olivet Discourse",
+        "ref": "MAT.21-25"
+      },
+      {
+        "title": "The King's death and resurrection; the Great Commission",
+        "ref": "MAT.26-28"
+      }
+    ]
+  },
+  "MRK": {
+    "author": "John Mark, Peter's companion and interpreter",
+    "date": "c. A.D. 55–65",
+    "audience": "Gentile believers (traditionally in Rome)",
+    "setting": "Traditionally written in Rome from Peter's preaching, for Gentile believers facing hardship and the threat of persecution.",
+    "theme": "Jesus the Servant Son of God, who gives His life a ransom",
+    "summary": "Early tradition (Papias) holds that Mark, a companion of both Peter and Paul, wrote down Peter's preaching about Jesus. The shortest and most action-filled Gospel, it moves quickly (\"straightway\") from one deed to the next and explains Jewish customs for Gentile readers. Its first half displays Jesus' authority over disease, demons, nature, and death; from Peter's confession onward it turns toward the cross, where the Servant gives His life a ransom for many.",
+    "christ": "Jesus is the mighty Son of God who came not to be ministered unto but to minister, and to give His life a ransom for many.",
+    "keyVerses": [
+      "MRK.1.1",
+      "MRK.10.45"
+    ],
+    "outline": [
+      {
+        "title": "Preparation of the Servant",
+        "ref": "MRK.1.1-13"
+      },
+      {
+        "title": "Early ministry in Galilee",
+        "ref": "MRK.1.14-3.12"
+      },
+      {
+        "title": "The Twelve, the parables, and mighty works",
+        "ref": "MRK.3.13-6.29"
+      },
+      {
+        "title": "Ministry around and beyond Galilee",
+        "ref": "MRK.6.30-8.26"
+      },
+      {
+        "title": "Peter's confession and the road to Jerusalem",
+        "ref": "MRK.8.27-10.52"
+      },
+      {
+        "title": "Ministry in Jerusalem and the Olivet Discourse",
+        "ref": "MRK.11-13"
+      },
+      {
+        "title": "The Servant's betrayal, trial, and crucifixion",
+        "ref": "MRK.14-15"
+      },
+      {
+        "title": "Resurrection and commission",
+        "ref": "MRK.16"
+      }
+    ]
+  },
+  "LUK": {
+    "author": "Luke, the beloved physician and companion of Paul",
+    "date": "c. A.D. 60–62",
+    "audience": "Theophilus and Gentile readers",
+    "setting": "Written for a Greek-speaking, largely Gentile readership, probably while Paul was in custody at Caesarea or Rome.",
+    "theme": "Jesus the Son of Man, Savior of the lost",
+    "summary": "Luke, a Gentile physician and Paul's traveling companion, carefully investigated eyewitness accounts to write an orderly narrative for Theophilus. His Gospel, the first volume of a two-part work with Acts, contains much material found nowhere else, including the births of John and Jesus and parables such as the Good Samaritan and the Prodigal Son. Luke stresses prayer, the Holy Spirit, joy, and Jesus' compassion for the poor, women, Samaritans, and outcasts, presenting a Savior for all people.",
+    "christ": "Jesus is the perfect Son of Man and Savior of the world, who came to seek and to save that which was lost.",
+    "keyVerses": [
+      "LUK.1.3-4",
+      "LUK.19.10"
+    ],
+    "outline": [
+      {
+        "title": "Prologue: an orderly account",
+        "ref": "LUK.1.1-4"
+      },
+      {
+        "title": "Births of John and Jesus; Jesus' childhood",
+        "ref": "LUK.1.5-2.52"
+      },
+      {
+        "title": "Preparation for ministry",
+        "ref": "LUK.3.1-4.13"
+      },
+      {
+        "title": "Ministry in Galilee",
+        "ref": "LUK.4.14-9.50"
+      },
+      {
+        "title": "The journey to Jerusalem",
+        "ref": "LUK.9.51-19.27"
+      },
+      {
+        "title": "Ministry in Jerusalem",
+        "ref": "LUK.19.28-21.38"
+      },
+      {
+        "title": "The Son of Man betrayed and crucified",
+        "ref": "LUK.22-23"
+      },
+      {
+        "title": "Resurrection and ascension",
+        "ref": "LUK.24"
+      }
+    ]
+  },
+  "JHN": {
+    "author": "the apostle John",
+    "date": "c. A.D. 85–95",
+    "audience": "believers and seekers in the wider church (traditionally from Ephesus)",
+    "setting": "Written late in the first century, traditionally at Ephesus, after the other Gospels were circulating and as the church faced false teaching and opposition from the synagogue.",
+    "theme": "Believe that Jesus is the Christ, the Son of God, and have life",
+    "summary": "John, \"the disciple whom Jesus loved,\" wrote the fourth Gospel late in life, supplementing the other three with material largely unique to it. He selects a series of signs and records extended discourses, including the great \"I am\" sayings, to show that Jesus is the eternal Word made flesh. He states his purpose plainly: that readers might believe that Jesus is the Christ, the Son of God, and have life through His name.",
+    "christ": "Jesus is the eternal Word, God made flesh, the only begotten Son who reveals the Father and gives eternal life to all who believe.",
+    "keyVerses": [
+      "JHN.1.14",
+      "JHN.3.16",
+      "JHN.20.31"
+    ],
+    "outline": [
+      {
+        "title": "Prologue: the Word made flesh",
+        "ref": "JHN.1.1-18"
+      },
+      {
+        "title": "First witnesses and early signs",
+        "ref": "JHN.1.19-4.54"
+      },
+      {
+        "title": "The Son's claims and growing conflict",
+        "ref": "JHN.5-10"
+      },
+      {
+        "title": "Lazarus raised; the hour comes",
+        "ref": "JHN.11-12"
+      },
+      {
+        "title": "The Upper Room: farewell discourse and prayer",
+        "ref": "JHN.13-17"
+      },
+      {
+        "title": "Arrest, trial, and crucifixion",
+        "ref": "JHN.18-19"
+      },
+      {
+        "title": "The resurrection",
+        "ref": "JHN.20"
+      },
+      {
+        "title": "Epilogue: Peter restored and commissioned",
+        "ref": "JHN.21"
+      }
+    ]
+  },
+  "ACT": {
+    "author": "Luke, the beloved physician",
+    "date": "c. A.D. 62",
+    "audience": "Theophilus and the wider church",
+    "setting": "Spans about thirty years, from the ascension (c. A.D. 30) to Paul's two years under house arrest in Rome, where the book ends.",
+    "theme": "The risen Christ spreads His gospel by the Spirit to the ends of the earth",
+    "summary": "Acts continues Luke's Gospel, recording what Jesus continued to do and teach through His apostles by the Holy Spirit. Beginning with the ascension and Pentecost, it traces the gospel's spread from Jerusalem to Judea and Samaria and on to the Gentile world, following first Peter and then Paul. It records the founding of the church, the conversion of Saul, the Jerusalem Council, and Paul's missionary journeys, ending with Paul preaching the kingdom of God unhindered in Rome.",
+    "christ": "The ascended Lord Jesus pours out the promised Spirit and builds His church, proclaimed as the only name under heaven whereby we must be saved.",
+    "keyVerses": [
+      "ACT.1.8",
+      "ACT.4.12"
+    ],
+    "outline": [
+      {
+        "title": "The ascension and waiting for the Spirit",
+        "ref": "ACT.1"
+      },
+      {
+        "title": "Pentecost and the church in Jerusalem",
+        "ref": "ACT.2.1-8.3"
+      },
+      {
+        "title": "Samaria, Saul's conversion, and the first Gentiles",
+        "ref": "ACT.8.4-12.25"
+      },
+      {
+        "title": "Paul's first missionary journey",
+        "ref": "ACT.13-14"
+      },
+      {
+        "title": "The Jerusalem Council",
+        "ref": "ACT.15.1-35"
+      },
+      {
+        "title": "Paul's second missionary journey",
+        "ref": "ACT.15.36-18.22"
+      },
+      {
+        "title": "Paul's third missionary journey",
+        "ref": "ACT.18.23-21.16"
+      },
+      {
+        "title": "Paul's arrest and defenses",
+        "ref": "ACT.21.17-26.32"
+      },
+      {
+        "title": "The voyage to Rome",
+        "ref": "ACT.27-28"
+      }
+    ]
+  },
+  "ROM": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 57",
+    "audience": "the church at Rome, Jews and Gentiles",
+    "setting": "Written from Corinth near the end of the third missionary journey, as Paul prepared to carry the collection to Jerusalem and hoped to visit Rome on his way to Spain.",
+    "theme": "The righteousness of God revealed in the gospel",
+    "summary": "Romans is Paul's fullest and most systematic presentation of the gospel. He shows that Jews and Gentiles alike stand guilty before God, that sinners are justified freely by grace through faith in Christ's atoning work, and that the justified are freed from sin's dominion to live by the Spirit. He then addresses God's sovereign purposes for Israel and closes with practical instruction on living sacrifice, love, civil authority, and the unity of strong and weak believers.",
+    "christ": "Christ is the Son of God, declared with power by the resurrection, set forth as a propitiation through faith in His blood and raised again for our justification.",
+    "keyVerses": [
+      "ROM.1.16-17",
+      "ROM.3.23-24",
+      "ROM.5.1"
+    ],
+    "outline": [
+      {
+        "title": "Introduction and theme",
+        "ref": "ROM.1.1-17"
+      },
+      {
+        "title": "Condemnation: all have sinned",
+        "ref": "ROM.1.18-3.20"
+      },
+      {
+        "title": "Justification by faith",
+        "ref": "ROM.3.21-5.21"
+      },
+      {
+        "title": "Sanctification: freedom from sin and life in the Spirit",
+        "ref": "ROM.6-8"
+      },
+      {
+        "title": "God's sovereign purpose for Israel",
+        "ref": "ROM.9-11"
+      },
+      {
+        "title": "Transformed living",
+        "ref": "ROM.12.1-15.13"
+      },
+      {
+        "title": "Paul's plans, greetings, and doxology",
+        "ref": "ROM.15.14-16.27"
+      }
+    ]
+  },
+  "1CO": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 54–55",
+    "audience": "the church at Corinth",
+    "setting": "Written from Ephesus during the third missionary journey to a young church in Corinth, a wealthy, cosmopolitan, and notoriously immoral Greek port city.",
+    "theme": "Correcting a divided church and answering its questions",
+    "summary": "Paul had founded the church at Corinth on his second missionary journey, and later reports and a letter from the church revealed serious problems. He confronts factions, tolerated immorality, lawsuits among believers, and disorder at the Lord's Supper, and answers questions about marriage, food offered to idols, spiritual gifts, and the resurrection. Throughout, he applies the wisdom of the cross and the law of love to the life of a worldly congregation.",
+    "christ": "Christ crucified is the power and wisdom of God, the one foundation of the church, and the firstfruits of the resurrection.",
+    "keyVerses": [
+      "1CO.1.18",
+      "1CO.10.31",
+      "1CO.15.3-4"
+    ],
+    "outline": [
+      {
+        "title": "Greeting and thanksgiving",
+        "ref": "1CO.1.1-9"
+      },
+      {
+        "title": "Divisions and the wisdom of the cross",
+        "ref": "1CO.1.10-4.21"
+      },
+      {
+        "title": "Immorality and lawsuits",
+        "ref": "1CO.5-6"
+      },
+      {
+        "title": "Marriage and singleness",
+        "ref": "1CO.7"
+      },
+      {
+        "title": "Christian liberty and food offered to idols",
+        "ref": "1CO.8.1-11.1"
+      },
+      {
+        "title": "Public worship and spiritual gifts",
+        "ref": "1CO.11.2-14.40"
+      },
+      {
+        "title": "The resurrection of the dead",
+        "ref": "1CO.15"
+      },
+      {
+        "title": "The collection and closing words",
+        "ref": "1CO.16"
+      }
+    ]
+  },
+  "2CO": {
+    "author": "the apostle Paul (with Timothy)",
+    "date": "c. A.D. 55–56",
+    "audience": "the church at Corinth and the saints in Achaia",
+    "setting": "Written from Macedonia after Titus brought news of Corinth's response to Paul's severe letter, while false apostles still challenged his authority.",
+    "theme": "God's power made perfect in weakness",
+    "summary": "After a painful visit and a severe letter, Paul rejoiced at Titus's report that most of the Corinthians had repented, yet some, stirred up by self-styled apostles, still attacked his ministry. This is Paul's most personal letter, opening his heart about his sufferings, motives, and calling as a minister of the new covenant. He urges completion of the collection for the poor saints in Jerusalem and defends his apostleship by glorying in his infirmities, through which Christ's power is displayed.",
+    "christ": "Christ is the One in whom all God's promises are yea and amen, who became poor for our sakes and was made sin for us that we might be made the righteousness of God in Him.",
+    "keyVerses": [
+      "2CO.5.17",
+      "2CO.5.21",
+      "2CO.12.9"
+    ],
+    "outline": [
+      {
+        "title": "Greeting and comfort in affliction",
+        "ref": "2CO.1.1-11"
+      },
+      {
+        "title": "Paul's change of plans explained",
+        "ref": "2CO.1.12-2.13"
+      },
+      {
+        "title": "The ministry of the new covenant",
+        "ref": "2CO.2.14-7.16"
+      },
+      {
+        "title": "The collection for the saints",
+        "ref": "2CO.8-9"
+      },
+      {
+        "title": "Paul's defense of his apostleship",
+        "ref": "2CO.10.1-13.10"
+      },
+      {
+        "title": "Closing exhortation and benediction",
+        "ref": "2CO.13.11-14"
+      }
+    ]
+  },
+  "GAL": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 48–55",
+    "audience": "the churches of Galatia",
+    "setting": "Written to churches founded by Paul, as Judaizing teachers pressed Gentile converts to be circumcised and keep the Law of Moses.",
+    "theme": "Justification by faith alone and freedom in Christ",
+    "summary": "Soon after Paul evangelized Galatia, teachers arrived insisting that Gentile believers must be circumcised and keep the Law to be accepted by God. Paul responds with urgency, defending his apostolic authority as received directly from Christ and showing from Abraham's example that justification has always been by faith. He concludes that believers are free from the Law's bondage, yet called to use that liberty to serve one another by walking in the Spirit.",
+    "christ": "Christ redeemed us from the curse of the Law, being made a curse for us, and lives in those who are crucified with Him.",
+    "keyVerses": [
+      "GAL.2.16",
+      "GAL.2.20",
+      "GAL.5.1"
+    ],
+    "outline": [
+      {
+        "title": "Introduction: no other gospel",
+        "ref": "GAL.1.1-10"
+      },
+      {
+        "title": "Paul's gospel and apostleship defended",
+        "ref": "GAL.1.11-2.21"
+      },
+      {
+        "title": "Justification by faith, not by the Law",
+        "ref": "GAL.3-4"
+      },
+      {
+        "title": "Liberty in Christ and life in the Spirit",
+        "ref": "GAL.5.1-6.10"
+      },
+      {
+        "title": "Conclusion: glorying in the cross",
+        "ref": "GAL.6.11-18"
+      }
+    ]
+  },
+  "EPH": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 60–62",
+    "audience": "the saints at Ephesus (likely also circulated in Asia)",
+    "setting": "Written during Paul's first Roman imprisonment and carried by Tychicus, together with Colossians and Philemon.",
+    "theme": "The believer's riches in Christ and the unity of His church",
+    "summary": "Ephesians, written from prison and lacking personal greetings, may have been intended to circulate among the churches of Asia. Its first three chapters unfold the believer's spiritual blessings in Christ: election, redemption, and adoption; salvation by grace through faith; and the union of Jew and Gentile in one body. Its last three chapters call the church to walk worthy of that calling in unity, purity, and love, in the home, and in spiritual warfare.",
+    "christ": "Christ is the exalted Head over all things to the church, who has made Jew and Gentile one new man and loves the church as His bride.",
+    "keyVerses": [
+      "EPH.1.3",
+      "EPH.2.8-10",
+      "EPH.4.1"
+    ],
+    "outline": [
+      {
+        "title": "Greeting",
+        "ref": "EPH.1.1-2"
+      },
+      {
+        "title": "Spiritual blessings in Christ and Paul's prayer",
+        "ref": "EPH.1.3-23"
+      },
+      {
+        "title": "Saved by grace and made one in Christ",
+        "ref": "EPH.2"
+      },
+      {
+        "title": "The mystery revealed and Paul's prayer",
+        "ref": "EPH.3"
+      },
+      {
+        "title": "Walking in unity and holiness",
+        "ref": "EPH.4.1-5.21"
+      },
+      {
+        "title": "Christ in the household",
+        "ref": "EPH.5.22-6.9"
+      },
+      {
+        "title": "The whole armour of God; closing",
+        "ref": "EPH.6.10-24"
+      }
+    ]
+  },
+  "PHP": {
+    "author": "the apostle Paul (with Timothy)",
+    "date": "c. A.D. 61–62",
+    "audience": "the church at Philippi",
+    "setting": "Written from imprisonment, traditionally Paul's first Roman imprisonment, to thank the Philippians for the gift brought by Epaphroditus.",
+    "theme": "Joy in Christ in every circumstance",
+    "summary": "The church at Philippi, the first Paul founded in Europe, had faithfully supported him and sent Epaphroditus with a gift while he was imprisoned. Paul writes to thank them, report on his circumstances, and urge them toward unity and humility after the example of Christ. Though in bonds and facing possible death, he speaks repeatedly of joy, warns against the Judaizers, and testifies that he has learned contentment through Christ who strengthens him.",
+    "christ": "Christ is the eternal Son who, being in the form of God, humbled Himself unto the death of the cross and has been highly exalted as Lord over all.",
+    "keyVerses": [
+      "PHP.1.21",
+      "PHP.2.5-8",
+      "PHP.4.4"
+    ],
+    "outline": [
+      {
+        "title": "Greeting, thanksgiving, and prayer",
+        "ref": "PHP.1.1-11"
+      },
+      {
+        "title": "Paul's circumstances: to live is Christ",
+        "ref": "PHP.1.12-30"
+      },
+      {
+        "title": "The mind of Christ: humility and service",
+        "ref": "PHP.2"
+      },
+      {
+        "title": "Knowing Christ: no confidence in the flesh",
+        "ref": "PHP.3"
+      },
+      {
+        "title": "Peace, contentment, and thanks for the gift",
+        "ref": "PHP.4"
+      }
+    ]
+  },
+  "COL": {
+    "author": "the apostle Paul (with Timothy)",
+    "date": "c. A.D. 60–62",
+    "audience": "the church at Colossae",
+    "setting": "Written from Paul's first Roman imprisonment after Epaphras reported a false teaching that mixed philosophy, Jewish ritual, and the worship of angels.",
+    "theme": "The preeminence and sufficiency of Christ",
+    "summary": "Paul had not visited Colossae; the church was founded through Epaphras, who brought word of a dangerous teaching combining human philosophy, Jewish ritual, asceticism, and the worship of angels. Paul answers it by exalting Christ as the image of the invisible God, the Creator and Head of the church, in whom dwells all the fullness of the Godhead bodily. Since believers are complete in Him, they need no additions, but are to set their affection on things above and live out their new life in every relationship.",
+    "christ": "Christ is the image of the invisible God, Creator and upholder of all things, the Head of the church, in whom dwells all the fullness of the Godhead bodily.",
+    "keyVerses": [
+      "COL.1.18",
+      "COL.2.9-10",
+      "COL.3.1"
+    ],
+    "outline": [
+      {
+        "title": "Greeting, thanksgiving, and prayer",
+        "ref": "COL.1.1-14"
+      },
+      {
+        "title": "The preeminence of Christ and Paul's ministry",
+        "ref": "COL.1.15-29"
+      },
+      {
+        "title": "Complete in Christ: warning against false teaching",
+        "ref": "COL.2"
+      },
+      {
+        "title": "The new life in Christ",
+        "ref": "COL.3.1-4.6"
+      },
+      {
+        "title": "Personal greetings",
+        "ref": "COL.4.7-18"
+      }
+    ]
+  },
+  "1TH": {
+    "author": "the apostle Paul (with Silas and Timothy)",
+    "date": "c. A.D. 50–51",
+    "audience": "the church at Thessalonica",
+    "setting": "Written from Corinth during the second missionary journey, after Timothy brought good news of the young and persecuted church.",
+    "theme": "Faithful, holy living in hope of the Lord's coming",
+    "summary": "Paul founded the church at Thessalonica on his second journey but was forced to leave after a short time because of persecution. Anxious about the new believers, he sent Timothy, whose report of their faith and love prompted this warm letter. Paul recalls his conduct among them, urges holiness and quiet diligence, and comforts those grieving over believers who had died by teaching about the Lord's coming and the resurrection.",
+    "christ": "Jesus is the risen Son who delivers us from the wrath to come and will descend from heaven to gather His people to Himself.",
+    "keyVerses": [
+      "1TH.4.16-17",
+      "1TH.5.23"
+    ],
+    "outline": [
+      {
+        "title": "Thanksgiving for the Thessalonians' faith",
+        "ref": "1TH.1"
+      },
+      {
+        "title": "Paul's ministry among them",
+        "ref": "1TH.2.1-16"
+      },
+      {
+        "title": "Paul's concern and Timothy's report",
+        "ref": "1TH.2.17-3.13"
+      },
+      {
+        "title": "Exhortations to holy living",
+        "ref": "1TH.4.1-12"
+      },
+      {
+        "title": "The coming of the Lord",
+        "ref": "1TH.4.13-5.11"
+      },
+      {
+        "title": "Final instructions and blessing",
+        "ref": "1TH.5.12-28"
+      }
+    ]
+  },
+  "2TH": {
+    "author": "the apostle Paul (with Silas and Timothy)",
+    "date": "c. A.D. 51–52",
+    "audience": "the church at Thessalonica",
+    "setting": "Written from Corinth shortly after 1 Thessalonians, to correct the mistaken idea that the day of Christ had already come.",
+    "theme": "Steadfastness until the day of the Lord",
+    "summary": "Persecution at Thessalonica continued, and some had been shaken by a report, perhaps even a forged letter, claiming that the day of Christ was already present. Paul comforts them with the certainty of God's righteous judgment at Christ's return and explains that the falling away and the revealing of the man of sin must come first. He also rebukes those who had stopped working, commanding them to work quietly and eat their own bread.",
+    "christ": "The Lord Jesus will be revealed from heaven in flaming fire to take vengeance on the disobedient and be glorified in His saints, consuming the man of sin with the brightness of His coming.",
+    "keyVerses": [
+      "2TH.2.3",
+      "2TH.2.15",
+      "2TH.3.3"
+    ],
+    "outline": [
+      {
+        "title": "Comfort in persecution",
+        "ref": "2TH.1"
+      },
+      {
+        "title": "The day of Christ and the man of sin",
+        "ref": "2TH.2"
+      },
+      {
+        "title": "Prayer, discipline of the disorderly, and closing",
+        "ref": "2TH.3"
+      }
+    ]
+  },
+  "1TI": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 62–64",
+    "audience": "Timothy, Paul's son in the faith, at Ephesus",
+    "setting": "Written after Paul's release from his first Roman imprisonment, during a further period of ministry not recorded in Acts.",
+    "theme": "Sound doctrine and godly order in the house of God",
+    "summary": "Paul had left Timothy at Ephesus to oppose false teachers and set the church in order. This letter gives instruction on prayer and public worship, the qualifications of bishops and deacons, the care of widows, the honor due to elders, and the dangers of the love of money. Paul urges his young delegate to guard sound doctrine, be an example to the believers, and fight the good fight of faith.",
+    "christ": "Christ Jesus came into the world to save sinners; He is the one Mediator between God and men, God manifest in the flesh.",
+    "keyVerses": [
+      "1TI.1.15",
+      "1TI.2.5",
+      "1TI.3.15-16"
+    ],
+    "outline": [
+      {
+        "title": "Warning against false teachers; Paul's testimony",
+        "ref": "1TI.1"
+      },
+      {
+        "title": "Prayer and public worship",
+        "ref": "1TI.2"
+      },
+      {
+        "title": "Qualifications of bishops and deacons",
+        "ref": "1TI.3"
+      },
+      {
+        "title": "A good minister of Jesus Christ",
+        "ref": "1TI.4"
+      },
+      {
+        "title": "Widows, elders, and servants",
+        "ref": "1TI.5.1-6.2"
+      },
+      {
+        "title": "False teachers, riches, and a final charge",
+        "ref": "1TI.6.3-21"
+      }
+    ]
+  },
+  "2TI": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 66–67",
+    "audience": "Timothy, Paul's son in the faith",
+    "setting": "Paul's final letter, written from a Roman prison shortly before his martyrdom under Nero.",
+    "theme": "Faithfulness to the gospel to the end",
+    "summary": "Imprisoned again in Rome, deserted by many, and expecting execution, Paul wrote his last letter to Timothy, his dearly beloved son. He urges Timothy not to be ashamed of the gospel, to endure hardness as a good soldier, and to commit the truth to faithful men. Warning of perilous times and departure from the truth, he affirms that all Scripture is given by inspiration of God and charges Timothy to preach the word, asking him to come before winter.",
+    "christ": "Christ Jesus has abolished death and brought life and immortality to light through the gospel; He is the righteous Judge who will give the crown of righteousness.",
+    "keyVerses": [
+      "2TI.2.15",
+      "2TI.3.16-17",
+      "2TI.4.7-8"
+    ],
+    "outline": [
+      {
+        "title": "Not ashamed of the gospel",
+        "ref": "2TI.1"
+      },
+      {
+        "title": "A good soldier of Jesus Christ",
+        "ref": "2TI.2"
+      },
+      {
+        "title": "Perilous times and the sufficiency of Scripture",
+        "ref": "2TI.3"
+      },
+      {
+        "title": "Preach the word; Paul's farewell",
+        "ref": "2TI.4"
+      }
+    ]
+  },
+  "TIT": {
+    "author": "the apostle Paul",
+    "date": "c. A.D. 63–65",
+    "audience": "Titus, Paul's coworker on Crete",
+    "setting": "Written after Paul's first imprisonment to Titus, whom he had left on Crete to set the young churches in order.",
+    "theme": "Sound doctrine that produces good works",
+    "summary": "Titus, a Gentile convert and trusted coworker, had been left on Crete to complete the organization of the churches there. Paul instructs him to ordain qualified elders, silence false teachers who were subverting whole houses, and teach each group in the church to adorn the doctrine of God by godly living. The letter grounds good works firmly in the grace of God, who saved us not by works of righteousness but according to His mercy.",
+    "christ": "Jesus Christ is \"the great God and our Saviour,\" who gave Himself to redeem us from all iniquity and purify a people zealous of good works.",
+    "keyVerses": [
+      "TIT.2.11-14",
+      "TIT.3.5"
+    ],
+    "outline": [
+      {
+        "title": "Greeting",
+        "ref": "TIT.1.1-4"
+      },
+      {
+        "title": "Ordaining elders and rebuking false teachers",
+        "ref": "TIT.1.5-16"
+      },
+      {
+        "title": "Sound doctrine for every group",
+        "ref": "TIT.2"
+      },
+      {
+        "title": "Good works grounded in grace",
+        "ref": "TIT.3"
+      }
+    ]
+  },
+  "PHM": {
+    "author": "the apostle Paul (with Timothy)",
+    "date": "c. A.D. 60–62",
+    "audience": "Philemon of Colossae and the church in his house",
+    "setting": "Written from Paul's first Roman imprisonment and sent with Onesimus alongside the letter to the Colossians.",
+    "theme": "Forgiveness and reconciliation in Christ",
+    "summary": "Onesimus, a slave who had run away from his master Philemon, came into contact with Paul in prison and was converted. Paul sends him back with this short personal letter, asking Philemon to receive him no longer merely as a servant but as a brother beloved. Paul offers to repay anything Onesimus owed, beautifully illustrating Christian forgiveness and the reconciling power of the gospel.",
+    "christ": "Paul's plea to \"put that on mine account\" pictures Christ's work as Mediator, who takes our debt upon Himself and reconciles us to God.",
+    "keyVerses": [
+      "PHM.1.15-16",
+      "PHM.1.17-18"
+    ],
+    "outline": [
+      {
+        "title": "Greeting",
+        "ref": "PHM.1.1-3"
+      },
+      {
+        "title": "Thanksgiving for Philemon's love and faith",
+        "ref": "PHM.1.4-7"
+      },
+      {
+        "title": "The appeal for Onesimus",
+        "ref": "PHM.1.8-21"
+      },
+      {
+        "title": "Closing request and greetings",
+        "ref": "PHM.1.22-25"
+      }
+    ]
+  },
+  "HEB": {
+    "author": "unknown (Paul, Apollos and others proposed)",
+    "date": "c. A.D. 64–68",
+    "audience": "Jewish Christians tempted to turn back to Judaism",
+    "setting": "Written before the temple's destruction in A.D. 70 to Hebrew believers under pressure to abandon Christ for the old covenant system.",
+    "theme": "The superiority of Christ and the new covenant",
+    "summary": "Hebrews was written to Jewish Christians who, under persecution and discouragement, were tempted to drift back to the Levitical system. The author, whose name is not given, shows that Jesus is superior to angels, Moses, and the Aaronic priests, and that His once-for-all sacrifice establishes a better covenant with better promises. Solemn warning passages and the great roll call of faith urge readers to hold fast, run with patience, and go forth unto Christ bearing His reproach.",
+    "christ": "Christ is the Son through whom God has spoken in these last days, the brightness of His glory, and our great High Priest after the order of Melchizedek who offered Himself once for all.",
+    "keyVerses": [
+      "HEB.1.1-3",
+      "HEB.4.14-16",
+      "HEB.12.1-2"
+    ],
+    "outline": [
+      {
+        "title": "Christ superior to the prophets and angels",
+        "ref": "HEB.1-2"
+      },
+      {
+        "title": "Christ superior to Moses; entering God's rest",
+        "ref": "HEB.3.1-4.13"
+      },
+      {
+        "title": "Christ's priesthood after the order of Melchizedek",
+        "ref": "HEB.4.14-7.28"
+      },
+      {
+        "title": "A better covenant, sanctuary, and sacrifice",
+        "ref": "HEB.8.1-10.18"
+      },
+      {
+        "title": "Draw near and hold fast",
+        "ref": "HEB.10.19-39"
+      },
+      {
+        "title": "The heroes of faith",
+        "ref": "HEB.11"
+      },
+      {
+        "title": "Endurance, chastening, and the unshakable kingdom",
+        "ref": "HEB.12"
+      },
+      {
+        "title": "Final exhortations and benediction",
+        "ref": "HEB.13"
+      }
+    ]
+  },
+  "JAS": {
+    "author": "James, the Lord's brother",
+    "date": "c. A.D. 45–49",
+    "audience": "Jewish believers scattered abroad",
+    "setting": "Probably among the earliest New Testament books, written from Jerusalem by a leader of the church there to Jewish Christians dispersed abroad and facing trials and poverty.",
+    "theme": "Genuine faith shown by works",
+    "summary": "James, the half-brother of Jesus who became a leader of the Jerusalem church, writes to the twelve tribes \"scattered abroad.\" In a practical, proverb-like style reminiscent of the Sermon on the Mount, he addresses trials, the tongue, favoritism, worldliness, and the oppression of the poor by the rich. His central concern is that true saving faith is never mere profession but shows itself in obedience and good works.",
+    "christ": "Jesus Christ is \"the Lord of glory,\" whose coming draws nigh; His teaching echoes throughout the letter's call to be doers of the word.",
+    "keyVerses": [
+      "JAS.1.22",
+      "JAS.2.17"
+    ],
+    "outline": [
+      {
+        "title": "Trials and temptations",
+        "ref": "JAS.1.1-18"
+      },
+      {
+        "title": "Hearers and doers of the word",
+        "ref": "JAS.1.19-27"
+      },
+      {
+        "title": "Respect of persons forbidden",
+        "ref": "JAS.2.1-13"
+      },
+      {
+        "title": "Faith and works",
+        "ref": "JAS.2.14-26"
+      },
+      {
+        "title": "Taming the tongue; true wisdom",
+        "ref": "JAS.3"
+      },
+      {
+        "title": "Worldliness, pride, and presumption",
+        "ref": "JAS.4"
+      },
+      {
+        "title": "Warning to the rich; patience and prayer",
+        "ref": "JAS.5"
+      }
+    ]
+  },
+  "1PE": {
+    "author": "the apostle Peter",
+    "date": "c. A.D. 62–64",
+    "audience": "believers scattered through Asia Minor",
+    "setting": "Written from \"Babylon\" (most likely Rome) with Silvanus's help, as Christians faced slander and growing hostility for their faith.",
+    "theme": "A living hope and holy living amid suffering",
+    "summary": "Peter writes to believers scattered as strangers through the provinces of Asia Minor, who were suffering reproach and hostility for their faith. He reminds them of their lively hope through the resurrection, their identity as God's chosen generation and royal priesthood, and their call to holy living. He teaches them to submit to authorities, to suffer patiently as Christ did, and to humble themselves under God's mighty hand, who will exalt them in due time.",
+    "christ": "Christ is the precious cornerstone and the suffering Servant who bare our sins in His own body on the tree, leaving us an example, and the chief Shepherd who will appear in glory.",
+    "keyVerses": [
+      "1PE.1.3",
+      "1PE.2.24",
+      "1PE.4.12-13"
+    ],
+    "outline": [
+      {
+        "title": "Greeting",
+        "ref": "1PE.1.1-2"
+      },
+      {
+        "title": "Salvation and a lively hope",
+        "ref": "1PE.1.3-12"
+      },
+      {
+        "title": "Called to holiness as God's people",
+        "ref": "1PE.1.13-2.10"
+      },
+      {
+        "title": "Submission and good conduct among unbelievers",
+        "ref": "1PE.2.11-3.12"
+      },
+      {
+        "title": "Suffering for righteousness' sake",
+        "ref": "1PE.3.13-4.19"
+      },
+      {
+        "title": "Elders, humility, and closing",
+        "ref": "1PE.5"
+      }
+    ]
+  },
+  "2PE": {
+    "author": "the apostle Peter",
+    "date": "c. A.D. 65–68",
+    "audience": "the same believers addressed in 1 Peter",
+    "setting": "Peter's final letter, written shortly before his martyrdom, as false teachers crept into the churches and scoffers denied the Lord's return.",
+    "theme": "Grow in grace and knowledge; beware of false teachers",
+    "summary": "Knowing his death was near, Peter wrote to stir up the memory of believers and guard them against false teachers. He calls them to add Christian virtues to their faith, grounds that faith in apostolic eyewitness testimony and the sure word of prophecy given by the Holy Spirit, and exposes the greed and immorality of the deceivers. He answers scoffers who denied the Lord's return, explaining that God's longsuffering leads to repentance and that the day of the Lord will surely come.",
+    "christ": "Jesus Christ is our God and Saviour, whose majesty Peter saw on the holy mount, and the coming Lord whose day will bring new heavens and a new earth.",
+    "keyVerses": [
+      "2PE.1.20-21",
+      "2PE.3.9",
+      "2PE.3.18"
+    ],
+    "outline": [
+      {
+        "title": "Greeting",
+        "ref": "2PE.1.1-2"
+      },
+      {
+        "title": "Growing in grace",
+        "ref": "2PE.1.3-15"
+      },
+      {
+        "title": "The sure word of prophecy",
+        "ref": "2PE.1.16-21"
+      },
+      {
+        "title": "False teachers exposed and condemned",
+        "ref": "2PE.2"
+      },
+      {
+        "title": "The certainty of the Lord's coming",
+        "ref": "2PE.3"
+      }
+    ]
+  },
+  "1JN": {
+    "author": "the apostle John",
+    "date": "c. A.D. 85–95",
+    "audience": "churches in Asia (traditionally around Ephesus)",
+    "setting": "Written late in the first century to churches shaken by teachers who had left them, denying that Jesus Christ came in the flesh.",
+    "theme": "Fellowship with God and the assurance of eternal life",
+    "summary": "John writes as an aged eyewitness to churches troubled by false teachers who had gone out from them, denying that Jesus is the Christ come in the flesh while claiming to know God and living in sin. He sets out tests of true fellowship with God: believing the truth about Christ, keeping His commandments, and loving the brethren. His purpose is that believers' joy may be full and that they may know that they have eternal life.",
+    "christ": "Jesus is the eternal Word of life who came in the flesh, our Advocate with the Father, and the propitiation for our sins.",
+    "keyVerses": [
+      "1JN.1.9",
+      "1JN.4.10",
+      "1JN.5.13"
+    ],
+    "outline": [
+      {
+        "title": "Prologue: the Word of life",
+        "ref": "1JN.1.1-4"
+      },
+      {
+        "title": "God is light: walking in fellowship",
+        "ref": "1JN.1.5-2.17"
+      },
+      {
+        "title": "Warnings against antichrists",
+        "ref": "1JN.2.18-29"
+      },
+      {
+        "title": "Children of God: righteousness and love",
+        "ref": "1JN.3"
+      },
+      {
+        "title": "Trying the spirits; God is love",
+        "ref": "1JN.4"
+      },
+      {
+        "title": "Victory and assurance through faith",
+        "ref": "1JN.5"
+      }
+    ]
+  },
+  "2JN": {
+    "author": "the apostle John (\"the elder\")",
+    "date": "c. A.D. 85–95",
+    "audience": "\"the elect lady and her children\" (a Christian woman or a local church)",
+    "setting": "Written late in the first century to warn against welcoming traveling teachers who denied that Christ had come in the flesh.",
+    "theme": "Walking in truth and love",
+    "summary": "In this brief note, \"the elder\" writes to \"the elect lady and her children,\" either a Christian woman and her family or a local church. He rejoices that some are walking in truth, renews the commandment to love one another, and warns against deceivers who confess not that Jesus Christ is come in the flesh. Believers must not receive or bid such teachers God speed, lest they share in their evil deeds.",
+    "christ": "Jesus Christ is the Son of the Father, truly come in the flesh; whoever abides in His doctrine has both the Father and the Son.",
+    "keyVerses": [
+      "2JN.1.6",
+      "2JN.1.9"
+    ],
+    "outline": [
+      {
+        "title": "Greeting in truth and love",
+        "ref": "2JN.1.1-3"
+      },
+      {
+        "title": "Walking in truth and love",
+        "ref": "2JN.1.4-6"
+      },
+      {
+        "title": "Beware of deceivers",
+        "ref": "2JN.1.7-11"
+      },
+      {
+        "title": "Closing",
+        "ref": "2JN.1.12-13"
+      }
+    ]
+  },
+  "3JN": {
+    "author": "the apostle John (\"the elder\")",
+    "date": "c. A.D. 85–95",
+    "audience": "Gaius, a beloved and faithful believer",
+    "setting": "Written late in the first century amid tension over receiving traveling missionaries, with John's authority opposed by Diotrephes.",
+    "theme": "Supporting the truth through hospitality",
+    "summary": "This personal letter from \"the elder\" to his beloved friend Gaius commends him for walking in the truth and for his hospitality to traveling brethren who went forth for Christ's name. John rebukes Diotrephes, who loved preeminence, refused to receive the brethren, and spoke maliciously against the apostle. He commends Demetrius and hopes to visit soon.",
+    "christ": "Christ is not named directly, but the missionaries went forth \"for his name's sake,\" and those who support them become fellowhelpers to the truth.",
+    "keyVerses": [
+      "3JN.1.4",
+      "3JN.1.11"
+    ],
+    "outline": [
+      {
+        "title": "Greeting and joy over Gaius",
+        "ref": "3JN.1.1-4"
+      },
+      {
+        "title": "Commendation for hospitality",
+        "ref": "3JN.1.5-8"
+      },
+      {
+        "title": "Rebuke of Diotrephes",
+        "ref": "3JN.1.9-11"
+      },
+      {
+        "title": "Commendation of Demetrius; closing",
+        "ref": "3JN.1.12-14"
+      }
+    ]
+  },
+  "JUD": {
+    "author": "Jude, brother of James and of the Lord",
+    "date": "c. A.D. 65–70",
+    "audience": "believers threatened by false teachers (recipients unspecified)",
+    "setting": "Written in the later apostolic age to warn churches into which ungodly men had crept, turning grace into lasciviousness.",
+    "theme": "Contend earnestly for the faith",
+    "summary": "Jude intended to write of the common salvation but felt compelled instead to exhort believers to contend earnestly for the faith once delivered unto the saints. Ungodly men had crept in unawares, turning the grace of God into lasciviousness and denying the Lord. Drawing on examples from the Old Testament and Jewish tradition, Jude shows their certain judgment, then exhorts the faithful to build themselves up, keep themselves in the love of God, and show compassion to the wavering.",
+    "christ": "Jesus Christ is the Lord whom the apostates deny, in whom believers are preserved, and whose mercy they look for unto eternal life.",
+    "keyVerses": [
+      "JUD.1.3",
+      "JUD.1.24-25"
+    ],
+    "outline": [
+      {
+        "title": "Greeting",
+        "ref": "JUD.1.1-2"
+      },
+      {
+        "title": "Purpose: contend for the faith",
+        "ref": "JUD.1.3-4"
+      },
+      {
+        "title": "The certain judgment of the ungodly",
+        "ref": "JUD.1.5-16"
+      },
+      {
+        "title": "Exhortations to the beloved",
+        "ref": "JUD.1.17-23"
+      },
+      {
+        "title": "Doxology",
+        "ref": "JUD.1.24-25"
+      }
+    ]
+  },
+  "REV": {
+    "author": "the apostle John",
+    "date": "c. A.D. 95",
+    "audience": "the seven churches of Asia",
+    "setting": "Written while John was exiled on Patmos, traditionally under the emperor Domitian, as the churches faced persecution, false teaching, and pressure to compromise.",
+    "theme": "The triumph of the Lamb and the coming of His kingdom",
+    "summary": "While on Patmos \"for the word of God,\" John received the Revelation of Jesus Christ and was commanded to write it to seven churches in Asia. After messages of commendation and warning to those churches, he sees visions of God's throne and the Lamb, judgments unfolding through seals, trumpets, and vials, and the conflict between Christ and Satan with his beasts. The book climaxes with Christ's return, the binding of Satan, the final judgment, and the new heaven and new earth, assuring suffering believers that the Lamb shall overcome.",
+    "christ": "Jesus Christ is the faithful witness and glorified Son of man, the Lamb that was slain and is worthy, and the King of kings who comes to judge and reign for ever.",
+    "keyVerses": [
+      "REV.1.7",
+      "REV.1.19",
+      "REV.11.15"
+    ],
+    "outline": [
+      {
+        "title": "Prologue and vision of the glorified Christ",
+        "ref": "REV.1"
+      },
+      {
+        "title": "Letters to the seven churches",
+        "ref": "REV.2-3"
+      },
+      {
+        "title": "The throne in heaven and the Lamb",
+        "ref": "REV.4-5"
+      },
+      {
+        "title": "The seven seals",
+        "ref": "REV.6.1-8.5"
+      },
+      {
+        "title": "The seven trumpets",
+        "ref": "REV.8.6-11.19"
+      },
+      {
+        "title": "The woman, the dragon, and the beasts",
+        "ref": "REV.12-14"
+      },
+      {
+        "title": "The seven vials and the fall of Babylon",
+        "ref": "REV.15-18"
+      },
+      {
+        "title": "Christ's return, the thousand years, and final judgment",
+        "ref": "REV.19-20"
+      },
+      {
+        "title": "New heaven and new earth; epilogue",
+        "ref": "REV.21-22"
+      }
+    ]
+  }
+}

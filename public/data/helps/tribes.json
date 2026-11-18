@@ -1,0 +1,114 @@
+[
+ {
+  "tribe": "Reuben",
+  "ref": "JOS.13.15-23",
+  "lon": 35.78,
+  "lat": 31.62,
+  "color": "#c0392b",
+  "note": "East of the Jordan, given by Moses at the tribe's request for its cattle land (Numbers 32): from Aroer on the river Arnon north across the plain of Medeba to Heshbon."
+ },
+ {
+  "tribe": "Gad",
+  "ref": "JOS.13.24-28",
+  "lon": 35.7,
+  "lat": 32.15,
+  "color": "#8e44ad",
+  "note": "East of the Jordan in Gilead: Jazer and the cities of Gilead from Heshbon to Mahanaim, with the Jordan valley up to the sea of Chinnereth."
+ },
+ {
+  "tribe": "Manasseh (east)",
+  "ref": "JOS.13.29-31",
+  "lon": 35.95,
+  "lat": 32.78,
+  "color": "#1e8449",
+  "note": "Joseph's descendants were divided into Ephraim and Manasseh; half of Manasseh (the Machirites) received Bashan, the former kingdom of Og, and half of Gilead east of the Jordan, including the towns of Jair."
+ },
+ {
+  "tribe": "Manasseh (west)",
+  "ref": "JOS.17.1-13",
+  "lon": 35.15,
+  "lat": 32.4,
+  "color": "#58d68d",
+  "note": "The other half of Manasseh settled west of the Jordan between Ephraim and the Jezreel valley, reaching the sea; it held Beth-shean, Taanach, Megiddo and Dor but could not drive out their Canaanites."
+ },
+ {
+  "tribe": "Ephraim",
+  "ref": "JOS.16.1-10",
+  "lon": 35.22,
+  "lat": 32.08,
+  "color": "#2471a3",
+  "note": "Joseph's younger son received the central hill country (mount Ephraim) north of Benjamin, with some cities inside Manasseh; the Canaanites of Gezer were not driven out."
+ },
+ {
+  "tribe": "Benjamin",
+  "ref": "JOS.18.11-28",
+  "lon": 35.3,
+  "lat": 31.85,
+  "color": "#e67e22",
+  "note": "A small territory between Judah and Joseph, including Jericho, Bethel, Gibeon, Ramah and Jebusi (Jerusalem)."
+ },
+ {
+  "tribe": "Judah",
+  "ref": "JOS.15.1-63",
+  "lon": 35.0,
+  "lat": 31.42,
+  "color": "#c9a227",
+  "note": "The largest allotment, from the wilderness of Zin to the border of Benjamin, including Hebron, given to Caleb; the Jebusites of Jerusalem were not driven out."
+ },
+ {
+  "tribe": "Simeon",
+  "ref": "JOS.19.1-9",
+  "lon": 34.85,
+  "lat": 31.22,
+  "color": "#935116",
+  "note": "Received cities within Judah's inheritance, because Judah's portion was too much for them, including Beer-sheba in the south."
+ },
+ {
+  "tribe": "Dan",
+  "ref": "JOS.19.40-48",
+  "lon": 34.9,
+  "lat": 31.88,
+  "color": "#e84393",
+  "note": "The original allotment lay west of Benjamin toward the sea by Japho (Joppa), including Zorah and Eshtaol; finding it too little, the Danites took Leshem (Laish) in the far north and renamed it Dan."
+ },
+ {
+  "tribe": "Zebulun",
+  "ref": "JOS.19.10-16",
+  "lon": 35.3,
+  "lat": 32.75,
+  "color": "#17a2b8",
+  "note": "Lower Galilee between Issachar and Asher, beginning at Sarid, including a Beth-lehem distinct from the one in Judah."
+ },
+ {
+  "tribe": "Issachar",
+  "ref": "JOS.19.17-23",
+  "lon": 35.45,
+  "lat": 32.62,
+  "color": "#5c6bc0",
+  "note": "The fertile Jezreel valley and its borders, including Jezreel and Shunem."
+ },
+ {
+  "tribe": "Asher",
+  "ref": "JOS.19.24-31",
+  "lon": 35.18,
+  "lat": 33.0,
+  "color": "#d98880",
+  "note": "The north-western coast and its hills, reaching toward great Zidon and the strong city Tyre."
+ },
+ {
+  "tribe": "Naphtali",
+  "ref": "JOS.19.32-39",
+  "lon": 35.52,
+  "lat": 33.02,
+  "color": "#7d8c3c",
+  "note": "Upper Galilee west of the upper Jordan and the sea of Chinnereth, with fenced cities such as Chinnereth, Hazor and Kedesh."
+ },
+ {
+  "tribe": "Levi",
+  "ref": "JOS.21.1-42",
+  "lon": null,
+  "lat": null,
+  "color": "#95a5a6",
+  "note": "Levi received no land allotment, for the LORD was their inheritance; instead the Levites were given 48 cities with their suburbs among the other tribes, six of them cities of refuge (Numbers 35:6-7)."
+ }
+]

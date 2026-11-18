@@ -1,0 +1,29 @@
+{
+  "name": "scripture-study",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Scripture Study — a Bible study app for PC, tablet and phone",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "data": "python3 scripts/build_data.py",
+    "icons": "NODE_PATH=$(npm root -g) node scripts/make_icons.cjs assets/icon-art.png public/icons"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "^5.3.0",
+    "@fontsource/eb-garamond": "^5.3.0",
+    "@fontsource/source-sans-3": "^5.3.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "@vitejs/plugin-react": "4.7.0",
+    "typescript": "5.9.3",
+    "vite": "6.4.1",
+    "vite-plugin-pwa": "1.2.0"
+  }
+}
