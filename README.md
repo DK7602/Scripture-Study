@@ -26,7 +26,15 @@ Once the site is published (below):
 - **iPhone / iPad:** open in Safari → Share → *Add to Home Screen*.
 - **Android phone / tablet:** open in Chrome → *Install app*.
 
-## Publish with GitHub Pages
+## Publish on Cloudflare (with email sign-in & sync)
+
+1. Create a Cloudflare API token (My Profile → API Tokens → Create Token → Start from scratch) with Account permissions: **Workers Scripts: Edit**, **D1: Edit**, **Access: Apps and Policies: Edit**, **Access: Organizations, Identity Providers, and Groups: Edit**, **Account Settings: Read**.
+2. Run `CLOUDFLARE_API_TOKEN=… node scripts/cloudflare_setup.mjs` (or add the token as the `CLOUDFLARE_API_TOKEN` Actions secret and the workflow does it on every push). It creates the D1 database and the email one-time-code sign-in in front of `/api`, then deploys the Worker to `https://scripture-study.<your-subdomain>.workers.dev`.
+3. Open the site, go to **Settings → Sync across devices** and sign in first — the first person to sign in is the owner and gets the private invite link to share.
+
+Everything runs on Cloudflare's free plans; the app's pages are static assets (free), and only `/api` sign-in/sync requests run the Worker, with per-device and site-wide limits.
+
+## Publish with GitHub Pages (no sync)
 
 1. In the repository: **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 2. Open **Actions → Deploy Scripture Study to GitHub Pages → Run workflow** (it also runs on every push to `main` or the current default branch).

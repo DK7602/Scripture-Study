@@ -1,4 +1,4 @@
-name: Deploy Scripture Study to Cloudflare Pages
+name: Deploy Scripture Study to Cloudflare (Worker)
 
 # Needs repository secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN  (required)   CLOUDFLARE_ACCOUNT_ID (optional)   OWNER_EMAIL (optional)
