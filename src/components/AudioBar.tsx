@@ -1,9 +1,14 @@
 import { useEffect, useReducer, useState } from 'react'
-import { canLocal, canSpeak, closePlayer, deviceVoices, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useLocalMichael, type NarratorVoice } from '../lib/audio'
-import { updateSettings, useStore } from '../lib/store'
+import { canLocal, canSpeak, closePlayer, deviceVoices, voiceGender, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
+import { openPopup, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
 const RATES = [0.75, 0.85, 1, 1.15, 1.3, 1.5]
+
+const ANDROID_VOICE =
+  'Android phones choose the reading voice in their own settings. 1) Open Settings and search for “Text-to-speech output”. ' +
+  '2) Set the preferred engine to “Speech Services by Google”. 3) Tap the gear beside it, then Install voice data, then English (United States). ' +
+  '4) Tap the voices to hear them and choose a man’s voice (for example Voice IV). Then come back and press play.'
 
 /** The audio Bible player, under the page while it is open. */
 export function AudioBar() {
@@ -28,19 +33,25 @@ export function AudioBar() {
 
   const dv = deviceVoices()
   const narrator = narrators[0]
-  const localOk = canLocal && (settings.audioLocal || settings.audioNarrator === 'local')
+  const localOk = canLocal && settings.audioLocal
   const deviceValue = `d:${settings.audioVoice || dv[0]?.voiceURI || ''}`
-  const value = settings.audioNarrator === 'device' ? deviceValue : narrator ? `n:${narrator.id}` : localOk ? 'l:' : deviceValue
+  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : localOk ? 'l:' : deviceValue
   const useDevice = value.startsWith('d:')
   const pick = (v: string) => {
     if (v.startsWith('n:')) setNarrator('')
     else if (v === 'l:') useLocalMichael()
-    else {
+    else if (narrator) {
+      // a recorded chapter: the listener prefers a device voice even where there are recordings
       updateSettings({ audioVoice: v.slice(2) })
       setNarrator('device')
-    }
+    } else useDeviceVoice(v.slice(2))
   }
-  const short = (v: SpeechSynthesisVoice) => v.name.replace(/^(Microsoft|Google)\s+/i, '').replace(/\s*\(.*?\)\s*/g, ' ').replace(/ - English.*$/i, '').trim()
+  const short = (v: SpeechSynthesisVoice) => {
+    const name = v.name.replace(/^(Microsoft|Google)\s+/i, '').replace(/\s*\(.*?\)\s*/g, ' ').replace(/ - English.*$/i, '').trim()
+    const where = /^en[-_]US/i.test(v.lang) ? 'US' : /^en[-_]GB/i.test(v.lang) ? 'UK' : v.lang.replace(/^en[-_]/i, '')
+    const g = voiceGender(v)
+    return `${name} (${[where, g].filter(Boolean).join(', ')})`
+  }
 
   return (
     <div className="audio-bar" role="region" aria-label="Audio Bible">
@@ -55,8 +66,19 @@ export function AudioBar() {
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
           {!a.error && !a.info && value === 'l:' && <div className="ab-credit">Michael's voice made on this device{a.localDevice === 'webgpu' ? ' (graphics chip)' : a.localDevice === 'wasm' ? ' (processor)' : ''} · Kokoro, Apache-2.0 · nothing is stored</div>}
+          {useDevice && a.engine === 'device' && /Android/i.test(navigator.userAgent) && (
+            <button
+              className="ref-link ab-offer"
+              onClick={(e) => {
+                const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
+                openPopup({ kind: 'info', title: "A man's voice on Android", text: ANDROID_VOICE, x: r.left, y: r.top - 240 })
+              }}
+            >
+              Choose a man's voice
+            </button>
+          )}
           {a.slow && a.engine === 'local' && (
-            <button className="ref-link ab-offer" onClick={() => setNarrator('device')}>
+            <button className="ref-link ab-offer" onClick={() => useDeviceVoice()}>
               This device makes Michael's voice slower than he reads, so there are pauses. Use the phone's own voice instead
             </button>
           )}

@@ -128,11 +128,24 @@ export async function narratorsFor(version: string, book: string, ch: number): P
 const synth: SpeechSynthesis | undefined = typeof window !== 'undefined' ? window.speechSynthesis : undefined
 export const canSpeak = !!synth
 
+// Browsers do not say whether a voice is a man's or a woman's; these are the well-known voices by name
+// (Windows, Edge, Apple, Google). Android's Chrome lists only languages: its voice is chosen in the phone's settings.
+const MALE = /\b(david|mark|guy|andrew|brian|christopher|eric|roger|steffan|davis|jason|tony|ryan|aaron|evan|nathan|tom|alex|fred|ralph|reed|rocko|eddy|grandpa|junior|daniel|arthur|oliver|george|thomas|james|lee|male)\b/i
+const FEMALE = /\b(zira|aria|jenny|emma|ava|michelle|samantha|allison|susan|victoria|karen|moira|tessa|serena|kate|zoe|nicky|joelle|sara|libby|sonia|catherine|natasha|nancy|ana|jane|female|google us english)\b/i
+export function voiceGender(v: SpeechSynthesisVoice): 'male' | 'female' | '' {
+  return MALE.test(v.name) ? 'male' : FEMALE.test(v.name) ? 'female' : ''
+}
+const american = (v: SpeechSynthesisVoice) => /^en[-_]US/i.test(v.lang)
+
+/** English voices, best first: American, natural-sounding, and a man's voice (the narrator Michael is an American man). */
 export function deviceVoices(): SpeechSynthesisVoice[] {
   if (!synth) return []
   const all = synth.getVoices().filter((v) => /^en(-|_|$)/i.test(v.lang))
   const score = (v: SpeechSynthesisVoice) =>
-    (/natural|neural|premium|enhanced|siri/i.test(v.name) ? 0 : /google|microsoft/i.test(v.name) ? 1 : 2) + (v.localService ? 0 : 0.5)
+    (american(v) ? 0 : 10) +
+    (/natural|neural|premium|enhanced|siri|online/i.test(v.name) ? 0 : /google|microsoft/i.test(v.name) ? 2 : 3) +
+    (voiceGender(v) === 'male' ? 0 : voiceGender(v) === 'female' ? 1.5 : 1) +
+    (v.localService ? 0 : 0.3)
   return all.sort((a, b) => score(a) - score(b) || a.name.localeCompare(b.name))
 }
 export function onVoicesChanged(f: () => void) {
@@ -220,7 +233,7 @@ export function setRate(rate: number) {
 
 /** Agree to download Michael's voice and use it where there is no recording. */
 export function useLocalMichael() {
-  updateSettings({ audioLocal: true, audioNarrator: '' })
+  updateSettings({ audioLocal: true, audioLocalAsked: true })
   set({ offerLocal: false })
   void play(state.verse || startVerse())
 }
@@ -228,6 +241,13 @@ export function useLocalMichael() {
 export function setNarrator(id: string) {
   updateSettings({ audioNarrator: id })
   if (state.playing) void play(state.verse || 1)
+}
+
+/** Chapters with no recording: read them with the device's own voice (optionally a particular one). */
+export function useDeviceVoice(voiceURI?: string) {
+  updateSettings({ audioLocal: false, audioLocalAsked: true, ...(voiceURI !== undefined ? { audioVoice: voiceURI } : {}) })
+  set({ slow: false, offerLocal: false })
+  if (state.playing || state.loading) void play(state.verse || 1)
 }
 
 /** Start reading at verse v of the chapter on screen. */
@@ -239,14 +259,15 @@ export async function play(v = 1) {
   set({ open: true, playing: true, loading: true, verse: v, count: chapter.verses.length, label: labelFor(), error: '', offerLocal: false })
   const voices = await narratorsFor(chapter.version, chapter.book, chapter.chapter)
   if (my !== runId) return
-  const wantDevice = s.audioNarrator === 'device'
-  const local = !wantDevice && canLocal && (s.audioLocal || s.audioNarrator === 'local')
-  const pick = wantDevice ? undefined : voices[0]
+  // recorded chapters: the recording, unless the listener chose a device voice for them;
+  // other chapters: Michael made on this device if chosen, else the device's own voice
+  const local = canLocal && s.audioLocal
+  const pick = s.audioNarrator === 'device' ? undefined : voices[0]
   if (pick) await playNarration(pick, v, my, local)
-  else if (local) playLocal(v, my, v === 1)
+  else if (local && !voices.length) playLocal(v, my, v === 1)
   else {
     playDevice(v, my, v === 1)
-    if (!wantDevice && canLocal) set({ offerLocal: true })
+    if (!voices.length && canLocal && !s.audioLocalAsked) set({ offerLocal: true })
   }
   mediaSession()
 }
@@ -328,6 +349,14 @@ const localUrls = new Set<string>()
 function kokoro(): Worker {
   if (!worker) {
     worker = new Worker(new URL('./kokoro.worker.ts', import.meta.url), { type: 'module' })
+    // if the voice engine dies (out of memory, say), give up on it at once instead of waiting forever
+    worker.onerror = (e) => {
+      e.preventDefault?.()
+      for (const w of waiting.values()) w.rej(new Error('the voice engine stopped, perhaps for lack of memory'))
+      waiting.clear()
+      worker?.terminate()
+      worker = null
+    }
     worker.onmessage = (e: MessageEvent) => {
       const m = e.data
       if (m.type === 'mode') set({ localDevice: m.device, info: state.loading ? "Michael's voice is ready, starting…" : '' })
@@ -429,12 +458,22 @@ function playLocal(v: number, my: number, withHeading: boolean) {
     make(k + 1) // the next verse is made while this one plays
     make(k + 2)
     let url: string
+    // while a piece is being made, say so and count the seconds; a very slow device gets the offer at once
+    const t0 = Date.now()
+    const tick = setInterval(() => {
+      if (my !== runId) return clearInterval(tick)
+      const sec = Math.round((Date.now() - t0) / 1000)
+      if (sec >= 2) set({ info: `Michael is preparing verse ${items[k].verse}… ${sec} s`, ...(sec >= 25 && !state.slow ? { slow: true } : {}) })
+    }, 1000)
     try {
       url = await ready.get(k)!
     } catch (e) {
+      clearInterval(tick)
       if (my !== runId) return
-      playDevice(items[k].verse, my, false, `Michael's voice could not be made on this device (${(e as Error).message}); using the device voice.`)
+      playDevice(items[k].verse, my, false, `Michael's voice could not be made on this device (${(e as Error).message}); using the phone's voice.`)
       return
+    } finally {
+      clearInterval(tick)
     }
     if (my !== runId) return
     audioEl ??= new Audio()

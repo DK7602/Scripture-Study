@@ -111,7 +111,8 @@ export interface Settings {
   audioRate: number // reading speed for the audio Bible
   audioVoice: string // device voice (voiceURI)
   audioNarrator: string // '' automatic (recorded Michael), 'local' Michael made on this device, 'device' the device's own voice
-  audioLocal: boolean // agreed to download Michael's voice to make it on this device
+  audioLocal: boolean // chapters with no recording: Michael made on this device (true) or the device's own voice (false)
+  audioLocalAsked: boolean // the listener has chosen between the two, so stop offering
   audioContinue: boolean // read on into the next chapter
   scrollSpeed: number // auto-scroll speed, 1..10
   font: 'serif' | 'sans'
