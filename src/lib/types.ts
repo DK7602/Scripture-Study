@@ -95,12 +95,16 @@ export interface Bookmark {
 
 export type Tab = 'bible' | 'study' | 'maps' | 'notes' | 'journal' | 'search' | 'resources' | 'settings'
 
-/** One day of the prayer list. id = 'day-YYYY-MM-DD', so each day is one record on every device. */
+/**
+ * One day of the prayer list. id = 'day-YYYY-MM-DD', so each day is one record on every device.
+ * The weekly prayers are one more record in the same list, id 'weekly' (date ''), whose items have days.
+ */
 export interface PrayerDay {
   id: string
   date: string // YYYY-MM-DD (local)
   items: PrayerItem[]
   verses: string[] // encouraging verses, compact refs (PHP.4.6-7)
+  prayed?: string[] // weekly prayers (ids) ticked on this day
   created: number
   updated: number
 }
@@ -109,6 +113,7 @@ export interface PrayerItem {
   id: string
   text: string
   answered?: boolean
+  days?: number[] // weekly prayers: the weekdays it comes back on (0 Sunday … 6 Saturday)
 }
 
 /** Sermon notes: titled sections (the reader's template), each with its own text colour. */

@@ -1,6 +1,6 @@
 import { formatRef } from './refs'
 import { getState, newId } from './store'
-import type { PrayerDay, SermonNote, SermonSection } from './types'
+import type { PrayerDay, PrayerItem, SermonNote, SermonSection } from './types'
 
 /** Text colours for sermon notes ('' is the page's own ink, which follows light and dark mode). */
 export const BLUE = '#1d5fd1'
@@ -59,6 +59,25 @@ export function shortDate(date: string): string {
   return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric', ...(thisYear ? {} : { year: 'numeric' }) })
 }
 
+export const WEEKLY_ID = 'weekly'
+export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+/** 0 Sunday … 6 Saturday */
+export function weekday(date: string): number {
+  const [y, m, d] = date.split('-').map(Number)
+  return new Date(y, m - 1, d).getDay()
+}
+
+/** "Every day", "Weekdays", "Sundays", "Mon, Wed, Fri" */
+export function daysLabel(days: number[] = []): string {
+  const s = [...new Set(days)].sort()
+  if (s.length === 7) return 'Every day'
+  if (s.join() === '1,2,3,4,5') return 'Weekdays'
+  if (s.join() === '0,6') return 'Weekends'
+  if (s.length === 1) return `${DAY_NAMES[s[0]]}s`
+  return s.map((d) => DAY_NAMES[d].slice(0, 3)).join(', ')
+}
+
 export function emptyDay(date: string): PrayerDay {
   const now = Date.now()
   return { id: `day-${date}`, date, items: [], verses: [], created: now, updated: now }
@@ -84,8 +103,8 @@ export function sermonText(n: SermonNote): string {
   return `${head}\n\n${body}\n`
 }
 
-export function prayerText(d: PrayerDay, verseTexts: Record<string, string> = {}): string {
-  const items = d.items.map((it) => `• ${it.text}${it.answered ? ' (answered)' : ''}`).join('\n')
+export function prayerText(d: PrayerDay, verseTexts: Record<string, string> = {}, weekly: PrayerItem[] = []): string {
+  const items = [...weekly.map((it) => `• ${it.text} (weekly)`), ...d.items.map((it) => `• ${it.text}${it.answered ? ' (answered)' : ''}`)].join('\n')
   const verses = d.verses.map((r) => `${formatRef(r)}${verseTexts[r] ? ` — ${verseTexts[r]}` : ''}`).join('\n')
   return [`Prayer list — ${longDate(d.date)}`, items, verses && `Encouraging verses:\n${verses}`].filter(Boolean).join('\n\n') + '\n'
 }

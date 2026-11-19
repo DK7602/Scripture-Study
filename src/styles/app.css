@@ -758,12 +758,12 @@ body { background: url(/textures/leather.webp), var(--chrome); background-blend-
 .vtext .dn { font-weight: 700; }
 
 /* book and chapter headings, set like a printed Bible */
-.book-title .pre { color: var(--ink); font-weight: 500; letter-spacing: 0.3em; font-size: 0.66em; }
+.book-title .pre { color: var(--ink); font-weight: 500; letter-spacing: 0.26em; font-size: min(0.58em, 15px); }
 .book-title .name {
-  font-weight: 700; font-size: 2.55em; letter-spacing: 0.14em; color: #3a2310;
+  font-weight: 700; font-size: min(1.75em, 44px); letter-spacing: 0.12em; color: #3a2310;
   text-shadow: 0 1px 0 rgba(255, 248, 228, 0.7), 0 -1px 0 rgba(60, 35, 10, 0.12);
 }
-.chapter-title { font-weight: 700; letter-spacing: 0.22em; font-size: 1.16em; color: #3a2310; text-shadow: 0 1px 0 rgba(255, 248, 228, 0.6); }
+.chapter-title { font-weight: 700; letter-spacing: 0.2em; font-size: min(0.92em, 22px); color: #3a2310; text-shadow: 0 1px 0 rgba(255, 248, 228, 0.6); }
 :root[data-mode='dark'] .book-title .name, :root[data-mode='dark'] .chapter-title { color: var(--ink); text-shadow: none; }
 .ornament { color: var(--gold-deep); margin: 6px auto 2px; max-width: 86%; height: auto; }
 :root[data-mode='dark'] .ornament { color: var(--gold); }
@@ -1056,3 +1056,30 @@ a.link-card { display: flex; }
 .mini-time { margin-left: 4px; }
 textarea.sn-name { resize: none; overflow: hidden; display: block; line-height: 1.2; }
 .mini-label svg { flex: none; }
+
+/* weekly prayers */
+.repeat-toggle { display: flex; align-items: center; gap: 8px; margin: 8px 0 4px; font-size: calc(15px * var(--ui)); cursor: pointer; }
+.repeat-toggle input { width: 20px; height: 20px; accent-color: var(--accent); flex: none; }
+.weekly { margin-top: 8px; }
+.weekly-card { margin-top: 8px; }
+.weekly-row { padding: 8px 0 10px; border-bottom: 1px solid var(--rule); }
+.weekly-top { display: flex; gap: 6px; align-items: flex-start; }
+.weekly-top textarea { flex: 1; min-width: 0; resize: none; font-family: var(--serif); font-size: calc(16.5px * var(--ui)); }
+.weekly-add { display: grid; gap: 8px; margin-top: 12px; }
+.weekly-add .btn { justify-self: start; }
+.day-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.day-btn { min-width: 36px; height: 34px; padding: 0 7px; border-radius: 999px; border: 1px solid var(--rule); background: var(--panel); color: var(--ink); font-weight: 600; font-size: calc(13.5px * var(--ui)); }
+.day-btn[aria-pressed='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.day-btn.all { padding: 0 11px; }
+.prayer-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.prayer-body textarea { width: 100%; }
+.weekly-tag { font-size: calc(11.5px * var(--ui)); font-weight: 700; color: var(--accent); letter-spacing: 0.02em; }
+.prayer-row.weekly { border-left: 4px solid var(--accent); }
+.weekly-top textarea { min-height: 0; padding-top: 8px; padding-bottom: 8px; line-height: 1.4; }
+
+/* phones: the book and chapter headings a little smaller still */
+@media (max-width: 600px) {
+  .book-title .name { font-size: min(1.55em, 36px); }
+  .book-title .pre { font-size: min(0.52em, 13px); letter-spacing: 0.2em; }
+  .chapter-title { font-size: min(0.85em, 19px); margin-top: 6px; margin-bottom: 14px; }
+}

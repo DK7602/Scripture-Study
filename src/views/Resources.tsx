@@ -6,7 +6,11 @@ import { loadPassage, passagePlain } from '../lib/passage'
 import { formatRef, parseHumanRef, parseRef, refToString } from '../lib/refs'
 import {
   COLORS,
+  DAY_NAMES,
   DEFAULT_SERMON_TEMPLATE,
+  WEEKLY_ID,
+  daysLabel,
+  weekday,
   ENCOURAGING,
   POINT_COLORS,
   emptyDay,
@@ -40,7 +44,7 @@ import {
   useSermonsOnScreen,
   type Feed,
 } from '../lib/sermons'
-import type { PrayerDay, SermonLink, SermonNote, SermonRef, SermonSection } from '../lib/types'
+import type { PrayerDay, PrayerItem, SermonLink, SermonNote, SermonRef, SermonSection } from '../lib/types'
 
 type Section = 'prayer' | 'sermons' | 'notes'
 
@@ -125,20 +129,29 @@ function PrayerList() {
   const [date, setDate] = useState(today)
   const [draft, setDraft] = useState('')
   const [shared, setShared] = useState('')
-  const day: PrayerDay = prayers.find((p) => p.date === date) ?? emptyDay(date)
+  const [repeat, setRepeat] = useState(false)
+  const day: PrayerDay = prayers.find((p) => p.id === `day-${date}`) ?? emptyDay(date)
+  const days = useMemo(() => prayers.filter((p) => p.id.startsWith('day-')), [prayers])
+  const weekly: PrayerDay = prayers.find((p) => p.id === WEEKLY_ID) ?? { ...emptyDay(''), id: WEEKLY_ID }
+  const wd = weekday(date)
+  const todays = weekly.items.filter((i) => i.days?.includes(wd))
   const isToday = date === today()
   const save = (patch: Partial<PrayerDay>) => void saveItem('prayers', { ...day, ...patch, updated: Date.now() })
+  const saveWeekly = (items: PrayerItem[]) => void saveItem('prayers', { ...weekly, items, updated: Date.now() })
+  const prayed = new Set(day.prayed ?? [])
 
   const add = () => {
     const text = draft.trim()
     if (!text) return
-    save({ items: [...day.items, { id: newId(), text }] })
+    if (repeat) saveWeekly([...weekly.items, { id: newId(), text, days: [wd] }])
+    else save({ items: [...day.items, { id: newId(), text }] })
     setDraft('')
+    setRepeat(false)
   }
   // the most recent earlier day with focuses still waiting for an answer
   const earlier = useMemo(
-    () => prayers.filter((p) => p.date < date && p.items.some((i) => !i.answered)).sort((a, b) => (a.date < b.date ? 1 : -1))[0],
-    [prayers, date],
+    () => days.filter((p) => p.date < date && p.items.some((i) => !i.answered)).sort((a, b) => (a.date < b.date ? 1 : -1))[0],
+    [days, date],
   )
   const carry = () => {
     if (!earlier) return
@@ -146,8 +159,8 @@ function PrayerList() {
     save({ items: [...day.items, ...earlier.items.filter((i) => !i.answered && !have.has(i.text)).map((i) => ({ id: newId(), text: i.text }))] })
   }
   const recent = useMemo(
-    () => prayers.filter((p) => p.date !== date && (p.items.length || p.verses.length)).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 12),
-    [prayers, date],
+    () => days.filter((p) => p.date !== date && (p.items.length || p.verses.length)).sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 12),
+    [days, date],
   )
   const share = async () => {
     const texts: Record<string, string> = {}
@@ -155,7 +168,7 @@ function PrayerList() {
       const p = await loadPassage(r, 8).catch(() => null)
       if (p) texts[r] = p.verses.map(passagePlain).join(' ')
     }
-    const how = await shareText('Prayer list', prayerText(day, texts))
+    const how = await shareText('Prayer list', prayerText(day, texts, todays))
     setShared(how === 'copied' ? 'Copied — paste it into a message.' : how === 'failed' ? 'Could not share from this browser.' : '')
   }
 
@@ -181,7 +194,22 @@ function PrayerList() {
       )}
 
       <h3 className="res-h">Prayer focuses</h3>
-      {day.items.length > 0 && <p className="faint small res-hint">Tick a prayer when it is answered. Tap any prayer to change it.</p>}
+      {(day.items.length > 0 || todays.length > 0) && (
+        <p className="faint small res-hint">Tick weekly prayers (↻) as you pray them, and other prayers when they are answered. Tap a prayer to change it.</p>
+      )}
+      {todays.map((it) => (
+        <PrayerRow
+          key={it.id}
+          text={it.text}
+          answered={prayed.has(it.id)}
+          doneLabel="Prayed"
+          tag={`↻ ${daysLabel(it.days)}`}
+          confirmRemove={`Stop praying “${it.text.slice(0, 60)}” every week?`}
+          onText={(text) => saveWeekly(weekly.items.map((x) => (x.id === it.id ? { ...x, text } : x)))}
+          onAnswered={(on) => save({ prayed: on ? [...prayed, it.id] : [...prayed].filter((x) => x !== it.id) })}
+          onRemove={() => saveWeekly(weekly.items.filter((x) => x.id !== it.id))}
+        />
+      ))}
       {day.items.map((it) => (
         <PrayerRow
           key={it.id}
@@ -192,7 +220,7 @@ function PrayerList() {
           onRemove={() => save({ items: day.items.filter((x) => x.id !== it.id) })}
         />
       ))}
-      {!day.items.length && <p className="faint">{isToday ? 'What would you like to pray about today?' : 'Nothing was written for this day.'}</p>}
+      {!day.items.length && !todays.length && <p className="faint">{isToday ? 'What would you like to pray about today?' : 'Nothing was written for this day.'}</p>}
       {earlier && !day.items.length && (
         <button className="btn small" onClick={carry} style={{ marginBottom: 10 }}>
           <Icon name="copy" size={15} /> Carry over {earlier.items.filter((i) => !i.answered).length} from {shortDate(earlier.date)}
@@ -218,6 +246,13 @@ function PrayerList() {
           <Icon name="plus" size={16} /> Add
         </button>
       </div>
+      <label className="repeat-toggle">
+        <input type="checkbox" checked={repeat} onChange={(e) => setRepeat(e.target.checked)} />
+        <span>
+          Repeat every {DAY_NAMES[wd]} <span className="faint">(you can choose more days below)</span>
+        </span>
+      </label>
+      <WeeklyPrayers items={weekly.items} onSave={saveWeekly} prefer={wd} />
 
       <h3 className="res-h">Encouraging verses</h3>
       {day.verses.map((r) => (
@@ -254,7 +289,25 @@ function PrayerList() {
   )
 }
 
-function PrayerRow({ text, answered, onText, onAnswered, onRemove }: { text: string; answered: boolean; onText: (t: string) => void; onAnswered: (a: boolean) => void; onRemove: () => void }) {
+function PrayerRow({
+  text,
+  answered,
+  onText,
+  onAnswered,
+  onRemove,
+  doneLabel = 'Answered',
+  tag,
+  confirmRemove = 'Remove this prayer focus?',
+}: {
+  text: string
+  answered: boolean
+  onText: (t: string) => void
+  onAnswered: (a: boolean) => void
+  onRemove: () => void
+  doneLabel?: string
+  tag?: string
+  confirmRemove?: string
+}) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     const el = ref.current
@@ -263,14 +316,104 @@ function PrayerRow({ text, answered, onText, onAnswered, onRemove }: { text: str
     el.style.height = `${el.scrollHeight}px`
   }, [text])
   return (
-    <div className={`prayer-row${answered ? ' answered' : ''}`}>
-      <label className="answered-box" title="Answered">
-        <input type="checkbox" checked={answered} onChange={(e) => onAnswered(e.target.checked)} />
-        <span>{answered ? 'Answered' : ''}</span>
+    <div className={`prayer-row${answered ? ' answered' : ''}${tag ? ' weekly' : ''}`}>
+      <label className="answered-box" title={doneLabel}>
+        <input type="checkbox" checked={answered} onChange={(e) => onAnswered(e.target.checked)} aria-label={doneLabel} />
+        <span>{answered ? doneLabel : ''}</span>
       </label>
-      <textarea ref={ref} rows={1} value={text} onChange={(e) => onText(e.target.value)} onBlur={() => !text.trim() && onRemove()} aria-label="Prayer focus" />
-      <button className="icon-btn" onClick={() => (!text.trim() || window.confirm('Remove this prayer focus?')) && onRemove()} aria-label="Remove">
+      <div className="prayer-body">
+        {tag && <span className="weekly-tag">{tag}</span>}
+        <textarea ref={ref} rows={1} value={text} onChange={(e) => onText(e.target.value)} onBlur={() => !text.trim() && onRemove()} aria-label="Prayer focus" />
+      </div>
+      <button className="icon-btn" onClick={() => (!text.trim() || window.confirm(confirmRemove)) && onRemove()} aria-label="Remove">
         <Icon name="trash" size={17} />
+      </button>
+    </div>
+  )
+}
+
+/** The prayers that come back every week, on the days chosen for each. */
+function WeeklyPrayers({ items, onSave, prefer }: { items: PrayerItem[]; onSave: (items: PrayerItem[]) => void; prefer: number }) {
+  const [open, setOpen] = useState(false)
+  const [text, setText] = useState('')
+  const [days, setDays] = useState<number[]>([prefer])
+  const add = () => {
+    const t = text.trim()
+    if (!t || !days.length) return
+    onSave([...items, { id: newId(), text: t, days }])
+    setText('')
+  }
+  const sorted = [...items].sort((a, b) => Math.min(...(a.days ?? [7])) - Math.min(...(b.days ?? [7])))
+  return (
+    <div className="weekly">
+      <button className="btn small" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <Icon name="calendar" size={15} /> Weekly prayers{items.length ? ` (${items.length})` : ''} <Icon name={open ? 'up' : 'down'} size={14} />
+      </button>
+      {open && (
+        <div className="card weekly-card">
+          <p className="faint small" style={{ marginTop: 0 }}>
+            These come back every week on the days you choose, and show up in that day’s list.
+          </p>
+          {sorted.map((it) => (
+            <div key={it.id} className="weekly-row">
+              <div className="weekly-top">
+                <GrowArea
+                  value={it.text}
+                  onChange={(t) => onSave(items.map((x) => (x.id === it.id ? { ...x, text: t } : x)))}
+                  onBlur={() => !it.text.trim() && onSave(items.filter((x) => x.id !== it.id))}
+                  label="Weekly prayer"
+                />
+                <button className="icon-btn" onClick={() => window.confirm(`Stop praying “${it.text.slice(0, 60)}” every week?`) && onSave(items.filter((x) => x.id !== it.id))} aria-label="Remove">
+                  <Icon name="trash" size={17} />
+                </button>
+              </div>
+              <DayChips value={it.days ?? []} onChange={(d) => onSave(items.map((x) => (x.id === it.id ? { ...x, days: d } : x)))} />
+            </div>
+          ))}
+          {!items.length && <p className="faint">No weekly prayers yet.</p>}
+          <div className="weekly-add">
+            <DictationArea className="input" rows={1} autoGrow value={text} onChange={setText} placeholder="A prayer for every week… (type or speak)" aria-label="New weekly prayer" />
+            <DayChips value={days} onChange={setDays} />
+            <button className="btn primary small" onClick={add} disabled={!text.trim() || !days.length}>
+              <Icon name="plus" size={15} /> Add weekly prayer
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** A text box that grows with its text. */
+function GrowArea({ value, onChange, onBlur, label }: { value: string; onChange: (v: string) => void; onBlur?: () => void; label: string }) {
+  const ref = useRef<HTMLTextAreaElement>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight + 2}px`
+  }, [value])
+  return <textarea ref={ref} rows={1} className="input" value={value} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} aria-label={label} style={{ overflow: 'hidden' }} />
+}
+
+/** S M T W T F S toggles, plus every day. At least one day stays chosen. */
+function DayChips({ value, onChange }: { value: number[]; onChange: (d: number[]) => void }) {
+  const set = new Set(value)
+  const toggle = (d: number) => {
+    if (set.has(d)) {
+      if (set.size > 1) set.delete(d)
+    } else set.add(d)
+    onChange([...set].sort())
+  }
+  return (
+    <div className="day-chips" role="group" aria-label="Days of the week">
+      {DAY_NAMES.map((n, d) => (
+        <button key={n} className="day-btn" aria-pressed={set.has(d)} onClick={() => toggle(d)} aria-label={n} title={n}>
+          {n.slice(0, n === 'Thursday' || n === 'Tuesday' || n === 'Saturday' || n === 'Sunday' ? 2 : 1)}
+        </button>
+      ))}
+      <button className="day-btn all" aria-pressed={set.size === 7} onClick={() => onChange(set.size === 7 ? [value[0] ?? 0] : [0, 1, 2, 3, 4, 5, 6])}>
+        Every day
       </button>
     </div>
   )
