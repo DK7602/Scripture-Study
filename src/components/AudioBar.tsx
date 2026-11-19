@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
-import { canSpeak, closePlayer, deviceVoices, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, type NarratorVoice } from '../lib/audio'
+import { canLocal, canSpeak, closePlayer, deviceVoices, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useLocalMichael, type NarratorVoice } from '../lib/audio'
 import { updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
@@ -12,7 +12,11 @@ export function AudioBar() {
   const loc = useStore((s) => s.loc)
   const [narrators, setNarrators] = useState<NarratorVoice[]>([])
   const [, refresh] = useReducer((x: number) => x + 1, 0)
+  const [mb, setMb] = useState(90)
   useEffect(() => onVoicesChanged(refresh), [])
+  useEffect(() => {
+    void localDownloadMB().then(setMb)
+  }, [])
   useEffect(() => {
     let live = true
     narratorsFor(settings.version, loc.book, loc.chapter).then((n) => live && setNarrators(n))
@@ -23,11 +27,14 @@ export function AudioBar() {
   if (!a.open) return null
 
   const dv = deviceVoices()
-  const useDevice = settings.audioNarrator === 'device' || !narrators.length
-  const narrator = narrators.find((n) => n.id === settings.audioNarrator) ?? narrators[0]
-  const value = useDevice ? `d:${settings.audioVoice || dv[0]?.voiceURI || ''}` : `n:${narrator?.id}`
+  const narrator = narrators[0]
+  const localOk = canLocal && (settings.audioLocal || settings.audioNarrator === 'local')
+  const deviceValue = `d:${settings.audioVoice || dv[0]?.voiceURI || ''}`
+  const value = settings.audioNarrator === 'device' ? deviceValue : narrator ? `n:${narrator.id}` : localOk ? 'l:' : deviceValue
+  const useDevice = value.startsWith('d:')
   const pick = (v: string) => {
-    if (v.startsWith('n:')) setNarrator(v.slice(2))
+    if (v.startsWith('n:')) setNarrator('')
+    else if (v === 'l:') useLocalMichael()
     else {
       updateSettings({ audioVoice: v.slice(2) })
       setNarrator('device')
@@ -44,8 +51,15 @@ export function AudioBar() {
           <span className="faint">
             {a.loading ? ' — loading…' : a.verse ? ` — verse ${a.verse} of ${a.count}` : a.count ? ` — ${a.count} verses` : ''}
           </span>
+          {a.info && <div className="ab-credit">{a.info}</div>}
           {a.error && <div className="ab-err">{a.error}</div>}
-          {!a.error && !useDevice && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
+          {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
+          {!a.error && !a.info && value === 'l:' && <div className="ab-credit">Michael's voice made on this device (Kokoro, Apache-2.0); nothing is stored</div>}
+          {a.offerLocal && !a.info && (
+            <button className="ref-link ab-offer" onClick={useLocalMichael}>
+              Use Michael's voice for {settings.version} (one-time download, about {mb} MB)
+            </button>
+          )}
           {!a.error && useDevice && !canSpeak && <div className="ab-err">This browser has no voice to read aloud.</div>}
         </div>
         <button className="icon-btn" onClick={closePlayer} aria-label="Close the player">
@@ -77,6 +91,11 @@ export function AudioBar() {
                   {n.name}
                 </option>
               ))}
+            </optgroup>
+          )}
+          {!narrators.length && canLocal && (
+            <optgroup label="Made on this device">
+              <option value="l:">Michael (made on this device)</option>
             </optgroup>
           )}
           <optgroup label="This device's voices">

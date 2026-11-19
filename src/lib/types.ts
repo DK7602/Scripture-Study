@@ -110,7 +110,8 @@ export interface Settings {
   uiSize: number // percent, all other text in the app
   audioRate: number // reading speed for the audio Bible
   audioVoice: string // device voice (voiceURI)
-  audioNarrator: string // narrated recording voice id, 'device' for the device voice, '' for automatic
+  audioNarrator: string // '' automatic (recorded Michael), 'local' Michael made on this device, 'device' the device's own voice
+  audioLocal: boolean // agreed to download Michael's voice to make it on this device
   audioContinue: boolean // read on into the next chapter
   scrollSpeed: number // auto-scroll speed, 1..10
   font: 'serif' | 'sans'

@@ -37,12 +37,14 @@ export interface AudioState {
   loading: boolean
   verse: number
   count: number
-  engine: 'narration' | 'device' | null
+  engine: 'narration' | 'local' | 'device' | null
   label: string
   error: string
+  info: string // e.g. download progress of Michael's on-device voice
+  offerLocal: boolean // no recording here: offer Michael made on this device
 }
 
-let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '' }
+let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false }
 const subs = new Set<() => void>()
 function set(p: Partial<AudioState>) {
   state = { ...state, ...p }
@@ -166,6 +168,8 @@ function stopEngines() {
   if (utter) utter.onend = null
   if (synth && (synth.speaking || synth.pending)) synth.cancel()
   utter = null
+  for (const u of localUrls) URL.revokeObjectURL(u)
+  localUrls.clear()
 }
 
 export function openPlayer() {
@@ -204,8 +208,15 @@ export function skip(dir: number) {
 
 export function setRate(rate: number) {
   updateSettings({ audioRate: rate })
-  if (audioEl) audioEl.playbackRate = rate
-  if (state.playing && state.engine === 'device') void play(state.verse)
+  if (audioEl && state.engine === 'narration') audioEl.playbackRate = rate
+  if (state.playing && state.engine !== 'narration') void play(state.verse)
+}
+
+/** Agree to download Michael's voice and use it where there is no recording. */
+export function useLocalMichael() {
+  updateSettings({ audioLocal: true, audioNarrator: '' })
+  set({ offerLocal: false })
+  void play(state.verse || startVerse())
 }
 
 export function setNarrator(id: string) {
@@ -219,16 +230,22 @@ export async function play(v = 1) {
   stopEngines()
   const my = runId
   const s = getState().settings
-  set({ open: true, playing: true, loading: true, verse: v, count: chapter.verses.length, label: labelFor(), error: '' })
+  set({ open: true, playing: true, loading: true, verse: v, count: chapter.verses.length, label: labelFor(), error: '', offerLocal: false })
   const voices = await narratorsFor(chapter.version, chapter.book, chapter.chapter)
   if (my !== runId) return
-  const pick = s.audioNarrator === 'device' ? undefined : voices.find((x) => x.id === s.audioNarrator) ?? (s.audioNarrator ? voices[0] : voices[0])
-  if (pick) await playNarration(pick, v, my)
-  else playDevice(v, my, v === 1)
+  const wantDevice = s.audioNarrator === 'device'
+  const local = !wantDevice && canLocal && (s.audioLocal || s.audioNarrator === 'local')
+  const pick = wantDevice ? undefined : voices[0]
+  if (pick) await playNarration(pick, v, my, local)
+  else if (local) playLocal(v, my, v === 1)
+  else {
+    playDevice(v, my, v === 1)
+    if (!wantDevice && canLocal) set({ offerLocal: true })
+  }
   mediaSession()
 }
 
-async function playNarration(voice: NarratorVoice, v: number, my: number) {
+async function playNarration(voice: NarratorVoice, v: number, my: number, local = false) {
   const m = await narrationManifest()
   const root = m.base ? `${m.base.replace(/\/$/, '')}/` : siteUrl('audio/')
   const bookDir = `${root}${voice.id}/${chapter!.version}/${chapter!.book}`
@@ -262,9 +279,134 @@ async function playNarration(voice: NarratorVoice, v: number, my: number) {
     raf = requestAnimationFrame(tick)
   } catch (e) {
     if (my !== runId) return
-    // a browser that blocks playback, or a missing file: fall back to the device voice
-    playDevice(v, my, v === 1, `Narration unavailable (${(e as Error).message || e}); using the device voice.`)
+    // a browser that blocks playback, or a missing file: make Michael's voice here, or use the device voice
+    if (local) playLocal(v, my, v === 1)
+    else playDevice(v, my, v === 1, `Narration unavailable (${(e as Error).message || e}); using the device voice.`)
   }
+}
+
+// ---------------------------------------------------------------------------------------------
+// Michael made on this device (Kokoro in a worker): every translation, nothing stored
+// ---------------------------------------------------------------------------------------------
+export const canLocal = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'
+
+/** Size of the one-time download for Michael's on-device voice: the full model with WebGPU, else the compact one. */
+let sizeP: Promise<number> | null = null
+export function localDownloadMB(): Promise<number> {
+  sizeP ??= (async () => {
+    try {
+      const gpu = (navigator as unknown as { gpu?: { requestAdapter(): Promise<unknown> } }).gpu
+      return gpu && (await gpu.requestAdapter()) ? 310 : 90
+    } catch {
+      return 90
+    }
+  })()
+  return sizeP
+}
+let worker: Worker | null = null
+let reqId = 0
+const waiting = new Map<number, { res: (r: { audio: Float32Array; sr: number }) => void; rej: (e: Error) => void }>()
+const localUrls = new Set<string>()
+
+function kokoro(): Worker {
+  if (!worker) {
+    worker = new Worker(new URL('./kokoro.worker.ts', import.meta.url), { type: 'module' })
+    worker.onmessage = (e: MessageEvent) => {
+      const m = e.data
+      if (m.type === 'progress') set({ info: `Downloading Michael's voice: ${Math.round((m.loaded / Math.max(m.total, 1)) * 100)}% (once, about ${Math.round(m.total / 2 ** 20)} MB)` })
+      else if (m.type === 'audio') {
+        set({ info: '' })
+        waiting.get(m.id)?.res({ audio: m.audio, sr: m.sr })
+        waiting.delete(m.id)
+      } else if (m.type === 'error') {
+        set({ info: '' })
+        waiting.get(m.id)?.rej(new Error(m.error))
+        waiting.delete(m.id)
+      }
+    }
+  }
+  return worker
+}
+
+function speakLocal(text: string, speed: number) {
+  const id = ++reqId
+  return new Promise<{ audio: Float32Array; sr: number }>((res, rej) => {
+    waiting.set(id, { res, rej })
+    kokoro().postMessage({ type: 'speak', id, text, voice: 'am_michael', speed })
+  })
+}
+
+/** 16-bit PCM WAV, so an ordinary audio element can play it (lock screen, speed). */
+function wavUrl(x: Float32Array, sr: number): string {
+  const buf = new ArrayBuffer(44 + x.length * 2)
+  const d = new DataView(buf)
+  const str = (o: number, s: string) => [...s].forEach((c, i) => d.setUint8(o + i, c.charCodeAt(0)))
+  str(0, 'RIFF')
+  d.setUint32(4, 36 + x.length * 2, true)
+  str(8, 'WAVEfmt ')
+  d.setUint32(16, 16, true)
+  d.setUint16(20, 1, true)
+  d.setUint16(22, 1, true)
+  d.setUint32(24, sr, true)
+  d.setUint32(28, sr * 2, true)
+  d.setUint16(32, 2, true)
+  d.setUint16(34, 16, true)
+  str(36, 'data')
+  d.setUint32(40, x.length * 2, true)
+  for (let i = 0; i < x.length; i++) d.setInt16(44 + i * 2, Math.max(-1, Math.min(1, x[i])) * 0x7fff, true)
+  const url = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))
+  localUrls.add(url)
+  return url
+}
+
+function playLocal(v: number, my: number, withHeading: boolean) {
+  if (!chapter) return
+  set({ engine: 'local', loading: true, error: '' })
+  const speed = getState().settings.audioRate || 1
+  const items: { verse: number; text: string }[] = []
+  if (withHeading) {
+    const b = books().find((x) => x.id === chapter!.book)
+    items.push({ verse: v, text: b?.id === 'PSA' ? `Psalm ${chapter.chapter}.` : `${b?.name ?? ''}, chapter ${chapter.chapter}.` })
+  }
+  for (let i = v; i <= chapter.verses.length; i++) {
+    const t = speakable(chapter.verses[i - 1] ?? '')
+    if (t) items.push({ verse: i, text: t })
+  }
+  const made = new Map<number, Promise<string>>()
+  const make = (k: number) => {
+    if (k < items.length && !made.has(k)) made.set(k, speakLocal(items[k].text, speed).then((r) => wavUrl(r.audio, r.sr)))
+  }
+  const next = async (k: number) => {
+    if (my !== runId) return
+    if (k >= items.length) return chapterDone()
+    make(k)
+    make(k + 1) // the next verse is made while this one plays
+    make(k + 2)
+    let url: string
+    try {
+      url = await made.get(k)!
+    } catch (e) {
+      if (my !== runId) return
+      playDevice(items[k].verse, my, false, `Michael's voice could not be made on this device (${(e as Error).message}); using the device voice.`)
+      return
+    }
+    if (my !== runId) return
+    set({ verse: items[k].verse, loading: false })
+    audioEl ??= new Audio()
+    audioEl.src = url
+    audioEl.playbackRate = 1
+    audioEl.onended = () => {
+      URL.revokeObjectURL(url)
+      localUrls.delete(url)
+      void next(k + 1)
+    }
+    try {
+      await audioEl.play()
+    } catch (e) {
+      if (my === runId) set({ playing: false, error: `Playback was blocked (${(e as Error).message}). Tap play again.` })
+    }
+  }
+  void next(0)
 }
 
 function playDevice(v: number, my: number, withHeading: boolean, note = '') {

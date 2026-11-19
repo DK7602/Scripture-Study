@@ -62,6 +62,7 @@ export const DEFAULT_SETTINGS: Settings = {
   audioVoice: '',
   audioNarrator: '',
   audioContinue: true,
+  audioLocal: false,
   scrollSpeed: 4,
   font: 'serif',
   layout: 'verse',

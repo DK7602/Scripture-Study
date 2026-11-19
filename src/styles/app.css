@@ -898,3 +898,4 @@ input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color:
 .autoscroll-ctl .icon-btn { width: 36px; height: 36px; color: var(--ink); }
 .as-speed { font-family: var(--serif); font-weight: 600; font-size: calc(14.5px * var(--ui)); min-width: 4.6em; text-align: center; }
 :root[data-mode='dark'] .autoscroll-ctl { background: var(--panel-2); }
+.ab-offer { display: block; margin-top: 2px; font-family: var(--sans); font-size: calc(13px * var(--ui)); text-align: left; }
