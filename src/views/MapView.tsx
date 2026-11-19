@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { dataUrl, getJSON } from '../lib/data'
 import { MAP_LABELS } from '../lib/mapLabels'
 import { formatRef } from '../lib/refs'
@@ -29,8 +29,61 @@ export interface Marker {
   focus?: boolean
 }
 
+interface TerrItem {
+  n: string
+  c: string
+  l: [number, number]
+  r: [number, number][][]
+  s?: 1
+  hide?: string[]
+}
+export interface TerrLayer {
+  id: string
+  title: string
+  date: string
+  era: 'ot' | 'nt'
+  regions: 'hide' | 'dedupe'
+  keep?: string[]
+  items: TerrItem[]
+}
+interface Road {
+  n: string
+  era: 'ot' | 'nt' | 'all'
+  ref: string
+  p: [number, number][]
+}
+interface Territories {
+  layers: TerrLayer[]
+  roads: Road[]
+}
+
 let basemapP: Promise<Basemap> | null = null
 let reliefP: Promise<Relief | null> | null = null
+let terrP: Promise<Territories | null> | null = null
+
+/** Even-odd point-in-polygon test on lon/lat rings. */
+function pointIn(lon: number, lat: number, rings: [number, number][][]) {
+  let c = false
+  for (const ring of rings)
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i]
+      const [xj, yj] = ring[j]
+      if (yi > lat !== yj > lat && lon < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) c = !c
+    }
+  return c
+}
+
+/** Darken a #rrggbb colour for text drawn on its own tint. */
+function deepen(hex: string, f = 0.55) {
+  const n = parseInt(hex.slice(1), 16)
+  const ch = (v: number) => Math.round(v * f).toString(16).padStart(2, '0')
+  return `#${ch(n >> 16)}${ch((n >> 8) & 255)}${ch(n & 255)}`
+}
+function lighten(hex: string, f = 0.45) {
+  const n = parseInt(hex.slice(1), 16)
+  const ch = (v: number) => Math.round(v + (255 - v) * f).toString(16).padStart(2, '0')
+  return `#${ch(n >> 16)}${ch((n >> 8) & 255)}${ch(n & 255)}`
+}
 
 const SEA = '#77acd3'
 const SEA_DARK = '#1f3446'
@@ -47,17 +100,23 @@ const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y <
  * Pan & zoom atlas of the Bible lands: shaded relief, seas and rivers, regions, mountains and cities,
  * with a "Then" (biblical names) / "Now" (modern borders and names) switch.
  */
-export function MapView({ markers, route, bounds, height }: { markers: Marker[]; route?: boolean; bounds?: [number, number, number, number]; height?: number }) {
+export function MapView({ markers, route, bounds, height, layer }: { markers: Marker[]; route?: boolean; bounds?: [number, number, number, number]; height?: number; layer?: string }) {
   const [base, setBase] = useState<Basemap | null>(null)
   const [relief, setRelief] = useState<Relief | null>(null)
+  const [terr, setTerr] = useState<Territories | null>(null)
   const [now, setNow] = useState(false)
+  const [layerId, setLayerId] = useState(layer ?? 'none')
+  useEffect(() => setLayerId(layer ?? 'none'), [layer])
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
   const svgRef = useRef<SVGSVGElement>(null)
   const [pxPerUnit, setPxPerUnit] = useState(1)
   useEffect(() => {
     basemapP ??= getJSON<Basemap>('geo/basemap.json')
     reliefP ??= getJSON<Relief>('geo/relief.json').catch(() => null)
+    terrP ??= getJSON<Territories>('geo/territories.json').catch(() => null)
     basemapP.then(setBase)
     reliefP.then(setRelief)
+    terrP.then(setTerr)
   }, [])
 
   const proj = useMemo(() => {
@@ -154,22 +213,73 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
     return () => el.removeEventListener('wheel', wheel)
   })
 
+  // ---- historical territories and ancient roads ("Then" mode only) ----
+  const active = !now && terr ? terr.layers.find((l) => l.id === layerId) : undefined
+  const shapes = useMemo(() => {
+    if (!proj || !active) return []
+    const f = (v: number) => v.toFixed(2)
+    return active.items.map((t) => {
+      let x0 = Infinity
+      let x1 = -Infinity
+      const d = t.r
+        .map(
+          (ring) =>
+            'M' +
+            ring
+              .map(([lo, la]) => {
+                const [x, y] = proj(lo, la)
+                x0 = Math.min(x0, x)
+                x1 = Math.max(x1, x)
+                return `${f(x)},${f(y)}`
+              })
+              .join('L') +
+            'Z',
+        )
+        .join('')
+      const [lx, ly] = proj(t.l[0], t.l[1])
+      return { t, d, lx, ly, bw: x1 - x0 }
+    })
+  }, [proj, active])
+  const roads = useMemo(() => {
+    if (!proj || !terr || now) return []
+    const era = active?.era
+    return terr.roads
+      .map((r, k) => ({ r, k }))
+      .filter(({ r }) => !era || r.era === 'all' || r.era === era)
+      .map(({ r, k }) => {
+        let pts = r.p.map(([lo, la]) => proj(lo, la))
+        const dx = pts[pts.length - 1][0] - pts[0][0]
+        const dy = pts[pts.length - 1][1] - pts[0][1]
+        // run names left-to-right, or bottom-to-top on north-south roads, so they never read upside down
+        if (Math.abs(dx) >= Math.abs(dy) ? dx < 0 : dy > 0) pts = [...pts].reverse()
+        let len = 0
+        for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])
+        const m = Math.floor(pts.length / 2)
+        const a = pts[Math.max(m - 1, 0)]
+        const b = pts[Math.min(m + 1, pts.length - 1)]
+        return { r, k, d: 'M' + pts.map((p) => `${p[0].toFixed(2)},${p[1].toFixed(2)}`).join('L'), len, mid: pts[m], flat: Math.abs(b[0] - a[0]) >= Math.abs(b[1] - a[1]) }
+      })
+  }, [proj, terr, now, active])
+
+  const credit = `Relief: Natural Earth, Mapzen · Places: OpenBible.info${active ? ' · Borders approximate' : ''}`
+
   // ---- labels with collision avoidance (markers first, then cities, mountains, regions, water) ----
   const layout = useMemo(() => {
-    if (!proj) return { labels: [], markerLabels: [] }
+    if (!proj) return { labels: [], markerLabels: [], terrLabels: [], roadLabels: [] }
     const unit = 1 / Math.max(pxPerUnit, 0.01) // map units per screen pixel
     const fsMarker = 13 * unit
     const placed: Box[] = []
     const visible = (x: number, y: number) => x > vb.x - 5 && x < vb.x + vb.w + 5 && y > vb.y - 5 && y < vb.y + vb.h + 5
-    const charW = 0.56
+    const charW = 0.6
     // keep labels inside the view and clear of the on-map controls (sizes in screen px)
     const W = vb.w / unit
     const H = vb.h / unit
+    const creditW = Math.min(W - 120, credit.length * 5.2 + 14)
     const ui: Box[] = [
-      [0, 0, 124, 50], // Then / Now
+      active || (!now && terr) ? [0, 0, 200, 88] : [0, 0, 124, 50], // Then / Now and the borders picker
       [W - 52, 0, 52, 132], // zoom tools
       [W - 48, H - 86, 48, 86], // north arrow
-      [W - 300, H - 18, 300, 18], // credit line
+      [W - creditW, H - 18, creditW, 18], // credit line
       [0, H - 40, 112, 40], // scale bar
     ].map(([x, y, w, h]) => ({ x: vb.x + x * unit, y: vb.y + y * unit, w: w * unit, h: h * unit }))
     placed.push(...ui)
@@ -236,16 +346,75 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
       return { i, x, y, r, fs, text, spot: spots.get(i), lead }
     })
 
+    // names of the territories in the chosen borders layer, then road names
+    const terrLabels = shapes
+      .map((sh) => {
+        const text = sh.t.n.toUpperCase()
+        const base = (sh.t.s ? 10.5 : 12.5) * unit
+        let fs = base
+        let w = text.length * fs * 0.86
+        if (sh.bw < w) {
+          fs = Math.max(base * 0.74, (fs * sh.bw) / w) // shrink the name to fit a narrow territory
+          w = text.length * fs * 0.86
+        }
+        if (sh.bw >= w * 0.6)
+          for (const dy of [0, -1.4, 1.4, -2.8, 2.8]) {
+            const box: Box = { x: sh.lx - w / 2, y: sh.ly - fs * 0.8 + dy * fs, w, h: fs * 1.1 }
+            if (free(box)) {
+              placed.push(box)
+              return { sh, x: sh.lx, y: sh.ly + dy * fs, fs, text, lead: undefined }
+            }
+          }
+        // still too small: set the name just outside with a short pointer line, as printed atlases do
+        if (!visible(sh.lx, sh.ly)) return null
+        fs = 10 * unit
+        w = text.length * fs * 0.84
+        const h = fs * 1.1
+        for (const d of [10, 22, 36].map((n) => n * unit))
+          for (const [ax, ay] of [[1, -1], [-1, -1], [1, 1], [-1, 1], [1, 0], [-1, 0], [0, -1], [0, 1]]) {
+            const cx = sh.lx + ax * d
+            const cy = sh.ly + ay * d * 0.8
+            const box: Box = { x: ax > 0 ? cx : ax < 0 ? cx - w : cx - w / 2, y: ay > 0 ? cy : ay < 0 ? cy - h : cy - h / 2, w, h }
+            if (!free(box)) continue
+            placed.push(box)
+            const tx = Math.min(Math.max(sh.lx, box.x), box.x + box.w)
+            const ty = Math.min(Math.max(sh.ly, box.y + h * 0.2), box.y + h * 0.8)
+            return { sh, x: box.x + w / 2, y: box.y + fs * 0.85, fs, text, lead: { x1: sh.lx, y1: sh.ly, x2: tx, y2: ty } }
+          }
+        return null
+      })
+      .filter((x): x is NonNullable<typeof x> => !!x)
+    const roadLabels = roads
+      .map((rd) => {
+        if (!rd.r.n) return null
+        const fs = 10 * unit
+        const w = rd.r.n.length * fs * 0.5
+        if (rd.len < w * 2.2) return null
+        const [mx, my] = rd.mid
+        const box: Box = rd.flat ? { x: mx - w / 2, y: my - fs, w, h: fs * 2 } : { x: mx - fs, y: my - w / 2, w: fs * 2, h: w }
+        if (!free(box)) return null
+        placed.push(box)
+        return { rd, fs }
+      })
+      .filter((x): x is NonNullable<typeof x> => !!x)
+    const regionHidden = (l: (typeof MAP_LABELS)[number]) => {
+      if (!active || l.kind !== 'region') return false
+      const name = l.then.toUpperCase()
+      if (active.keep?.includes(name)) return false
+      if (active.items.some((t) => t.n.toUpperCase() === name || t.hide?.includes(name))) return true
+      return active.regions === 'hide' && active.items.some((t) => pointIn(l.lon, l.lat, t.r))
+    }
+
     const vw = vb.w
     const markerNames = new Set(markers.flatMap((m) => [m.name, m.label].filter(Boolean)).map((s) => String(s).replace(/^\d+\.\s*/, '').toLowerCase()))
     const order: Record<string, number> = { city: 0, mount: 1, region: 2, water: 3 }
     const labels = MAP_LABELS.filter((l) => (l.minW === undefined || vw >= l.minW) && (l.maxW === undefined || vw <= l.maxW))
-      .filter((l) => !(l.kind === 'city' && markerNames.has(l.then.toLowerCase())))
+      .filter((l) => !(l.kind === 'city' && markerNames.has(l.then.toLowerCase())) && !regionHidden(l))
       .sort((a, b) => order[a.kind] - order[b.kind])
       .map((l) => {
         const [x, y] = proj(l.lon, l.lat)
         if (!visible(x, y)) return null
-        const text = now ? l.now ?? l.then : l.then
+        const text = now ? l.now ?? l.then : active?.era === 'nt' ? l.nt ?? l.then : l.then
         if (now && l.kind === 'region') return null // modern country names are shown instead
         const fs = (l.kind === 'region' ? 11.5 : l.kind === 'water' ? 12 : 11) * unit
         const w = text.length * fs * (l.kind === 'region' ? 0.92 : l.kind === 'water' && text === text.toUpperCase() ? 1.0 : charW)
@@ -265,8 +434,8 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
         return { l, x: x + dx, y, fs, text }
       })
       .filter((x): x is NonNullable<typeof x> => !!x)
-    return { labels, markerLabels }
-  }, [proj, markers, now, vb, pxPerUnit])
+    return { labels, markerLabels, terrLabels, roadLabels }
+  }, [proj, markers, now, vb, pxPerUnit, shapes, roads, active, credit])
 
   if (!base || !proj) return <div className="spinner" />
   const unit = 1 / Math.max(pxPerUnit, 0.01)
@@ -322,6 +491,16 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
           <mask id="hl-feather" maskUnits="userSpaceOnUse" x={hx0} y={hy0} width={hx1 - hx0} height={hy1 - hy0}>
             <rect x={hx0 + (hx1 - hx0) * 0.05} y={hy0 + (hy1 - hy0) * 0.04} width={(hx1 - hx0) * 0.9} height={(hy1 - hy0) * 0.92} fill="#fff" filter="url(#hl-blur)" />
           </mask>
+          <clipPath id={`${uid}-land`}>
+            {base.countries.map((c) => (
+              <path key={c.n} d={c.d} />
+            ))}
+          </clipPath>
+          {shapes.map((sh, k) => (
+            <clipPath key={k} id={`${uid}-t${k}`}>
+              <path d={sh.d} clipRule="evenodd" />
+            </clipPath>
+          ))}
           <marker id="route-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M0 0 L10 5 L0 10 z" fill={dark ? '#e4b866' : '#9b2c1f'} />
           </marker>
@@ -335,6 +514,28 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
         ) : (
           base.countries.map((c) => <path key={c.n} d={c.d} fill={dark ? '#3a3a30' : '#e9dcb8'} />)
         )}
+        {shapes.length > 0 && (
+          <g clipPath={`url(#${uid}-land)`} style={{ pointerEvents: 'none' }}>
+            {shapes.map(({ t, d }, k) => (
+              <g key={k}>
+                <path d={d} fill={t.c} fillOpacity={dark ? 0.26 : 0.22} fillRule="evenodd" />
+                {/* atlas-style colour band just inside each border */}
+                <path d={d} fill="none" stroke={dark ? lighten(t.c, 0.1) : t.c} strokeOpacity={dark ? 0.6 : 0.58} strokeWidth={9 * unit} strokeLinejoin="round" clipPath={`url(#${uid}-t${k})`} />
+              </g>
+            ))}
+            {shapes.map(({ d }, k) => (
+              <path key={'b' + k} d={d} fill="none" stroke={dark ? '#efe2c4' : '#5a3d22'} strokeOpacity={0.6} strokeWidth={0.9 * unit} strokeLinejoin="round" />
+            ))}
+          </g>
+        )}
+        {roads.map(({ r, k, d }) => (
+          <g key={'rd' + k} style={{ pointerEvents: 'none' }}>
+            <path d={d} fill="none" stroke={dark ? '#d9a066' : '#8a4b22'} strokeOpacity={0.9} strokeWidth={2.6 * unit} strokeLinejoin="round" strokeLinecap="round" />
+            <path id={`${uid}-rd${k}`} d={d} fill="none" stroke={dark ? '#2a2a24' : '#f6ecd2'} strokeWidth={0.9 * unit} strokeLinejoin="round" strokeLinecap="round">
+              <title>{r.n}</title>
+            </path>
+          </g>
+        ))}
         {now &&
           base.countries.map((c) => (
             <g key={c.n}>
@@ -351,6 +552,30 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
               </text>
             )
           })}
+
+        {/* territory names */}
+        {layout.terrLabels.map(
+          ({ sh, lead }, k) =>
+            lead && (
+              <g key={'tp' + k} style={{ pointerEvents: 'none' }}>
+                <line {...lead} stroke={dark ? lighten(sh.t.c, 0.4) : deepen(sh.t.c, 0.7)} strokeWidth={1.1 * unit} />
+                <circle cx={lead.x1} cy={lead.y1} r={2.4 * unit} fill={dark ? lighten(sh.t.c, 0.4) : deepen(sh.t.c, 0.7)} stroke={halo} strokeWidth={0.8 * unit} />
+              </g>
+            ),
+        )}
+        {layout.terrLabels.map(({ sh, x, y, fs, text }, k) => (
+          <text key={'tl' + k} x={x} y={y} fontSize={fs} textAnchor="middle" fill={dark ? lighten(sh.t.c, 0.55) : deepen(sh.t.c)} fontFamily="var(--display)" fontWeight={700} letterSpacing="0.16em" stroke={halo} strokeWidth={fs / 4} strokeOpacity={0.9} paintOrder="stroke" style={{ pointerEvents: 'none' }}>
+            {text}
+          </text>
+        ))}
+        {/* road names along the road */}
+        {layout.roadLabels.map(({ rd, fs }) => (
+          <text key={'rl' + rd.k} dy={-fs * 0.45} fontSize={fs} fill={dark ? '#efc48f' : '#6b3410'} fontFamily="var(--serif)" fontStyle="italic" letterSpacing="0.06em" stroke={halo} strokeWidth={fs / 4} paintOrder="stroke" style={{ pointerEvents: 'none' }}>
+            <textPath href={`#${uid}-rd${rd.k}`} startOffset="50%" textAnchor="middle">
+              {rd.r.n}
+            </textPath>
+          </text>
+        ))}
 
         {/* background labels */}
         {layout.labels.map(({ l, x, y, fs, text }, k) => {
@@ -444,6 +669,16 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
             Now
           </button>
         </div>
+        {!now && terr && (
+          <select className="map-layer" value={layerId} onChange={(e) => setLayerId(e.target.value)} aria-label="Borders shown on the map">
+            <option value="none">No borders</option>
+            {terr.layers.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.title} ({l.date})
+              </option>
+            ))}
+          </select>
+        )}
       </div>
       <div className="map-tools">
         <button onClick={() => zoom(0.75)} aria-label="Zoom in">+</button>
@@ -463,7 +698,9 @@ export function MapView({ markers, route, bounds, height }: { markers: Marker[];
           {nice} km · {Math.round(nice * 0.621)} mi
         </span>
       </div>
-      <div className="map-credit">Relief: Natural Earth, Mapzen/AWS Terrain Tiles · Places: OpenBible.info</div>
+      <div className="map-credit" title="Relief: Natural Earth and Mapzen/AWS Terrain Tiles. Places: OpenBible.info. Historical borders are approximate.">
+        {credit}
+      </div>
     </div>
   )
 }

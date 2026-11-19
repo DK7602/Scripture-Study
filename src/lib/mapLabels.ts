@@ -8,6 +8,7 @@ export interface MapLabel {
   kind: 'water' | 'region' | 'mount' | 'city'
   then: string
   now?: string // omitted = same as then
+  nt?: string // New Testament name, used when New Testament borders are shown
   lon: number
   lat: number
   minW?: number
@@ -29,7 +30,7 @@ export const MAP_LABELS: MapLabel[] = [
   // ---- seas, lakes and rivers ----
   L('water', 'THE GREAT SEA', 'MEDITERRANEAN SEA', 31.0, 33.7, { minW: 120, ref: 'NUM.34.6' }),
   L('water', 'THE GREAT SEA', 'MEDITERRANEAN SEA', 18.5, 35.3, { minW: 700 }),
-  L('water', 'Sea of Chinnereth', 'Sea of Galilee', 35.59, 32.82, { maxW: 260, ref: 'NUM.34.11' }),
+  L('water', 'Sea of Chinnereth', 'Sea of Galilee', 35.59, 32.82, { maxW: 260, ref: 'NUM.34.11', nt: 'Sea of Galilee' }),
   L('water', 'Salt Sea', 'Dead Sea', 35.5, 31.45, { maxW: 400, ref: 'GEN.14.3' }),
   L('water', 'Jordan', 'Jordan River', 35.56, 32.25, { maxW: 260, rotate: -82, ref: 'JOS.3.17' }),
   L('water', 'RED SEA', 'RED SEA', 37.6, 23.6, { minW: 300, rotate: -58, ref: 'EXO.15.4' }),

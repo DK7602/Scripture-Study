@@ -51,6 +51,22 @@ const ROUTES: Record<string, { stops: [string, string?][]; route: boolean }> = {
   },
 }
 
+const NO_MARKERS: Marker[] = []
+
+/** Borders drawn by default on each journey map. */
+const ROUTE_LAYER: Record<string, string> = { 'map:exodus': 'nations', 'map:paul1': 'provinces', 'map:paul2': 'provinces', 'map:paul3': 'provinces', 'map:rome': 'provinces', 'map:jesus': 'nt' }
+
+/** Borders that fit the era of a chapter: nations in the Law, tribes from Joshua to Solomon, the two kingdoms after, Herodian Palestine
+ * in the Gospels and Roman provinces from Acts on. */
+export function layerForChapter(book: string, chapter: number): string {
+  if (['GEN', 'EXO', 'LEV', 'NUM', 'DEU'].includes(book)) return 'nations'
+  if (['JOS', 'JDG', 'RUT', '1SA', '2SA', '1CH'].includes(book) || (book === '1KI' && chapter <= 11) || (book === '2CH' && chapter <= 9)) return 'tribes'
+  if (['1KI', '2KI', '2CH', 'ISA', 'JER', 'LAM', 'HOS', 'JOL', 'AMO', 'OBA', 'JON', 'MIC', 'NAM', 'HAB', 'ZEP'].includes(book)) return 'kingdoms'
+  if (['MAT', 'MRK', 'LUK', 'JHN'].includes(book)) return 'nt'
+  if (['ACT', 'ROM', '1CO', '2CO', 'GAL', 'EPH', 'PHP', 'COL', '1TH', '2TH', '1TI', '2TI', 'TIT', 'PHM', 'HEB', 'JAS', '1PE', '2PE', '1JN', '2JN', '3JN', 'JUD', 'REV'].includes(book)) return 'provinces'
+  return 'none'
+}
+
 /** OpenBible ids number places that share a name ("Bethlehem 2"); show the plain name. */
 export function placeName(id: string): string {
   return id.replace(/ \d+$/, '')
@@ -257,8 +273,8 @@ function ChapterMap({ focus }: { focus?: string }) {
   const shown = focusPlace && !list.some((x) => x.p.n === focusPlace.n) ? [{ p: focusPlace, verses: [] as number[] }, ...list] : list
   return (
     <>
-      <MapView markers={markers} />
-      <p className="faint small">Then: Bible names on the land as it was. Now: today’s borders, countries and modern names. Drag to move, pinch or scroll to zoom.</p>
+      <MapView markers={markers} layer={layerForChapter(loc.book, loc.chapter)} />
+      <p className="faint small">Then: Bible names on the land as it was, with the borders of the time (choose others from the Borders menu). Now: today’s borders, countries and modern names. Drag to move, pinch or scroll to zoom.</p>
       <div className="place-list">
         {shown.map(({ p, verses }) => (
           <div key={p.n} className="place" style={p.n === focus ? { borderColor: 'var(--accent)' } : undefined}>
@@ -320,7 +336,7 @@ function RouteMap({ id }: { id: string }) {
   if (!stops.length) return <div className="spinner" />
   return (
     <>
-      <MapView markers={drawn} route={r.route} />
+      <MapView markers={drawn} route={r.route} layer={ROUTE_LAYER[id]} />
       <ol style={{ fontFamily: 'var(--serif)', fontSize: 16, paddingLeft: 22 }}>
         {stops.map(([n, ref], i) => (
           <li key={i}>
@@ -334,11 +350,10 @@ function RouteMap({ id }: { id: string }) {
 
 function TribesMap({ data }: { data: HelpData }) {
   const caps = useCaps()
-  const markers: Marker[] = data.tribes.filter((t) => t.lon !== null && t.lat !== null).map((t) => ({ name: t.tribe, lon: t.lon!, lat: t.lat!, color: t.color, big: true, modern: t.tribe }))
   return (
     <>
-      <MapView markers={markers} bounds={[34.3, 30.6, 36.4, 33.3]} />
-      <p className="faint small">Dots mark the approximate center of each tribe’s inheritance; exact borders are debated.</p>
+      <MapView markers={NO_MARKERS} bounds={[34.55, 30.9, 36.25, 33.3]} layer="tribes" />
+      <p className="faint small">Each tribe’s inheritance as usually drawn from Joshua 13–19. Levi received cities rather than a territory; exact borders are debated.</p>
       <table className="chart">
         <tbody>
           {data.tribes.map((t) => (
@@ -363,7 +378,7 @@ function Churches({ data, map }: { data: HelpData; map: boolean }) {
   const markers: Marker[] = [{ name: 'Patmos', lon: 26.542, lat: 37.325, modern: 'Patmos, Greece', big: true }, ...data.churches.map((c) => ({ name: c.name, lon: c.lon, lat: c.lat, modern: c.modern.split(/[,(;]/)[0] }))]
   return (
     <>
-      {map && <MapView markers={markers} route={false} />}
+      {map && <MapView markers={markers} route={false} layer="provinces" />}
       {data.churches.map((c) => (
         <div className="card" key={c.name}>
           <div className="card-head">
