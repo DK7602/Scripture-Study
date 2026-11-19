@@ -30,10 +30,17 @@ export async function serveAudio(request: Request, env: AssetsEnv): Promise<Resp
   if (!res.ok || type.startsWith('text/html')) return new Response('Not found', { status: 404 })
   const headers = new Headers(res.headers)
   headers.set('accept-ranges', 'bytes')
+  headers.delete('content-length')
   headers.set('cache-control', 'public, max-age=604800')
-  const size = Number(res.headers.get('content-length'))
   const m = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') ?? '')
-  if (!m || !size) return new Response(request.method === 'HEAD' ? null : res.body, { status: 200, headers })
+  if (!m) return new Response(request.method === 'HEAD' ? null : res.body, { status: 200, headers })
+  let size = Number(res.headers.get('content-length'))
+  let whole: Uint8Array | null = null
+  if (!size) {
+    // the asset server streams without a length: read the file (chapters are 1-10 MB) to know its size
+    whole = new Uint8Array(await res.arrayBuffer())
+    size = whole.length
+  }
   let start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2]))
   let end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1
   if (!m[1] && !m[2]) {
@@ -41,11 +48,12 @@ export async function serveAudio(request: Request, env: AssetsEnv): Promise<Resp
     end = size - 1
   }
   if (start >= size || start > end) {
-    res.body?.cancel()
+    if (!whole) res.body?.cancel()
     return new Response(null, { status: 416, headers: { 'content-range': `bytes */${size}` } })
   }
   headers.set('content-range', `bytes ${start}-${end}/${size}`)
   headers.set('content-length', String(end - start + 1))
+  if (whole) return new Response(request.method === 'HEAD' ? null : whole.subarray(start, end + 1), { status: 206, headers })
   if (request.method === 'HEAD' || !res.body) {
     res.body?.cancel()
     return new Response(null, { status: 206, headers })
