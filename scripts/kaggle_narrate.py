@@ -44,10 +44,11 @@ def main():
     out = os.path.join(TMP, "out")
     sh("nvidia-smi --query-gpu=name,memory.total --format=csv || true")
 
-    # onnxruntime with CUDA (kokoro-onnx pulls in the CPU build; replace it)
-    sh("pip install -q kokoro-onnx soundfile scipy")
-    sh("pip uninstall -y -q onnxruntime onnxruntime-gpu || true")
-    sh("pip install -q 'onnxruntime-gpu>=1.20'")
+    # the official kokoro package on the GPU (PyTorch is preinstalled); espeak-ng reads words its dictionary lacks
+    sh("apt-get -qq -y install espeak-ng > /dev/null 2>&1 || true")
+    sh("pip install -q 'kokoro>=0.9.4' soundfile scipy")
+    if CFG.get("rvc"):  # the VoxaVersa voice conversion runs on onnxruntime
+        sh("pip install -q 'onnxruntime-gpu>=1.20'")
 
     repo = os.path.join(TMP, "ss")
     if not os.path.isdir(repo):
@@ -67,7 +68,7 @@ def main():
     args = [sys.executable, os.path.join(repo, "scripts", "narrate.py"), "--version", version, "--book", CFG.get("book", "ALL"),
             "--chapters", str(CFG.get("chapters", "all")), "--kokoro-model", f"{models}/kokoro-v1.0.onnx",
             "--kokoro-voices", f"{models}/voices-v1.0.bin", "--kokoro-voice", CFG.get("kokoro_voice", "am_michael"),
-            "--voice-id", voice, "--out", out, "--threads", "4", "--bitrate", CFG.get("bitrate", "32k")]
+            "--voice-id", voice, "--out", out, "--threads", "4", "--bitrate", CFG.get("bitrate", "32k"), "--engine", "torch"]
     if CFG.get("rvc"):
         packs = glob.glob("/kaggle/input/**/vocalset-male8.vxpack", recursive=True)
         encs = glob.glob("/kaggle/input/**/contentvec-768.onnx", recursive=True)

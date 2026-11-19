@@ -83,6 +83,23 @@ def providers():
     return [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in ort.get_available_providers()]
 
 
+class TorchKokoro:
+    """The official kokoro package (PyTorch) with the same .create() as kokoro-onnx. On a CUDA GPU it is many times faster
+    than real time; onnxruntime's CUDA build fails on Kokoro's decoder convolutions on Kaggle's T4s."""
+
+    def __init__(self):
+        import torch
+        from kokoro import KPipeline
+
+        dev = "cuda" if torch.cuda.is_available() else "cpu"
+        self.pipe = KPipeline(lang_code="a", device=dev)
+        print("narration on", dev, flush=True)
+
+    def create(self, text, voice, speed=1.0, lang="en-us"):
+        chunks = [np.asarray(audio.cpu() if hasattr(audio, "cpu") else audio, np.float32) for _, _, audio in self.pipe(text, voice=voice, speed=speed) if audio is not None]
+        return (np.concatenate(chunks) if chunks else np.zeros(1, np.float32)), 24000
+
+
 class Rvc:
     """VoxaVersa voice conversion, models loaded once (the same steps as VoxaVersa's tools/training/try_voice.py:
     16 kHz ContentVec features, each 20 ms vector used twice, YIN pitch per 10 ms, ~10 s segments with context)."""
@@ -158,17 +175,22 @@ def main():
     ap.add_argument("--bitrate", default="48k")
     ap.add_argument("--out", default="audio-out")
     ap.add_argument("--hours", type=float, default=0, help="stop cleanly after this many hours (Kaggle runs end at 12)")
+    ap.add_argument("--engine", choices=["onnx", "torch"], default="onnx",
+                    help="onnx: kokoro-onnx (CPU here); torch: the official kokoro package on a CUDA GPU (Kaggle)")
     a = ap.parse_args()
     t0 = time.time()
 
     if a.version not in PUBLIC_DOMAIN:
         sys.exit(f"{a.version} is not public domain; only {sorted(PUBLIC_DOMAIN)} may be narrated")
-    import onnxruntime as ort
-    from kokoro_onnx import Kokoro
+    if a.engine == "torch":
+        tts = TorchKokoro()
+    else:
+        import onnxruntime as ort
+        from kokoro_onnx import Kokoro
 
-    sess = ort.InferenceSession(a.kokoro_model, providers=providers())
-    print("narration on", sess.get_providers()[0], flush=True)
-    tts = Kokoro.from_session(sess, a.kokoro_voices)
+        sess = ort.InferenceSession(a.kokoro_model, providers=providers())
+        print("narration on", sess.get_providers()[0], flush=True)
+        tts = Kokoro.from_session(sess, a.kokoro_voices)
     a.rvc = Rvc(a.rvc_model, a.rvc_encoder, a.voxaversa, a.threads, a.transpose) if a.rvc_model else None
     books = json.load(open(os.path.join(DATA, "books.json")))
     books = books["books"] if isinstance(books, dict) else books
