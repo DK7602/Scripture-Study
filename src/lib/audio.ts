@@ -277,8 +277,16 @@ export function useDeviceVoice(voiceURI?: string) {
 }
 
 /** Start reading at verse v of the chapter on screen. */
+/** Called when the audio Bible starts reading (the sermon player stops then). */
+const startHooks = new Set<() => void>()
+export function onBibleAudioStart(fn: () => void) {
+  startHooks.add(fn)
+  return () => void startHooks.delete(fn)
+}
+
 export async function play(v = 1) {
   if (!chapter) return
+  startHooks.forEach((f) => f())
   stopEngines()
   const my = runId
   const s = getState().settings

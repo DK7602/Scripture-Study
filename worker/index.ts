@@ -2,12 +2,14 @@
  * Scripture Study — Cloudflare Worker entry.
  *
  * The app (dist/) is served as static assets: those requests never run this code and are free.
- * Only /api/* (the sync API) and /audio/* reach the Worker (see run_worker_first in wrangler.toml).
+ * Only /api/* (the sync API), /audio/* and /feed/* (sermons from SermonAudio) reach the Worker (see run_worker_first
+ * in wrangler.toml).
  * Audio goes through here because the static-asset server ignores Range requests, and Safari (iPhone,
  * iPad, Mac) will only play media from a server that answers them with 206 Partial Content.
  */
 import { onRequest } from '../functions/api/[[route]]'
 import { serveAudio } from './audio'
+import { serveSermonFeed } from './sermons'
 
 interface Env {
   ASSETS: { fetch(req: Request): Promise<Response> }
@@ -25,6 +27,7 @@ export default {
       return onRequest({ request, env: env as never })
     }
     if (url.pathname.startsWith('/audio/')) return serveAudio(request, env)
+    if (url.pathname === '/feed/sermons') return serveSermonFeed(request)
     return env.ASSETS.fetch(request)
   },
 }

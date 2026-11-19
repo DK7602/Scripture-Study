@@ -21,8 +21,26 @@ import {
   shortDate,
   today,
 } from '../lib/resources'
-import { deleteItem, newId, openPopup, saveItem, updateSettings, useStore } from '../lib/store'
-import type { PrayerDay, SermonLink, SermonNote, SermonSection } from '../lib/types'
+import { deleteItem, getState, newId, openPopup, saveItem, setTab, updateSettings, useStore } from '../lib/store'
+import {
+  cachedFeed,
+  clock,
+  closeSermon,
+  loadFeed,
+  minutes,
+  playSermon,
+  saBroadcaster,
+  seekSermonBy,
+  seekSermonTo,
+  sermonPosition,
+  sermonsOnScreen,
+  setSermonRate,
+  toggleSermon,
+  useSermonPlayer,
+  useSermonsOnScreen,
+  type Feed,
+} from '../lib/sermons'
+import type { PrayerDay, SermonLink, SermonNote, SermonRef, SermonSection } from '../lib/types'
 
 type Section = 'prayer' | 'sermons' | 'notes'
 
@@ -36,17 +54,42 @@ function remembered(): Section {
   return 'prayer'
 }
 
+function remember(s: Section) {
+  try {
+    localStorage.setItem('ss:resources', s)
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+let showSection: ((s: Section) => void) | null = null
+/** Opens a part of Resources from anywhere (the floating sermon player). */
+export function showResource(s: Section) {
+  remember(s)
+  showSection?.(s)
+  setTab('resources')
+}
+
+/** Sermon notes for a sermon: the ones already written for it, or new ones with its title, date and speaker. */
+function notesFor(s: SermonRef): SermonNote {
+  const have = getState().sermons.find((n) => n.sermon?.id === s.id)
+  if (have) return have
+  return { ...newSermonNote(), title: s.title, date: s.date.slice(0, 10) || today(), speaker: s.speaker, sermon: s }
+}
+
 /** Resources: the prayer list, the church's sermons and sermon notes. */
 export function ResourcesView() {
   const [sec, setSec] = useState<Section>(remembered)
   const pick = (s: Section) => {
     setSec(s)
-    try {
-      localStorage.setItem('ss:resources', s)
-    } catch {
-      /* storage unavailable */
-    }
+    remember(s)
   }
+  useEffect(() => {
+    showSection = setSec
+    return () => {
+      showSection = null
+    }
+  }, [])
   return (
     <div className="resources">
       <div className="pills res-pills" role="tablist" aria-label="Resources">
@@ -61,7 +104,14 @@ export function ResourcesView() {
         </button>
       </div>
       {sec === 'prayer' && <PrayerList />}
-      {sec === 'sermons' && <Sermons onNotes={() => pick('notes')} />}
+      {sec === 'sermons' && (
+        <Sermons
+          onNotes={(s) => {
+            openNote = notesFor(s)
+            pick('notes')
+          }}
+        />
+      )}
       {sec === 'notes' && <SermonNotes />}
     </div>
   )
@@ -333,7 +383,7 @@ function VerseAdder({ have, onAdd }: { have: string[]; onAdd: (ref: string) => v
 }
 
 // ---------------------------------------------------------------------------------------------
-// Sermons (links)
+// Sermons: the church's sermons from SermonAudio, played here; other links open in the browser
 // ---------------------------------------------------------------------------------------------
 function host(url: string) {
   try {
@@ -343,9 +393,18 @@ function host(url: string) {
   }
 }
 
-function Sermons({ onNotes }: { onNotes: () => void }) {
+function Sermons({ onNotes }: { onNotes: (s: SermonRef) => void }) {
   const links = useStore((s) => s.settings.sermonLinks) ?? []
+  const sources = links.filter((l) => saBroadcaster(l.url))
+  const others = links.filter((l) => !saBroadcaster(l.url))
+  const [srcId, setSrcId] = useState(sources[0]?.id)
+  const src = sources.find((x) => x.id === srcId) ?? sources[0]
+  const [manage, setManage] = useState(false)
   const [editing, setEditing] = useState<SermonLink | null>(null)
+  useEffect(() => {
+    sermonsOnScreen(true)
+    return () => sermonsOnScreen(false)
+  }, [])
   const saveLink = (l: SermonLink) => {
     const exists = links.some((x) => x.id === l.id)
     updateSettings({ sermonLinks: exists ? links.map((x) => (x.id === l.id ? l : x)) : [...links, l] })
@@ -353,43 +412,297 @@ function Sermons({ onNotes }: { onNotes: () => void }) {
   }
   return (
     <div>
-      <h3 className="res-h">Helpful sermons</h3>
-      {links.map((l) => (
-        <div key={l.id} className="link-card">
-          <a href={l.url} target="_blank" rel="noopener noreferrer" className="link-main">
-            <span className="link-icon">
-              <Icon name="headphones" size={22} />
-            </span>
-            <span className="link-text">
-              <b>{l.name}</b>
-              <span className="faint small">{host(l.url)}</span>
-            </span>
-            <Icon name="external" size={18} />
-          </a>
-          <div className="link-actions">
-            <button className="btn small" onClick={() => setEditing(l)}>
-              <Icon name="edit" size={14} /> Edit
+      {sources.length > 1 && (
+        <div className="pills" style={{ marginBottom: 12 }}>
+          {sources.map((l) => (
+            <button key={l.id} className="pill" aria-pressed={l.id === src?.id} onClick={() => setSrcId(l.id)}>
+              {l.name}
             </button>
-            <button className="btn small danger" onClick={() => window.confirm(`Remove “${l.name}”?`) && updateSettings({ sermonLinks: links.filter((x) => x.id !== l.id) })} aria-label={`Remove ${l.name}`}>
-              <Icon name="trash" size={14} />
-            </button>
-          </div>
+          ))}
         </div>
-      ))}
-      {!links.length && <p className="faint">No sermon links yet.</p>}
-      {editing ? (
-        <LinkForm link={editing} onSave={saveLink} onCancel={() => setEditing(null)} />
-      ) : (
-        <button className="btn" onClick={() => setEditing({ id: newId(), name: '', url: '' })}>
-          <Icon name="plus" size={16} /> Add a sermon link
-        </button>
       )}
-      <p className="faint small" style={{ marginTop: 14 }}>
-        Sermons open on SermonAudio (or in its app, if it is installed). Listening along?{' '}
-        <button className="ref-link" onClick={onNotes}>
-          Take sermon notes
+      {src && <SermonFeedView key={src.id} link={src} onNotes={onNotes} />}
+      {others.length > 0 && <h3 className="res-h">More sermons</h3>}
+      {others.map((l) => (
+        <a key={l.id} href={l.url} target="_blank" rel="noopener noreferrer" className="link-card link-main">
+          <span className="link-icon">
+            <Icon name="headphones" size={22} />
+          </span>
+          <span className="link-text">
+            <b>{l.name}</b>
+            <span className="faint small">{host(l.url)}</span>
+          </span>
+          <Icon name="external" size={18} />
+        </a>
+      ))}
+      <div style={{ marginTop: 18 }}>
+        {!manage ? (
+          <button className="btn small" onClick={() => setManage(true)}>
+            <Icon name="link" size={15} /> Sermon sources and links…
+          </button>
+        ) : (
+          <div className="card">
+            <h3 className="res-h" style={{ marginTop: 0 }}>
+              Sermon sources and links
+            </h3>
+            <p className="faint small">A SermonAudio church page plays its sermons right here; any other link opens in the browser.</p>
+            {links.map((l) => (
+              <div key={l.id} className="link-row">
+                <span className="link-text">
+                  <b>{l.name}</b>
+                  <span className="faint small">{saBroadcaster(l.url) ? 'SermonAudio · plays here' : host(l.url)}</span>
+                </span>
+                <button className="btn small" onClick={() => setEditing(l)}>
+                  <Icon name="edit" size={14} /> Edit
+                </button>
+                <button className="btn small danger" onClick={() => window.confirm(`Remove “${l.name}”?`) && updateSettings({ sermonLinks: links.filter((x) => x.id !== l.id) })} aria-label={`Remove ${l.name}`}>
+                  <Icon name="trash" size={14} />
+                </button>
+              </div>
+            ))}
+            {editing ? (
+              <LinkForm link={editing} onSave={saveLink} onCancel={() => setEditing(null)} />
+            ) : (
+              <div className="actions" style={{ justifyContent: 'space-between' }}>
+                <button className="btn small" onClick={() => setEditing({ id: newId(), name: '', url: '' })}>
+                  <Icon name="plus" size={15} /> Add a church or link
+                </button>
+                <button className="btn small" onClick={() => setManage(false)}>
+                  Done
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function SermonFeedView({ link, onNotes }: { link: SermonLink; onNotes: (s: SermonRef) => void }) {
+  const b = saBroadcaster(link.url)!
+  const [feed, setFeed] = useState<Feed | null>(() => cachedFeed(b))
+  const [err, setErr] = useState('')
+  const [view, setView] = useState<'latest' | 'series'>('latest')
+  const [series, setSeries] = useState<string | null>(null)
+  const [q, setQ] = useState('')
+  const [shown, setShown] = useState(15)
+  useEffect(() => {
+    let live = true
+    loadFeed(b)
+      .then((f) => live && (setFeed(f), setErr('')))
+      .catch(() => live && setErr('The sermons could not be loaded right now. Check the connection, or open them on SermonAudio.'))
+    return () => {
+      live = false
+    }
+  }, [b])
+  const extra = { image: feed?.image, church: feed?.title || link.name }
+  const groups = useMemo(() => {
+    const m = new Map<string, SermonRef[]>()
+    for (const x of feed?.sermons ?? []) {
+      const k = x.series || 'Other sermons'
+      m.set(k, [...(m.get(k) ?? []), x])
+    }
+    return [...m.entries()].sort((a, b) => (a[1][0].date < b[1][0].date ? 1 : -1))
+  }, [feed])
+  const list = useMemo(() => {
+    const all = feed?.sermons ?? []
+    const t = q.trim().toLowerCase()
+    if (t) return all.filter((x) => `${x.title} ${x.speaker} ${x.series}`.toLowerCase().includes(t))
+    if (view === 'series' && series) return [...all.filter((x) => (x.series || 'Other sermons') === series)].reverse() // in order
+    return all
+  }, [feed, q, view, series])
+
+  return (
+    <div className="sermon-feed">
+      <div className="church-head">
+        {feed?.image ? <img src={feed.image} alt="" className="church-img" /> : <span className="link-icon"><Icon name="headphones" size={22} /></span>}
+        <div className="link-text">
+          <b>{feed?.title || link.name}</b>
+          <span className="faint small">Sermons from SermonAudio{feed ? ` · newest ${feed.sermons.length}` : ''}</span>
+        </div>
+        <a className="icon-btn" href={link.url} target="_blank" rel="noopener noreferrer" aria-label="Open on SermonAudio" title="Open on SermonAudio">
+          <Icon name="external" size={18} />
+        </a>
+      </div>
+      <SermonPlayerCard onNotes={onNotes} />
+      {err && !feed && (
+        <p className="ab-err">
+          {err}{' '}
+          <a href={link.url} target="_blank" rel="noopener noreferrer" className="ref-link">
+            Open on SermonAudio
+          </a>
+        </p>
+      )}
+      {!feed && !err && <div className="spinner" />}
+      {feed && (
+        <>
+          <div className="feed-tools">
+            <div className="seg">
+              <button aria-pressed={view === 'latest'} onClick={() => (setView('latest'), setSeries(null))}>
+                Latest
+              </button>
+              <button aria-pressed={view === 'series'} onClick={() => setView('series')}>
+                Series
+              </button>
+            </div>
+            <div className="searchbox">
+              <Icon name="search" size={17} />
+              <input placeholder="Search sermons…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search sermons" />
+            </div>
+          </div>
+          {view === 'series' && !series && !q.trim() ? (
+            <div className="series-list">
+              {groups.map(([name, xs]) => (
+                <button key={name} className="series-card" onClick={() => setSeries(name)}>
+                  <b>{name}</b>
+                  <span className="faint small">
+                    {xs.length} sermon{xs.length === 1 ? '' : 's'} · {[...new Set(xs.map((x) => x.speaker))].slice(0, 2).join(', ')}
+                  </span>
+                  <span className="faint small">
+                    {shortDate(xs[xs.length - 1].date.slice(0, 10))}
+                    {xs.length > 1 ? ` – ${shortDate(xs[0].date.slice(0, 10))}` : ''}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <>
+              {view === 'series' && series && !q.trim() && (
+                <div className="series-head">
+                  <button className="btn small" onClick={() => setSeries(null)}>
+                    <Icon name="left" size={15} /> All series
+                  </button>
+                  <b>{series}</b>
+                </div>
+              )}
+              {list.slice(0, q.trim() || series ? list.length : shown).map((x) => (
+                <SermonRow key={x.id} s={x} extra={extra} showSeries={!series} onNotes={onNotes} />
+              ))}
+              {!q.trim() && !series && list.length > shown && (
+                <button className="btn" style={{ width: '100%' }} onClick={() => setShown((n) => n + 20)}>
+                  Show more sermons
+                </button>
+              )}
+              {q.trim() && !list.length && <p className="empty">No sermons match “{q}”.</p>}
+            </>
+          )}
+          <p className="faint small" style={{ marginTop: 12 }}>
+            Older sermons:{' '}
+            <a href={link.url} target="_blank" rel="noopener noreferrer" className="ref-link">
+              {feed.title || link.name} on SermonAudio
+            </a>
+          </p>
+        </>
+      )}
+    </div>
+  )
+}
+
+function SermonRow({ s, extra, showSeries, onNotes }: { s: SermonRef; extra: { image?: string; church?: string }; showSeries: boolean; onNotes: (s: SermonRef) => void }) {
+  const p = useSermonPlayer()
+  const pos = useMemo(() => sermonPosition(s.id), [s.id, p.positions]) // eslint-disable-line react-hooks/exhaustive-deps
+  const cur = p.current?.id === s.id
+  const play = () => playSermon(s, extra)
+  return (
+    <div className={`sermon-row${cur ? ' current' : ''}`}>
+      <button className="sr-play" onClick={play} aria-label={cur && p.playing ? 'Pause' : `Play ${s.title}`}>
+        <Icon name={cur && p.playing ? 'pause' : 'play'} size={18} fill={!(cur && p.playing)} stroke={cur && p.playing ? 2.6 : 1.8} />
+      </button>
+      <button className="sr-main" onClick={play}>
+        <b>{s.title}</b>
+        <span className="faint small">
+          {s.speaker} · {shortDate(s.date.slice(0, 10))} · {minutes(s.duration)}
+        </span>
+        {showSeries && s.series && <span className="sr-series">{s.series}</span>}
+        {pos?.done ? <span className="sr-badge">✓ Listened</span> : pos?.t ? <span className="sr-badge">Stopped at {clock(pos.t)}</span> : null}
+      </button>
+      <button className="icon-btn" onClick={() => onNotes(s)} aria-label={`Take notes on ${s.title}`} title="Take notes">
+        <Icon name="note" size={19} />
+      </button>
+    </div>
+  )
+}
+
+const RATES = [0.8, 1, 1.1, 1.25, 1.5, 1.75, 2]
+
+function SermonPlayerCard({ onNotes }: { onNotes: (s: SermonRef) => void }) {
+  const p = useSermonPlayer()
+  const s = p.current
+  if (!s) return null
+  const dur = p.duration || s.duration
+  return (
+    <div className="sermon-player" role="region" aria-label="Sermon player">
+      <div className="sp-head">
+        {s.image && <img src={s.image} alt="" />}
+        <div className="link-text">
+          <b>{s.title}</b>
+          <span className="faint small">
+            {s.speaker} · {shortDate(s.date.slice(0, 10))}
+            {s.series ? ` · ${s.series}` : ''}
+          </span>
+        </div>
+        <button className="icon-btn" onClick={closeSermon} aria-label="Stop and close the sermon" title="Stop">
+          <Icon name="close" size={18} />
         </button>
-      </p>
+      </div>
+      <input type="range" className="sp-seek" min={0} max={Math.max(1, Math.floor(dur))} step={1} value={Math.min(Math.floor(p.time), Math.floor(dur))} onChange={(e) => seekSermonTo(+e.target.value)} aria-label="Position in the sermon" />
+      <div className="sp-times">
+        <span>{clock(p.time)}</span>
+        <span>{p.loading ? 'loading…' : `−${clock(dur - p.time)}`}</span>
+      </div>
+      <div className="sp-controls">
+        <button className="sp-skip" onClick={() => seekSermonBy(-15)} aria-label="Back 15 seconds" title="Back 15 seconds">
+          <Icon name="left" size={16} /> 15
+        </button>
+        <button className="ab-play" onClick={toggleSermon} aria-label={p.playing ? 'Pause' : 'Play'}>
+          <Icon name={p.playing ? 'pause' : 'play'} size={22} fill={!p.playing} stroke={p.playing ? 2.6 : 1.8} />
+        </button>
+        <button className="sp-skip" onClick={() => seekSermonBy(30)} aria-label="Forward 30 seconds" title="Forward 30 seconds">
+          30 <Icon name="right" size={16} />
+        </button>
+        <select className="select sp-rate" value={p.rate} onChange={(e) => setSermonRate(+e.target.value)} aria-label="Speed">
+          {RATES.map((r) => (
+            <option key={r} value={r}>
+              {r}×
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="sp-actions">
+        <button className="btn small" onClick={() => onNotes(s)}>
+          <Icon name="note" size={15} /> Take notes
+        </button>
+        <a className="btn small" href={s.url} target="_blank" rel="noopener noreferrer">
+          <Icon name="external" size={15} /> SermonAudio
+        </a>
+      </div>
+      {p.error && <div className="ab-err small">{p.error}</div>}
+    </div>
+  )
+}
+
+/** The sermon still playing while you are elsewhere in the app: a small floating bar. */
+export function SermonMini() {
+  const p = useSermonPlayer()
+  const onScreen = useSermonsOnScreen()
+  if (!p.current || onScreen) return null
+  const expand = () => showResource('sermons')
+  return (
+    <div className="mini-player wide" role="region" aria-label="Sermon">
+      <button className="ab-play mini" onClick={toggleSermon} aria-label={p.playing ? 'Pause' : 'Play'}>
+        <Icon name={p.playing ? 'pause' : 'play'} size={18} fill={!p.playing} stroke={p.playing ? 2.6 : 1.8} />
+      </button>
+      <button className="mini-label" onClick={expand} title="Show the sermon">
+        <Icon name="headphones" size={15} /> <span className="mini-title">{p.current.title}</span>
+      </button>
+      <span className="mini-time faint small">{clock(p.time)}</span>
+      <button className="icon-btn" onClick={expand} aria-label="Show the sermon">
+        <Icon name="up" size={18} />
+      </button>
+      <button className="icon-btn" onClick={closeSermon} aria-label="Stop and close the sermon">
+        <Icon name="close" size={16} />
+      </button>
     </div>
   )
 }
@@ -405,14 +718,15 @@ function LinkForm({ link, onSave, onCancel }: { link: SermonLink; onSave: (l: Se
     ok = false
   }
   return (
-    <div className="card link-form">
+    <div className="link-form">
       <div className="field">
         <label htmlFor="ln">Name</label>
         <input id="ln" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Sunday sermons" />
       </div>
       <div className="field">
         <label htmlFor="lu">Link</label>
-        <input id="lu" className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.sermonaudio.com/…" inputMode="url" autoCapitalize="off" autoCorrect="off" />
+        <input id="lu" className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.sermonaudio.com/broadcasters/…" inputMode="url" autoCapitalize="off" autoCorrect="off" />
+        <span className="hint">A church’s SermonAudio page (sermonaudio.com/broadcasters/…) plays its sermons inside the app.</span>
       </div>
       <div className="actions">
         <button className="btn small" onClick={onCancel}>
@@ -584,7 +898,8 @@ function SermonEditor({ initial, onClose }: { initial: SermonNote; onClose: () =
       </div>
       {msg && <p className="faint small">{msg}</p>}
       <div className="sn-page">
-        <input className="sn-name" value={n.title} onChange={(e) => update((x) => ({ ...x, title: e.target.value }))} placeholder="Title" aria-label="Sermon title" />
+        <TitleBox className="sn-name" value={n.title} onChange={(title) => update((x) => ({ ...x, title }))} placeholder="Title" label="Sermon title" />
+        {n.sermon && <SermonListen s={n.sermon} />}
         <div className="sn-meta">
           <input type="date" className="input" value={n.date} onChange={(e) => e.target.value && update((x) => ({ ...x, date: e.target.value }))} aria-label="Date" />
           <input className="input" value={n.speaker ?? ''} onChange={(e) => update((x) => ({ ...x, speaker: e.target.value }))} placeholder="Speaker" aria-label="Speaker" />
@@ -596,7 +911,7 @@ function SermonEditor({ initial, onClose }: { initial: SermonNote; onClose: () =
               {s.rule && <hr className="sn-rule" />}
               <div className="sn-head">
                 <button className="sn-dot" style={{ background: color ?? 'var(--ink)' }} onClick={() => setPalette(palette === s.id ? null : s.id)} aria-label={`Text colour for ${heading(s.title) || 'this section'}`} title="Text colour" />
-                <TitleBox value={s.title} color={color} onChange={(title) => setSection(s.id, { title })} autoFocus={focusId?.id === s.id && focusId.part === 'title'} />
+                <TitleBox className="sn-title" value={s.title} color={color} onChange={(title) => setSection(s.id, { title })} autoFocus={focusId?.id === s.id && focusId.part === 'title'} />
                 <label className="sn-menu" title="Section options">
                   <Icon name="more" size={20} stroke={3} />
                   <select value="" onChange={(e) => action(i, e.target.value)} aria-label={`Options for ${heading(s.title) || 'this section'}`}>
@@ -690,8 +1005,39 @@ function SermonEditor({ initial, onClose }: { initial: SermonNote; onClose: () =
   )
 }
 
+/** In sermon notes made from a sermon: play it while writing. */
+function SermonListen({ s }: { s: SermonRef }) {
+  const p = useSermonPlayer()
+  const cur = p.current?.id === s.id
+  const feed = cachedFeed(saBroadcaster(s.url) ?? '')
+  return (
+    <div className="sn-listen">
+      <button className="btn small" onClick={() => playSermon(s, { image: feed?.image, church: feed?.title })}>
+        <Icon name={cur && p.playing ? 'pause' : 'play'} size={15} fill={!(cur && p.playing)} /> {cur && p.playing ? 'Pause the sermon' : cur ? 'Resume the sermon' : 'Listen to the sermon'}
+      </button>
+      {cur && <span className="faint small">{clock(p.time)}</span>}
+    </div>
+  )
+}
+
 /** A section title that wraps onto more lines when long ("COMMUNITY GROUP QUESTIONS" on a phone). */
-function TitleBox({ value, color, onChange, autoFocus }: { value: string; color?: string; onChange: (v: string) => void; autoFocus?: boolean }) {
+function TitleBox({
+  className,
+  value,
+  color,
+  onChange,
+  autoFocus,
+  placeholder = 'SECTION TITLE',
+  label = 'Section title',
+}: {
+  className: string
+  value: string
+  color?: string
+  onChange: (v: string) => void
+  autoFocus?: boolean
+  placeholder?: string
+  label?: string
+}) {
   const ref = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     const el = ref.current
@@ -702,14 +1048,14 @@ function TitleBox({ value, color, onChange, autoFocus }: { value: string; color?
   return (
     <textarea
       ref={ref}
-      className="sn-title"
+      className={className}
       rows={1}
       value={value}
       style={{ color }}
       onChange={(e) => onChange(e.target.value.replace(/\n/g, ' '))}
       onKeyDown={(e) => e.key === 'Enter' && e.preventDefault()}
-      placeholder="SECTION TITLE"
-      aria-label="Section title"
+      placeholder={placeholder}
+      aria-label={label}
       autoFocus={autoFocus}
     />
   )

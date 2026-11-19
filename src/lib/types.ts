@@ -118,8 +118,21 @@ export interface SermonNote {
   date: string // YYYY-MM-DD
   speaker?: string
   sections: SermonSection[]
+  sermon?: SermonRef // the sermon these notes are on (from the church's SermonAudio page)
   created: number
   updated: number
+}
+
+/** A sermon from SermonAudio (see src/lib/sermons.ts). */
+export interface SermonRef {
+  id: string
+  title: string
+  speaker: string
+  series: string
+  date: string // ISO
+  duration: number // seconds
+  audio: string
+  url: string
 }
 
 export interface SermonSection {

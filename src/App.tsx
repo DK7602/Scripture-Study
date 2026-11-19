@@ -11,7 +11,7 @@ import { NotesView } from './views/Notes'
 import { JournalView } from './views/Journal'
 import { SearchView } from './views/Search'
 import { SettingsView } from './views/Settings'
-import { ResourcesView } from './views/Resources'
+import { ResourcesView, SermonMini } from './views/Resources'
 import { Popups } from './components/Popups'
 import { SelectionBar } from './components/SelectionBar'
 import { Editors } from './components/Editors'
@@ -166,6 +166,7 @@ export function App() {
         </>
       )}
       <MiniPlayer wide={wide} />
+      <SermonMini />
       <SelectionBar />
       <Popups />
       <Editors />

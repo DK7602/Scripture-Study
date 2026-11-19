@@ -35,7 +35,7 @@ export default defineConfig({
         globIgnores: ['data/**/!(books|versions).json'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         // sign-in, sync and Cloudflare Access pages must always reach the network
-        navigateFallbackDenylist: [/^\/api\//, /^\/cdn-cgi\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/cdn-cgi\//, /^\/feed\//, /^\/audio\//],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.includes('/data/'),

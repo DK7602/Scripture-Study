@@ -167,9 +167,12 @@ export function MiniPlayer({ wide }: { wide: boolean }) {
         <Icon name={a.playing ? 'pause' : 'play'} size={18} fill={!a.playing} stroke={a.playing ? 2.6 : 1.8} />
       </button>
       <button className="mini-label" onClick={expand} title="Show the player">
-        <Icon name="headphones" size={15} /> {title}
-        {a.verse ? `:${a.verse}` : ''}
-        {a.loading ? ' …' : ''}
+        <Icon name="headphones" size={15} />{' '}
+        <span className="mini-title">
+          {title}
+          {a.verse ? `:${a.verse}` : ''}
+          {a.loading ? ' …' : ''}
+        </span>
       </button>
       <button className="icon-btn" onClick={expand} aria-label="Show the player">
         <Icon name="up" size={18} />
