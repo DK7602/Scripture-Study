@@ -44,7 +44,7 @@ interface Ctx {
   env: Env
 }
 
-const COLLS = new Set(['labels', 'highlights', 'notes', 'journal', 'bookmarks', 'settings'])
+const COLLS = new Set(['labels', 'highlights', 'notes', 'journal', 'bookmarks', 'prayers', 'sermons', 'settings'])
 const LIMITS = {
   perMinute: 30, // requests per person per minute
   siteDay: 20000, // requests per day for the whole site (well inside Cloudflare's free tier)

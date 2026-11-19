@@ -934,3 +934,78 @@ input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color:
 .map-wrap.full .map-full-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
 .map-wrap.full .map-scale { bottom: calc(26px + env(safe-area-inset-bottom)); }
 .map-wrap.full .map-credit { bottom: calc(4px + env(safe-area-inset-bottom)); }
+
+/* ---------------- Resources: prayer list, sermons, sermon notes ---------------- */
+.res-pills { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+.res-pills .pill { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 7px 4px; text-align: center; line-height: 1.15; font-size: calc(14.5px * var(--ui)); min-width: 0; }
+.res-hint { margin: -4px 0 8px; }
+.res-h { font-family: var(--serif); font-size: calc(18px * var(--ui)); font-weight: 700; margin: 18px 0 8px; color: var(--ink); }
+.add-row { display: flex; gap: 8px; align-items: flex-start; }
+.add-row > :first-child { flex: 1; min-width: 0; }
+.add-row > .btn { flex: none; margin-top: 2px; }
+
+.day-nav { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+.day-nav .icon-btn:disabled { opacity: 0.3; }
+.day-title { position: relative; flex: 1; text-align: center; font-family: var(--serif); font-weight: 700; font-size: calc(21px * var(--ui)); display: flex; flex-direction: column; align-items: center; cursor: pointer; line-height: 1.2; }
+.day-title small { font-weight: 400; font-size: calc(14px * var(--ui)); color: var(--ink-soft); }
+.day-title input[type='date'] { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+
+.prayer-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 4px 8px 8px; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); margin-bottom: 8px; }
+.prayer-row textarea { flex: 1; min-width: 0; border: 0; background: transparent; resize: none; font-family: var(--serif); font-size: calc(17px * var(--ui)); line-height: 1.45; color: var(--ink); padding: 2px 0; overflow: hidden; }
+.prayer-row textarea:focus { outline: none; }
+.prayer-row:focus-within { border-color: var(--accent); }
+.prayer-row.answered textarea { color: var(--ink-soft); }
+.answered-box { display: flex; flex-direction: column; align-items: center; gap: 1px; flex: none; padding-top: 3px; font-size: calc(10.5px * var(--ui)); color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; min-width: 26px; }
+.answered-box input { width: 22px; height: 22px; accent-color: var(--accent); margin: 0; }
+.prayer-row .icon-btn { width: 34px; height: 34px; flex: none; color: var(--ink-faint); }
+
+.verse-card { border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 10px; background: var(--panel); padding: 8px 10px 10px 12px; margin-bottom: 10px; }
+.verse-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.verse-head .ref-link { font-family: var(--serif); font-weight: 700; font-size: calc(17px * var(--ui)); }
+.verse-head .icon-btn { width: 32px; height: 32px; }
+.verse-text { font-family: var(--serif); font-size: calc(17px * var(--ui)); line-height: 1.5; margin-top: 4px; }
+.suggest { margin-top: 10px; }
+.day-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.day-chip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--panel); color: var(--ink); font-size: calc(14px * var(--ui)); text-align: left; }
+.day-chip b { font-family: var(--serif); font-size: calc(16px * var(--ui)); }
+
+.link-card { border: 1px solid var(--rule); border-radius: 12px; background: var(--panel); margin-bottom: 12px; overflow: hidden; }
+.link-main { display: flex; align-items: center; gap: 12px; padding: 14px; color: var(--ink); text-decoration: none; }
+.link-main:hover { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.link-icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(180deg, var(--accent), var(--accent-dark)); color: #fff; flex: none; }
+.link-text { display: flex; flex-direction: column; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.link-text b { font-family: var(--serif); font-size: calc(18px * var(--ui)); }
+.link-actions { display: flex; justify-content: flex-end; gap: 6px; padding: 0 10px 10px; }
+.link-form .actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.sermon-card { display: block; width: 100%; text-align: left; color: var(--ink); cursor: pointer; font: inherit; }
+.sermon-card .preview { -webkit-line-clamp: 2; display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; margin-top: 4px; }
+
+.sn-top { display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+.sn-page { border: 1px solid var(--rule); border-radius: 12px; background: var(--panel); padding: 14px 14px 12px; }
+.sn-name { width: 100%; border: 0; border-bottom: 1px solid var(--rule); background: transparent; font-family: var(--serif); font-weight: 700; font-size: calc(24px * var(--ui)); color: var(--ink); padding: 4px 0 6px; margin-bottom: 10px; }
+.sn-name:focus { outline: none; border-bottom-color: var(--accent); }
+.sn-meta { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px; margin-bottom: 6px; }
+.sn-meta .input { min-width: 0; width: 100%; }
+.sn-sec { margin-top: 12px; }
+.sn-rule { border: 0; border-top: 2px solid var(--ink); opacity: 0.75; margin: 18px 0 12px; }
+.sn-head { display: flex; align-items: flex-start; gap: 8px; }
+.sn-head .sn-dot { margin-top: 5px; }
+.sn-dot { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--panel); box-shadow: 0 0 0 1px var(--rule); flex: none; cursor: pointer; padding: 0; }
+.sn-title { flex: 1; min-width: 0; border: 0; background: transparent; resize: none; overflow: hidden; line-height: 1.35; font-family: var(--sans); font-weight: 700; font-size: calc(17px * var(--ui)); text-transform: uppercase; text-decoration: underline; text-underline-offset: 4px; letter-spacing: 0.02em; color: var(--ink); padding: 4px 0; }
+.sn-title:focus { outline: none; text-decoration-color: var(--accent); }
+.sn-title::placeholder { text-decoration: none; color: var(--ink-faint); }
+.sn-menu { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border-radius: 8px; color: var(--ink-soft); flex: none; }
+.sn-menu select { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; font-size: 16px; }
+.sn-menu:focus-within { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); }
+.sn-palette { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 2px 4px 30px; }
+.sn-swatch { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--rule); cursor: pointer; padding: 0; position: relative; overflow: hidden; }
+.sn-swatch[aria-checked='true'] { box-shadow: 0 0 0 2px var(--accent); }
+.sn-swatch.custom { background: conic-gradient(#e33, #ec3, #3c5, #3be, #36e, #c3e, #e33); }
+.sn-swatch.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.sn-text { margin-top: 4px; font-family: var(--serif); font-size: calc(17px * var(--ui)); line-height: 1.5; resize: none; overflow: hidden; min-height: 64px; }
+.sn-add { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px dashed var(--rule); }
+.sn-template { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+/* the gear in the phone's top bar while Settings is open */
+.topbar .icon-btn[aria-pressed='true'] { background: rgba(255, 236, 190, 0.14); color: inherit; box-shadow: inset 0 0 0 1px rgba(232, 200, 130, 0.5); }

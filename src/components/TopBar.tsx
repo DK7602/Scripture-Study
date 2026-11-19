@@ -9,6 +9,7 @@ const TABS: { id: Tab; label: string; icon?: string }[] = [
   { id: 'notes', label: 'Notes' },
   { id: 'journal', label: 'Journal' },
   { id: 'search', label: 'Search Bible', icon: 'search' },
+  { id: 'resources', label: 'Resources', icon: 'pray' },
 ]
 
 export function TopBar({ onMenu, wide }: { onMenu: () => void; wide: boolean }) {
@@ -26,8 +27,8 @@ export function TopBar({ onMenu, wide }: { onMenu: () => void; wide: boolean }) 
         Scripture Study
       </button>
       {!wide && (
-        <button className="icon-btn" aria-label="Search the Bible" onClick={() => pick('search')}>
-          <Icon name="search" />
+        <button className="icon-btn" aria-label="Settings" aria-pressed={tab === 'settings'} onClick={() => pick('settings')}>
+          <Icon name="gear" />
         </button>
       )}
       <nav className="tabs" role="tablist" aria-label="Sections">
@@ -37,11 +38,6 @@ export function TopBar({ onMenu, wide }: { onMenu: () => void; wide: boolean }) 
             {t.label}
           </button>
         ))}
-        {!wide && (
-          <button role="tab" className="tab" aria-selected={tab === 'settings'} onClick={() => pick('settings')}>
-            Settings
-          </button>
-        )}
       </nav>
       {wide && (
         <div className="top-actions">

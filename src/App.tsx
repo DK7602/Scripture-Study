@@ -11,6 +11,7 @@ import { NotesView } from './views/Notes'
 import { JournalView } from './views/Journal'
 import { SearchView } from './views/Search'
 import { SettingsView } from './views/Settings'
+import { ResourcesView } from './views/Resources'
 import { Popups } from './components/Popups'
 import { SelectionBar } from './components/SelectionBar'
 import { Editors } from './components/Editors'
@@ -37,6 +38,7 @@ const TITLES: Record<Tab, string> = {
   notes: 'Notes',
   journal: 'Journal',
   search: 'Search Bible',
+  resources: 'Resources',
   settings: 'Settings',
 }
 
@@ -50,6 +52,8 @@ function ToolView({ tab }: { tab: Tab }) {
       return <JournalView />
     case 'search':
       return <SearchView />
+    case 'resources':
+      return <ResourcesView />
     case 'settings':
       return <SettingsView />
     default:
@@ -102,7 +106,7 @@ export function App() {
     )
 
   const toolTab: Tab = tab === 'bible' ? 'study' : tab
-  const wideTool = tab === 'journal' || tab === 'notes' || tab === 'maps' || tab === 'search' || tab === 'settings'
+  const wideTool = tab === 'journal' || tab === 'notes' || tab === 'maps' || tab === 'search' || tab === 'resources' || tab === 'settings'
   const openDrawer = () => setDrawer(true)
 
   return (
@@ -116,9 +120,9 @@ export function App() {
           <ReaderColumn onBooks={width >= 1200 ? () => setState({ sidebar: !sidebar }) : openDrawer} />
           <section className="panel" aria-label={TITLES[toolTab]}>
             <div className="panel-head">
-              <Icon name={toolTab === 'study' ? 'study' : toolTab === 'maps' ? 'map' : toolTab === 'notes' ? 'note' : toolTab === 'journal' ? 'journal' : toolTab === 'search' ? 'search' : 'gear'} />
+              <Icon name={toolTab === 'study' ? 'study' : toolTab === 'maps' ? 'map' : toolTab === 'notes' ? 'note' : toolTab === 'journal' ? 'journal' : toolTab === 'search' ? 'search' : toolTab === 'resources' ? 'pray' : 'gear'} />
               <strong>{TITLES[toolTab]}</strong>
-              {toolTab !== 'search' && toolTab !== 'settings' && (
+              {toolTab !== 'search' && toolTab !== 'settings' && toolTab !== 'resources' && (
                 <>
                   <span className="sep">|</span>
                   <span>{locString(loc.book, loc.chapter)}</span>

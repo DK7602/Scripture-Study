@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import * as db from './db'
-import type { Bookmark, Highlight, JournalEntry, Label, Loc, Note, Settings, Tab } from './types'
+import type { Bookmark, Highlight, JournalEntry, Label, Loc, Note, PrayerDay, SermonNote, Settings, Tab } from './types'
 
 export type Popup =
   | { kind: 'strongs'; num: string; word: string; book: string; chapter: number; verse: number; x: number; y: number; version?: string }
@@ -28,6 +28,8 @@ export interface State {
   notes: Note[]
   journal: JournalEntry[]
   bookmarks: Bookmark[]
+  prayers: PrayerDay[]
+  sermons: SermonNote[]
   popup: Popup | null
   popupStack: Popup[]
   selection: Selection | null
@@ -72,6 +74,8 @@ export const DEFAULT_SETTINGS: Settings = {
   placeChips: true,
   journalTemplate: 'oia',
   journalSort: 'desc',
+  sermonLinks: [{ id: 'paramount', name: 'Paramount Church sermons', url: 'https://www.sermonaudio.com/broadcasters/paramountchurch/series' }],
+  sermonTemplate: null,
   esvKey: '',
   apiBibleKey: '',
   apiBibleIds: {},
@@ -104,6 +108,8 @@ let state: State = {
   notes: [],
   journal: [],
   bookmarks: [],
+  prayers: [],
+  sermons: [],
   popup: null,
   popupStack: [],
   selection: null,
@@ -139,12 +145,14 @@ export function useStore<T>(sel: (s: State) => T): T {
 }
 
 export async function initUserData() {
-  const [labels, highlights, notes, journal, bookmarks] = await Promise.all([
+  const [labels, highlights, notes, journal, bookmarks, prayers, sermons] = await Promise.all([
     db.getAll<Label>('labels'),
     db.getAll<Highlight>('highlights'),
     db.getAll<Note>('notes'),
     db.getAll<JournalEntry>('journal'),
     db.getAll<Bookmark>('bookmarks'),
+    db.getAll<PrayerDay>('prayers'),
+    db.getAll<SermonNote>('sermons'),
   ])
   if (!labels.length) {
     for (const l of DEFAULT_LABELS) await db.put('labels', l)
@@ -155,6 +163,8 @@ export async function initUserData() {
     notes,
     journal,
     bookmarks,
+    prayers,
+    sermons,
   })
 }
 
@@ -200,7 +210,8 @@ export function closeAllPopups() {
   setState({ popup: null, popupStack: [] })
 }
 
-type Collection = 'labels' | 'highlights' | 'notes' | 'journal' | 'bookmarks'
+export const COLLECTIONS = ['labels', 'highlights', 'notes', 'journal', 'bookmarks', 'prayers', 'sermons'] as const
+export type Collection = (typeof COLLECTIONS)[number]
 
 /** Notified of every local add/edit/delete (used by sync). item is null for a delete. */
 let changeListener: ((coll: Collection, id: string, item: unknown | null) => void) | null = null
@@ -235,6 +246,8 @@ export async function exportData(): Promise<string> {
       notes: s.notes,
       journal: s.journal,
       bookmarks: s.bookmarks,
+      prayers: s.prayers,
+      sermons: s.sermons,
     },
     null,
     1,
@@ -246,7 +259,7 @@ export async function importData(json: string): Promise<number> {
   const d = JSON.parse(json)
   if (d.app !== 'Scripture Study') throw new Error('This is not a Scripture Study backup file.')
   let n = 0
-  for (const coll of ['labels', 'highlights', 'notes', 'journal', 'bookmarks'] as const) {
+  for (const coll of COLLECTIONS) {
     const incoming = (d[coll] ?? []) as { id: string }[]
     if (!incoming.length) continue
     const map = new Map((getState()[coll] as { id: string }[]).map((x) => [x.id, x]))

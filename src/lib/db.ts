@@ -1,6 +1,6 @@
 /** Tiny IndexedDB key-value layer for the user's own data (falls back to localStorage). */
 const DB_NAME = 'scripture-study'
-const STORES = ['highlights', 'labels', 'notes', 'journal', 'bookmarks'] as const
+const STORES = ['highlights', 'labels', 'notes', 'journal', 'bookmarks', 'prayers', 'sermons'] as const
 export type StoreName = (typeof STORES)[number]
 
 let dbp: Promise<IDBDatabase | null> | null = null
@@ -9,7 +9,7 @@ function open(): Promise<IDBDatabase | null> {
   if (dbp) return dbp
   dbp = new Promise((resolve) => {
     try {
-      const req = indexedDB.open(DB_NAME, 1)
+      const req = indexedDB.open(DB_NAME, 2) // 2: prayer list and sermon notes
       req.onupgradeneeded = () => {
         for (const s of STORES) if (!req.result.objectStoreNames.contains(s)) req.result.createObjectStore(s, { keyPath: 'id' })
       }

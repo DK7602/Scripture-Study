@@ -8,11 +8,11 @@
  *  - a hard budget of 40 server requests per hour per device, with back-off after any error.
  */
 import * as db from './db'
-import { getState, setChangeListener, setState, type State } from './store'
+import { COLLECTIONS, getState, setChangeListener, setState, type Collection, type State } from './store'
 import type { Settings } from './types'
 import { setSharedVersions } from './shared'
 
-type Coll = 'labels' | 'highlights' | 'notes' | 'journal' | 'bookmarks' | 'settings'
+type Coll = Collection | 'settings'
 interface Change {
   coll: Coll
   id: string
@@ -216,7 +216,7 @@ export async function checkSignIn(): Promise<void> {
   // first sync on this device: send everything already saved here
   if (!localStorage.getItem(SEEDED)) {
     const s = getState()
-    for (const coll of ['labels', 'highlights', 'notes', 'journal', 'bookmarks'] as const)
+    for (const coll of COLLECTIONS)
       for (const it of s[coll] as { id: string; updated?: number; created?: number }[])
         track({ coll, id: it.id, data: it, updated: it.updated ?? it.created ?? Date.now() })
     localStorage.setItem(SEEDED, '1')

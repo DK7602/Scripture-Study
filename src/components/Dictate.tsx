@@ -25,7 +25,12 @@ function punctuate(t: string): string {
  * A text area with a microphone button: what you say is typed in at the cursor. Uses the browser's own
  * speech recognition (Chrome, Edge, Safari, Android); the button is hidden where there is none (Firefox).
  */
-export function DictationArea({ value, onChange, ...rest }: { value: string; onChange: (v: string) => void } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'>) {
+export function DictationArea({
+  value,
+  onChange,
+  autoGrow,
+  ...rest
+}: { value: string; onChange: (v: string) => void; autoGrow?: boolean } & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, 'value' | 'onChange'>) {
   const [listening, setListening] = useState(false)
   const [interim, setInterim] = useState('')
   const [error, setError] = useState('')
@@ -123,6 +128,14 @@ export function DictationArea({ value, onChange, ...rest }: { value: string; onC
   }
 
   useEffect(() => () => stop(), []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // grow with the text instead of scrolling inside the box
+  useEffect(() => {
+    const el = ta.current
+    if (!autoGrow || !el) return
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight + 2}px`
+  }, [value, autoGrow])
 
   return (
     <div className={`dictate${listening ? ' on' : ''}`}>

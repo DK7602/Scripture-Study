@@ -48,6 +48,11 @@ const PATHS: Record<string, string> = {
   font: 'M4 19 9 5h1l5 14M6 14h7M15 19l3-8 3 8M16 16.5h4',
   cross: 'M12 3v18M7 8h10',
   quote: 'M7 7h4v4c0 3-1.5 5-4 6M14 7h4v4c0 3-1.5 5-4 6',
+  share: 'M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7',
+  more: 'M12 5h.01M12 12h.01M12 19h.01',
+  pray: 'M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z',
+  calendar: 'M4 6.5A1.5 1.5 0 0 1 5.5 5h13A1.5 1.5 0 0 1 20 6.5v12a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18.5v-12zM4 10h16M8 3v4M16 3v4',
+  external: 'M14 4h6v6M20 4l-9 9M18 14v4.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 4 18.5v-11A1.5 1.5 0 0 1 5.5 6H10',
 }
 
 export function Icon({ name, size = 20, stroke = 1.8, fill }: { name: string; size?: number; stroke?: number; fill?: boolean }) {

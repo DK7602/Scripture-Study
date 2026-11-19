@@ -93,7 +93,48 @@ export interface Bookmark {
   created: number
 }
 
-export type Tab = 'bible' | 'study' | 'maps' | 'notes' | 'journal' | 'search' | 'settings'
+export type Tab = 'bible' | 'study' | 'maps' | 'notes' | 'journal' | 'search' | 'resources' | 'settings'
+
+/** One day of the prayer list. id = 'day-YYYY-MM-DD', so each day is one record on every device. */
+export interface PrayerDay {
+  id: string
+  date: string // YYYY-MM-DD (local)
+  items: PrayerItem[]
+  verses: string[] // encouraging verses, compact refs (PHP.4.6-7)
+  created: number
+  updated: number
+}
+
+export interface PrayerItem {
+  id: string
+  text: string
+  answered?: boolean
+}
+
+/** Sermon notes: titled sections (the reader's template), each with its own text colour. */
+export interface SermonNote {
+  id: string
+  title: string
+  date: string // YYYY-MM-DD
+  speaker?: string
+  sections: SermonSection[]
+  created: number
+  updated: number
+}
+
+export interface SermonSection {
+  id: string
+  title: string
+  text: string
+  color: string // '' = the page's ink colour
+  rule?: boolean // a line above the section
+}
+
+export interface SermonLink {
+  id: string
+  name: string
+  url: string
+}
 
 export type ThemeMode = 'light' | 'dark' | 'sepia'
 export type ThemeColor = 'green' | 'blue' | 'burgundy' | 'purple' | 'brown' | 'slate'
@@ -122,6 +163,8 @@ export interface Settings {
   placeChips: boolean
   journalTemplate: JournalTemplateId
   journalSort: 'desc' | 'asc'
+  sermonLinks: SermonLink[] // Resources > Sermons
+  sermonTemplate: Omit<SermonSection, 'id' | 'text'>[] | null // the reader's own layout for new sermon notes
   esvKey: string
   apiBibleKey: string
   apiBibleIds: Record<string, string> // version id -> api.bible bible id
