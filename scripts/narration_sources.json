@@ -26,6 +26,32 @@
           "WEB": "all"
         }
       }
+    },
+    {
+      "kernel": "davekingiii/scripture-study-narration-michael-asv",
+      "archive": "narration-michael-ASV.tar",
+      "run": 1,
+      "voice": {
+        "id": "michael",
+        "name": "Michael (narrator)",
+        "credit": "AI narration: Kokoro neural voice (Apache-2.0)",
+        "versions": {
+          "ASV": "all"
+        }
+      }
+    },
+    {
+      "kernel": "davekingiii/scripture-study-narration-michael-bsb",
+      "archive": "narration-michael-BSB.tar",
+      "run": 1,
+      "voice": {
+        "id": "michael",
+        "name": "Michael (narrator)",
+        "credit": "AI narration: Kokoro neural voice (Apache-2.0)",
+        "versions": {
+          "BSB": "all"
+        }
+      }
     }
   ]
 }
