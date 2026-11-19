@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { step } from '../views/Reader'
+import { turnPage } from '../views/Reader'
 import { deleteItem, getState, newId, saveItem, setState, setTab, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 import { Popover } from './Popover'
@@ -27,7 +27,7 @@ export function BottomBar({ onBooks }: { onBooks: () => void }) {
 
   return (
     <nav className="bottombar" aria-label="Reader tools">
-      <button className="icon-btn" aria-label="Previous chapter" onClick={() => { setTab('bible'); step(-1) }}>
+      <button className="icon-btn" aria-label="Previous chapter" onClick={() => { setTab('bible'); turnPage(-1) }}>
         <Icon name="left" size={22} />
       </button>
       <button className="icon-btn" aria-label="Books" onClick={onBooks}>
@@ -42,7 +42,7 @@ export function BottomBar({ onBooks }: { onBooks: () => void }) {
       <button className="icon-btn" aria-label="Text settings" onClick={() => setAa(true)} style={{ fontFamily: 'var(--serif)', fontSize: ui(20) }}>
         Aa
       </button>
-      <button className="icon-btn" aria-label="Next chapter" onClick={() => { setTab('bible'); step(1) }}>
+      <button className="icon-btn" aria-label="Next chapter" onClick={() => { setTab('bible'); turnPage(1) }}>
         <Icon name="right" size={22} />
       </button>
       {aa && (

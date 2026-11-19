@@ -907,3 +907,5 @@ input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color:
 /* the page follows a sideways swipe; vertical scrolling stays with the browser */
 .page-scroll { touch-action: pan-y pinch-zoom; overscroll-behavior-x: none; }
 
+/* the page slides sideways when turning: keep it from making the column scroll sideways */
+.page-scroll { overflow-x: hidden; }

@@ -88,10 +88,10 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
         <Icon name="autoscroll" size={18} /> Scroll
       </button>
       <div className="seg hide-phone">
-        <button title="Previous chapter" onClick={() => step(-1)}>
+        <button title="Previous chapter" onClick={() => turnPage(-1)}>
           <Icon name="left" size={18} />
         </button>
-        <button title="Next chapter" onClick={() => step(1)}>
+        <button title="Next chapter" onClick={() => turnPage(1)}>
           <Icon name="right" size={18} />
         </button>
       </div>
@@ -136,6 +136,13 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
       )}
     </div>
   )
+}
+
+/** Turn to the next/previous chapter with the page-turn animation when the reader is on screen. */
+let turnHandler: ((dir: 1 | -1) => void) | null = null
+export function turnPage(dir: 1 | -1) {
+  if (turnHandler) turnHandler(dir)
+  else step(dir)
 }
 
 export function step(dir: number) {
@@ -318,26 +325,39 @@ function BibleReader() {
   }, [scroll.on, scroll.running, settings.scrollSpeed, settings.textSize, settings.audioContinue])
 
   // swipe sideways to turn the page: left for the next chapter, right for the previous one
+  const entering = useRef<{ dir: number } | null>(null)
+  const slideIn = () => {
+    const page = scrollRef.current?.querySelector('.page') as HTMLElement | null
+    entering.current = null
+    if (!page) return
+    requestAnimationFrame(() => {
+      page.style.transition = 'transform 280ms cubic-bezier(0,0,.2,1)'
+      page.style.transform = ''
+    })
+  }
   useEffect(() => {
     const el = scrollRef.current
     const page = el?.querySelector('.page') as HTMLElement | null
     if (!el || !page) return
-    const reset = (ms = 200) => {
-      page.style.transition = `transform ${ms}ms ease-out, opacity ${ms}ms`
+    const reset = (ms = 220) => {
+      page.style.transition = `transform ${ms}ms cubic-bezier(.2,.8,.2,1)`
       page.style.transform = ''
-      page.style.opacity = ''
     }
+    // like turning a page: this one slides away, the next waits just off the other side until its text is ready
     const turn = (dir: 1 | -1) => {
-      page.style.transition = 'transform 170ms ease-in, opacity 170ms'
-      page.style.transform = `translateX(${dir > 0 ? -60 : 60}%)`
-      page.style.opacity = '0'
+      if (entering.current) return
+      const w = page.getBoundingClientRect().width + 48
+      page.style.transition = 'transform 190ms cubic-bezier(.4,0,1,1)'
+      page.style.transform = `translateX(${dir > 0 ? -w : w}px)`
+      entering.current = { dir }
       setTimeout(() => {
-        step(dir)
         page.style.transition = 'none'
-        page.style.transform = `translateX(${dir > 0 ? 35 : -35}%)`
-        requestAnimationFrame(() => requestAnimationFrame(() => reset(230)))
-      }, 170)
+        page.style.transform = `translateX(${dir > 0 ? w : -w}px)`
+        step(dir)
+        setTimeout(() => entering.current && slideIn(), 2500) // never wait longer than this
+      }, 190)
     }
+    turnHandler = turn
     let sx = 0
     let sy = 0
     let st = 0
@@ -363,10 +383,9 @@ function BibleReader() {
       const dy = e.touches[0].clientY - sy
       // a thumb swipe curves: judge the direction over the first 20 px, and accept a fair slant
       if (sideways === null && Math.hypot(dx, dy) > 20) sideways = Math.abs(dx) > Math.abs(dy) * 1.1
-      if (sideways) {
+      if (sideways && !entering.current) {
         page.style.transition = 'none'
-        page.style.transform = `translateX(${dx * 0.45}px)`
-        page.style.opacity = String(1 - Math.min(Math.abs(dx) / 700, 0.35))
+        page.style.transform = `translateX(${dx}px)`
       }
     }
     const end = (e: TouchEvent) => {
@@ -414,15 +433,21 @@ function BibleReader() {
       el.removeEventListener('touchend', end)
       el.removeEventListener('wheel', wheel)
       window.removeEventListener('keydown', key)
+      if (turnHandler === turn) turnHandler = null
     }
   }, [])
+
+  // the next page slides in once its text has arrived (scrolled to the top while still out of sight)
+  useEffect(() => {
+    if (data && entering.current) slideIn()
+  }, [data])
 
   // scroll to the focused verse after navigation
   useEffect(() => {
     if (!data) return
     const el = versesRef.current?.querySelector(`[data-vrow="${loc.verse}"]`) as HTMLElement | null
     if (el && loc.verse > 1) el.scrollIntoView({ block: 'center', behavior: 'smooth' })
-    else scrollRef.current?.scrollTo({ top: 0 })
+    else scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusTick, data])
 
@@ -610,10 +635,10 @@ function BibleReader() {
         )}
         {data?.copyright && <p className="faint small" style={{ marginLeft: 64 }}>{data.copyright}</p>}
         <nav className="chapter-nav">
-          <button className="btn" onClick={() => step(-1)}>
+          <button className="btn" onClick={() => turnPage(-1)}>
             <Icon name="left" size={16} /> Previous
           </button>
-          <button className="btn" onClick={() => step(1)}>
+          <button className="btn" onClick={() => turnPage(1)}>
             Next <Icon name="right" size={16} />
           </button>
         </nav>
