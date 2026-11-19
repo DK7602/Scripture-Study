@@ -22,7 +22,7 @@ KOKORO_JS = "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js"
 ORT = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/"  # the version bundled in kokoro-js 1.2.1
 HF = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/"
 SMALL = ["config.json", "tokenizer.json", "tokenizer_config.json", "voices/am_michael.bin"]
-MODEL = "onnx/model_quantized.onnx"  # q8, what kokoro-js loads for dtype "q8"
+MODELS = {"q8": "onnx/model_quantized.onnx", "fp32": "onnx/model.onnx"}  # 88 MB for the processor, 310 MB for WebGPU
 PART = 20 * 2**20
 
 
@@ -43,7 +43,7 @@ def main():
     get(KOKORO_JS, os.path.join(CACHE, "kokoro.web.js"))
     for f in ("ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm"):
         get(ORT + f, os.path.join(CACHE, "ort", f))
-    for f in SMALL + [MODEL]:
+    for f in SMALL + list(MODELS.values()):
         get(HF + f, os.path.join(CACHE, "hf", f))
 
     shutil.rmtree(OUT, ignore_errors=True)
@@ -56,20 +56,23 @@ def main():
         os.makedirs(os.path.dirname(dest), exist_ok=True)
         shutil.copy(os.path.join(CACHE, "hf", f), dest)
         files[f] = os.path.getsize(dest)
-    src = os.path.join(CACHE, "hf", MODEL)
-    size = os.path.getsize(src)
-    parts = 0
-    os.makedirs(os.path.join(OUT, "hf", os.path.dirname(MODEL)), exist_ok=True)
-    with open(src, "rb") as f:
-        while True:
-            chunk = f.read(PART)
-            if not chunk:
-                break
-            open(os.path.join(OUT, "hf", f"{MODEL}.{parts:03d}"), "wb").write(chunk)
-            parts += 1
-    manifest = {"hf": HF, "files": files, "model": {"path": MODEL, "size": size, "parts": parts}, "ort": "ort/", "lib": "kokoro.web.js"}
+    models = {}
+    for dtype, path in MODELS.items():
+        src = os.path.join(CACHE, "hf", path)
+        size = os.path.getsize(src)
+        parts = 0
+        os.makedirs(os.path.join(OUT, "hf", os.path.dirname(path)), exist_ok=True)
+        with open(src, "rb") as f:
+            while True:
+                chunk = f.read(PART)
+                if not chunk:
+                    break
+                open(os.path.join(OUT, "hf", f"{path}.{parts:03d}"), "wb").write(chunk)
+                parts += 1
+        models[dtype] = {"path": path, "size": size, "parts": parts}
+        print(f"voice model: {dtype} {size // 2**20} MB in {parts} parts")
+    manifest = {"hf": HF, "files": files, "models": models, "ort": "ort/", "lib": "kokoro.web.js"}
     json.dump(manifest, open(os.path.join(OUT, "manifest.json"), "w"), indent=1)
-    print(f"voice model: {size // 2**20} MB model in {parts} parts, {len(files)} files -> dist/voice-model")
 
 
 if __name__ == "__main__":

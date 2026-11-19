@@ -42,9 +42,10 @@ export interface AudioState {
   error: string
   info: string // e.g. download progress of Michael's on-device voice
   offerLocal: boolean // no recording here: offer Michael made on this device
+  localDevice: '' | 'webgpu' | 'wasm' // where Michael's on-device voice runs
 }
 
-let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false }
+let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false, localDevice: '' }
 const subs = new Set<() => void>()
 function set(p: Partial<AudioState>) {
   state = { ...state, ...p }
@@ -290,9 +291,27 @@ async function playNarration(voice: NarratorVoice, v: number, my: number, local 
 // ---------------------------------------------------------------------------------------------
 export const canLocal = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'
 
-/** Size of the one-time download for Michael's on-device voice (served from this site, see kokoro.worker.ts). */
+/** Size of the one-time download for Michael's on-device voice: the full model where there is a real graphics chip. */
+let sizeP: Promise<number> | null = null
+const softwareGpu = (() => {
+  try {
+    return localStorage.getItem('ss:voice-gpu') === 'any' // testing only: allow a software WebGPU adapter
+  } catch {
+    return false
+  }
+})()
 export function localDownloadMB(): Promise<number> {
-  return Promise.resolve(90)
+  sizeP ??= (async () => {
+    try {
+      const gpu = (navigator as unknown as { gpu?: { requestAdapter(o?: object): Promise<{ isFallbackAdapter?: boolean; info?: Record<string, string> } | null> } }).gpu
+      const a = gpu && (await gpu.requestAdapter({ powerPreference: 'high-performance' }))
+      const soft = !!a && (a.isFallbackAdapter || /swiftshader/i.test(`${a.info?.vendor} ${a.info?.architecture} ${a.info?.description}`))
+      return a && (!soft || softwareGpu) ? 310 : 90
+    } catch {
+      return 90
+    }
+  })()
+  return sizeP
 }
 let worker: Worker | null = null
 let reqId = 0
@@ -304,7 +323,8 @@ function kokoro(): Worker {
     worker = new Worker(new URL('./kokoro.worker.ts', import.meta.url), { type: 'module' })
     worker.onmessage = (e: MessageEvent) => {
       const m = e.data
-      if (m.type === 'progress') set({ info: `Downloading Michael's voice: ${Math.round((m.loaded / Math.max(m.total, 1)) * 100)}% (once, about ${Math.round(m.total / 2 ** 20)} MB)` })
+      if (m.type === 'mode') set({ localDevice: m.device })
+      else if (m.type === 'progress') set({ info: `Downloading Michael's voice: ${Math.round((m.loaded / Math.max(m.total, 1)) * 100)}% (once, about ${Math.round(m.total / 2 ** 20)} MB)` })
       else if (m.type === 'audio') {
         set({ info: '' })
         waiting.get(m.id)?.res({ audio: m.audio, sr: m.sr })
@@ -323,7 +343,7 @@ function speakLocal(text: string, speed: number) {
   const id = ++reqId
   return new Promise<{ audio: Float32Array; sr: number }>((res, rej) => {
     waiting.set(id, { res, rej })
-    kokoro().postMessage({ type: 'speak', id, text, voice: 'am_michael', speed })
+    kokoro().postMessage({ type: 'speak', id, text, voice: 'am_michael', speed, softwareGpu })
   })
 }
 

@@ -54,7 +54,7 @@ export function AudioBar() {
           {a.info && <div className="ab-credit">{a.info}</div>}
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
-          {!a.error && !a.info && value === 'l:' && <div className="ab-credit">Michael's voice made on this device (Kokoro, Apache-2.0); nothing is stored</div>}
+          {!a.error && !a.info && value === 'l:' && <div className="ab-credit">Michael's voice made on this device{a.localDevice === 'webgpu' ? ' (graphics chip)' : a.localDevice === 'wasm' ? ' (processor)' : ''} · Kokoro, Apache-2.0 · nothing is stored</div>}
           {a.offerLocal && !a.info && (
             <button className="ref-link ab-offer" onClick={useLocalMichael}>
               Use Michael's voice for {settings.version} (one-time download, about {mb} MB)

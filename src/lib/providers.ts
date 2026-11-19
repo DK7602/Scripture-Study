@@ -58,7 +58,8 @@ function splitNumbered(text: string, count: number): string[] {
   const parts = text.split(/\[(\d+)\]/)
   for (let k = 1; k < parts.length; k += 2) {
     const n = +parts[k]
-    if (n >= 1 && n <= count) verses[n - 1] = (verses[n - 1] + ' ' + parts[k + 1]).replace(/\s+/g, ' ').trim()
+    // API.Bible's plain text leaves "#" markers where the publisher's notes were (e.g. "God#— #"); Scripture has no "#"
+    if (n >= 1 && n <= count) verses[n - 1] = (verses[n - 1] + ' ' + parts[k + 1].replace(/#/g, '')).replace(/\s+([—,.;:!?])/g, '$1').replace(/\s+/g, ' ').trim()
   }
   return verses
 }
