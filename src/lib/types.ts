@@ -113,6 +113,8 @@ export interface PrayerItem {
   id: string
   text: string
   answered?: boolean
+  answeredOn?: string // YYYY-MM-DD, the day it was ticked as answered
+  note?: string // how it was answered
   days?: number[] // weekly prayers: the weekdays it comes back on (0 Sunday … 6 Saturday)
 }
 

@@ -1083,3 +1083,16 @@ textarea.sn-name { resize: none; overflow: hidden; display: block; line-height: 
   .book-title .pre { font-size: min(0.52em, 13px); letter-spacing: 0.2em; }
   .chapter-title { font-size: min(0.85em, 19px); margin-top: 6px; margin-bottom: 14px; }
 }
+
+/* answered prayers */
+.answered-card { border: 1px solid var(--rule); border-left: 4px solid #2e8b57; border-radius: 10px; background: var(--panel); padding: 10px 12px; margin-bottom: 8px; }
+.answered-top { display: flex; gap: 8px; align-items: flex-start; }
+.answered-mark { width: 24px; height: 24px; border-radius: 50%; background: #2e8b57; color: #fff; display: grid; place-items: center; flex: none; margin-top: 2px; }
+.answered-text { font-family: var(--serif); font-size: calc(17px * var(--ui)); line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+.answered-meta { margin: 4px 0 4px 32px; }
+.answered-card > .ref-link, .answered-note, .answered-note-edit { margin-left: 32px; }
+.answered-note { display: block; text-align: left; border: 0; background: color-mix(in srgb, #2e8b57 9%, transparent); border-radius: 8px; padding: 6px 10px; font-family: var(--serif); font-style: italic; font-size: calc(16px * var(--ui)); color: var(--ink); white-space: pre-wrap; width: calc(100% - 32px); }
+.answered-note-edit { display: grid; gap: 6px; }
+.answered-note-edit .btn { justify-self: start; }
+.answer-btn { margin-top: 8px; color: #2e8b57; }
+.prayer-body textarea { flex: none; }
