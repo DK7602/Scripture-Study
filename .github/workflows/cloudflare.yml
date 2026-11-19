@@ -41,11 +41,20 @@ jobs:
         with:
           path: .voice-model-cache
           key: voice-model-${{ hashFiles('scripts/fetch_voice_model.py') }}
-      # narrated audio Bible from Kaggle, kept between deploys (scripts/fetch_narration.py)
+      # the recordings (about 1.1 GB per translation) are kept twice on the runner (cache + site), so make room
+      - name: Free disk space for the recordings
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.KAGGLE_API_TOKEN != ''
+        run: |
+          free=$(df --output=avail -k / | tail -1)
+          if [ "$free" -lt 20000000 ]; then sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/lib/android; fi
+          df -h /
+      # narrated audio Bible from Kaggle, kept between deploys (scripts/fetch_narration.py); a changed list starts
+      # from the previous cache, so only new recordings are downloaded
       - uses: actions/cache@v4
         if: env.CLOUDFLARE_API_TOKEN != '' && env.KAGGLE_API_TOKEN != ''
         with:
           path: .narration-cache
           key: narration-${{ hashFiles('scripts/narration_sources.json') }}
+          restore-keys: narration-
       - if: env.CLOUDFLARE_API_TOKEN != ''
         run: node scripts/cloudflare_setup.mjs

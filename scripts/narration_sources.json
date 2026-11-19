@@ -1,15 +1,30 @@
 {
-  "about": "Narrated audio Bible recorded on Kaggle (scripts/kaggle_narrate.py). The deploy downloads each archive into dist/audio and lists the voice in the app (scripts/fetch_narration.py). Change 'run' after a new render so the deploy fetches it again.",
+  "about": "Narrated audio Bible recorded on Kaggle (scripts/kaggle_narrate.py). The deploy downloads each archive into dist/audio and lists the voice in the app (scripts/fetch_narration.py). Raise 'run' after a new render so the deploy fetches it again.",
   "sources": [
     {
-      "kernel": "davekingiii/scripture-study-narration-michael-kjv-test",
+      "kernel": "davekingiii/scripture-study-narration-michael-kjv",
       "archive": "narration-michael-KJV.tar",
-      "run": 4,
+      "run": 1,
       "voice": {
         "id": "michael",
         "name": "Michael (narrator)",
         "credit": "AI narration: Kokoro neural voice (Apache-2.0)",
-        "versions": { "KJV": { "JHN": [15, 16] } }
+        "versions": {
+          "KJV": "all"
+        }
+      }
+    },
+    {
+      "kernel": "davekingiii/scripture-study-narration-michael-web",
+      "archive": "narration-michael-WEB.tar",
+      "run": 1,
+      "voice": {
+        "id": "michael",
+        "name": "Michael (narrator)",
+        "credit": "AI narration: Kokoro neural voice (Apache-2.0)",
+        "versions": {
+          "WEB": "all"
+        }
       }
     }
   ]

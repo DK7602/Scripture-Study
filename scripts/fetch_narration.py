@@ -76,11 +76,17 @@ def main():
     if not os.path.isdir(DIST):
         sys.exit("run the build first (dist/audio is missing)")
     os.makedirs(CACHE, exist_ok=True)
+    # one cached file per kernel and run (a new run, or another kernel with the same archive name, downloads afresh);
+    # files no source needs any more are deleted so the cache stays small
+    cached = {id(s): f"{s['kernel'].replace('/', '--')}-r{s.get('run', 0)}-{s['archive']}" for s in sources}
+    for f in os.listdir(CACHE):
+        if f not in cached.values():
+            os.remove(os.path.join(CACHE, f))
     index_path = os.path.join(DIST, "index.json")
     index = json.load(open(index_path)) if os.path.exists(index_path) else {"voices": []}
     for s in sources:
         try:
-            dest = os.path.join(CACHE, s["archive"])
+            dest = os.path.join(CACHE, cached[id(s)])
             if not os.path.exists(dest):
                 files = outputs(s["kernel"], headers)
                 match = [f for f in files if os.path.basename(f.get("fileName", "")) == s["archive"]]
