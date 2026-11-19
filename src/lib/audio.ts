@@ -20,7 +20,7 @@ export interface NarratorVoice {
   name: string
   note?: string
   credit?: string
-  versions: Record<string, Record<string, number[] | 'all'>> // version -> book -> chapters
+  versions: Record<string, 'all' | Record<string, number[] | 'all'>> // version -> 'all' or book -> chapters
 }
 interface Manifest {
   base?: string
@@ -103,7 +103,9 @@ export function narrationManifest(): Promise<Manifest> {
   return manifestP
 }
 function hasChapter(v: NarratorVoice, version: string, book: string, ch: number) {
-  const c = v.versions[version]?.[book]
+  const vv = v.versions[version]
+  if (vv === 'all') return true
+  const c = vv?.[book]
   return c === 'all' || (Array.isArray(c) && c.includes(ch))
 }
 /** Narrator voices that have the given chapter recorded. */

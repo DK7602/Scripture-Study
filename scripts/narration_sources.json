@@ -1,0 +1,4 @@
+{
+  "about": "Narrated audio Bible recorded on Kaggle (scripts/kaggle_narrate.py). The deploy downloads each archive into dist/audio and lists the voice in the app (scripts/fetch_narration.py). Change 'run' after a new render so the deploy fetches it again.",
+  "sources": []
+}

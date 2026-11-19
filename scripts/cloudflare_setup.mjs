@@ -167,6 +167,14 @@ const env = { ...process.env, CLOUDFLARE_ACCOUNT_ID: account, CI: '1', WRANGLER_
 if (DEPLOY) {
   step('Build & deploy')
   execSync('npm run build', { stdio: 'inherit', env })
+  // the narrated audio Bible lives on Kaggle (too big for git); add it to the build when a key is set
+  if (process.env.KAGGLE_API_TOKEN || process.env.KAGGLE_KEY) {
+    try {
+      execSync('python3 scripts/fetch_narration.py', { stdio: 'inherit', env })
+    } catch {
+      console.log('  narration download failed - deploying without the recordings')
+    }
+  }
   execSync('npx --yes wrangler@4 deploy', { stdio: 'inherit', env })
 }
 

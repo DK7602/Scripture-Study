@@ -2,6 +2,7 @@ name: Deploy Scripture Study to Cloudflare (Worker)
 
 # Needs repository secrets (Settings → Secrets and variables → Actions):
 #   CLOUDFLARE_API_TOKEN  (required)   CLOUDFLARE_ACCOUNT_ID (optional)   OWNER_EMAIL (optional)
+#   KAGGLE_API_TOKEN (optional: adds the narrated audio Bible recorded on Kaggle)
 # The setup script is idempotent: it creates the D1 database, Pages project and email sign-in
 # the first time, then just builds and deploys.
 on:
@@ -20,6 +21,7 @@ jobs:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       OWNER_EMAIL: ${{ secrets.OWNER_EMAIL }}
+      KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
     steps:
       - name: Skip when Cloudflare is not configured
         if: env.CLOUDFLARE_API_TOKEN == ''
@@ -33,5 +35,11 @@ jobs:
           cache: npm
       - if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm ci
+      # narrated audio Bible from Kaggle, kept between deploys (scripts/fetch_narration.py)
+      - uses: actions/cache@v4
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.KAGGLE_API_TOKEN != ''
+        with:
+          path: .narration-cache
+          key: narration-${{ hashFiles('scripts/narration_sources.json') }}
       - if: env.CLOUDFLARE_API_TOKEN != ''
         run: node scripts/cloudflare_setup.mjs

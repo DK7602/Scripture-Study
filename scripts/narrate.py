@@ -28,6 +28,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 
 import numpy as np
 import soundfile as sf
@@ -72,6 +73,72 @@ def silence(sec: float, sr: int) -> np.ndarray:
     return np.zeros(int(sec * sr), np.float32)
 
 
+def providers():
+    import onnxruntime as ort
+    if hasattr(ort, "preload_dlls"):
+        try:
+            ort.preload_dlls()  # CUDA/cuDNN from the pip nvidia packages (Kaggle, Colab)
+        except Exception:
+            pass
+    return [p for p in ("CUDAExecutionProvider", "CPUExecutionProvider") if p in ort.get_available_providers()]
+
+
+class Rvc:
+    """VoxaVersa voice conversion, models loaded once (the same steps as VoxaVersa's tools/training/try_voice.py:
+    16 kHz ContentVec features, each 20 ms vector used twice, YIN pitch per 10 ms, ~10 s segments with context)."""
+
+    def __init__(self, model: str, encoder: str, voxaversa: str, threads: int, transpose: float):
+        sys.path.insert(0, os.path.join(voxaversa, "tools", "training"))
+        import onnxruntime as ort
+        import try_voice as tv
+
+        self.tv = tv
+        so = ort.SessionOptions()
+        so.intra_op_num_threads = threads
+        prov = providers()
+        self.enc = ort.InferenceSession(encoder, so, providers=prov)
+        self.gen = ort.InferenceSession(model, so, providers=prov)
+        self.gen_inputs = {i.name for i in self.gen.get_inputs()}
+        self.transpose = transpose
+        print("voice conversion on", self.gen.get_providers()[0], flush=True)
+
+    def convert(self, x: np.ndarray, sr: int) -> tuple[np.ndarray, int]:
+        tv = self.tv
+        x16 = tv.resample(x, sr, 16000)
+        frames = int(np.ceil(len(x16) / 160))
+        frames += frames % 2
+        x16 = np.pad(x16, (0, frames * 160 + 80 - len(x16)))
+        f0 = tv.pitch_yin(x16)
+        f0 = np.pad(f0, (0, max(0, frames - len(f0))))[:frames] * (2 ** (self.transpose / 12))
+        seg, ctx = 1000, 100
+        pieces, out_sr, fade = [], 40000, 0
+        rng = np.random.default_rng(0)
+        for start in range(0, frames, seg):
+            a, b = max(0, start - ctx), min(frames, start + seg + ctx)
+            a -= a % 2
+            b -= (b - a) % 2
+            audio = x16[a * 160 : b * 160 + 80][None, None]
+            feats = self.enc.run(None, {self.enc.get_inputs()[0].name: audio})[0]
+            n = b - a
+            idx = np.minimum(np.arange(n) // 2, feats.shape[1] - 1)
+            feeds = {"phone": feats[:, idx, :].astype(np.float32), "phone_lengths": np.array([n], np.int64),
+                     "ds": np.array([0], np.int64), "rnd": (rng.standard_normal((1, 192, n)) * 0.66666).astype(np.float32)}
+            if "pitchf" in self.gen_inputs:
+                pf = f0[a:b].astype(np.float32)[None]
+                feeds.update(pitch=tv.coarse(pf), pitchf=pf)
+            y = self.gen.run(["audio"], feeds)[0].reshape(-1)
+            hop = len(y) // n
+            out_sr = hop * 100
+            fade = 5 * hop
+            end = min(frames, start + seg)
+            pieces.append(y[(start - a) * hop : min(len(y), (end - a) * hop + fade)])
+        out = pieces[0]
+        for y in pieces[1:]:
+            r = np.linspace(0, 1, fade, dtype=np.float32)
+            out = np.concatenate([out[:-fade], out[-fade:] * (1 - r) + y[:fade] * r, y[fade:]])
+        return out[: int(len(x) / sr * out_sr)], out_sr
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--version", default="KJV")
@@ -90,13 +157,19 @@ def main():
     ap.add_argument("--threads", type=int, default=4)
     ap.add_argument("--bitrate", default="48k")
     ap.add_argument("--out", default="audio-out")
+    ap.add_argument("--hours", type=float, default=0, help="stop cleanly after this many hours (Kaggle runs end at 12)")
     a = ap.parse_args()
+    t0 = time.time()
 
     if a.version not in PUBLIC_DOMAIN:
         sys.exit(f"{a.version} is not public domain; only {sorted(PUBLIC_DOMAIN)} may be narrated")
+    import onnxruntime as ort
     from kokoro_onnx import Kokoro
 
-    tts = Kokoro(a.kokoro_model, a.kokoro_voices)
+    sess = ort.InferenceSession(a.kokoro_model, providers=providers())
+    print("narration on", sess.get_providers()[0], flush=True)
+    tts = Kokoro.from_session(sess, a.kokoro_voices)
+    a.rvc = Rvc(a.rvc_model, a.rvc_encoder, a.voxaversa, a.threads, a.transpose) if a.rvc_model else None
     books = json.load(open(os.path.join(DATA, "books.json")))
     books = books["books"] if isinstance(books, dict) else books
     todo = [b for b in books if a.book == "ALL" or b["id"] == a.book]
@@ -110,6 +183,9 @@ def main():
         else:
             chs = [int(a.chapters)]
         for ch in chs:
+            if a.hours and time.time() - t0 > a.hours * 3600:
+                print(f"time limit reached before {book['id']} {ch}; run again to continue", flush=True)
+                return
             render_chapter(a, tts, book, ch, text[ch - 1])
 
 
@@ -154,12 +230,10 @@ def render_chapter(a, tts, book: dict, ch: int, verses: list[str]):
             os.makedirs(plain, exist_ok=True)
             encode(src, os.path.join(plain, f"{ch}.mp3"), a.bitrate)
             json.dump({"d": round(len(wav) / sr, 2), "v": timings}, open(os.path.join(plain, f"{ch}.json"), "w"), separators=(",", ":"))
-        if a.rvc_model:
-            conv = os.path.join(tmp, "voice.wav")
-            tool = os.path.join(a.voxaversa, "tools", "training", "try_voice.py")
-            subprocess.run([sys.executable, tool, "--model", a.rvc_model, "--encoder", a.rvc_encoder, "--input", src, "--out", conv,
-                            "--transpose", str(a.transpose), "--threads", str(a.threads)], check=True)
-            src = conv
+        if a.rvc:
+            y, ysr = a.rvc.convert(wav.astype(np.float32), sr)
+            src = os.path.join(tmp, "voice.wav")
+            sf.write(src, y, ysr, subtype="PCM_16")
         encode(src, mp3, a.bitrate)
     json.dump({"d": round(len(wav) / sr, 2), "v": timings}, open(mp3[:-4] + ".json", "w"), separators=(",", ":"))
     print(f"{book['id']} {ch}: {len(wav) / sr:.0f} s, {len(timings)} verses -> {mp3}", flush=True)
