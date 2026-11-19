@@ -1096,3 +1096,12 @@ textarea.sn-name { resize: none; overflow: hidden; display: block; line-height: 
 .answered-note-edit .btn { justify-self: start; }
 .answer-btn { margin-top: 8px; color: #2e8b57; }
 .prayer-body textarea { flex: none; }
+
+/* text boxes that grow with their text (see src/lib/autosize.ts) */
+textarea.autogrow { field-sizing: content; overflow: hidden; resize: none; }
+
+/* typing on a phone: the keyboard makes the app shorter (interactive-widget=resizes-content in index.html), and the
+   bottom bar and floating players step aside so the text being written has the room */
+@media (max-width: 899px) {
+  .app:has(textarea:focus, input:focus:is([type='text'], [type='search'], [type='url'], [type='email'], :not([type]))) :is(.bottombar, .mini-player) { display: none; }
+}

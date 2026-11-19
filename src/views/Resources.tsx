@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { DictationArea } from '../components/Dictate'
+import { useAutoSize } from '../lib/autosize'
 import { Icon } from '../components/Icon'
 import { useCaps } from '../lib/caps'
 import { loadPassage, passagePlain } from '../lib/passage'
@@ -312,12 +313,7 @@ function PrayerRow({
   confirmRemove?: string
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [text])
+  useAutoSize(ref, text)
   return (
     <div className={`prayer-row${answered ? ' answered' : ''}${tag ? ' weekly' : ''}`}>
       <label className="answered-box" title={doneLabel}>
@@ -326,7 +322,7 @@ function PrayerRow({
       </label>
       <div className="prayer-body">
         {tag && <span className="weekly-tag">{tag}</span>}
-        <textarea ref={ref} rows={1} value={text} onChange={(e) => onText(e.target.value)} onBlur={() => !text.trim() && onRemove()} aria-label="Prayer focus" />
+        <textarea ref={ref} rows={1} className="autogrow" value={text} onChange={(e) => onText(e.target.value)} onBlur={() => !text.trim() && onRemove()} aria-label="Prayer focus" />
       </div>
       <button className="icon-btn" onClick={() => (!text.trim() || window.confirm(confirmRemove)) && onRemove()} aria-label="Remove">
         <Icon name="trash" size={17} />
@@ -461,13 +457,8 @@ function WeeklyPrayers({ items, onSave, prefer, onAnswered }: { items: PrayerIte
 /** A text box that grows with its text. */
 function GrowArea({ value, onChange, onBlur, label }: { value: string; onChange: (v: string) => void; onBlur?: () => void; label: string }) {
   const ref = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight + 2}px`
-  }, [value])
-  return <textarea ref={ref} rows={1} className="input" value={value} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} aria-label={label} style={{ overflow: 'hidden' }} />
+  useAutoSize(ref, value, true, 2)
+  return <textarea ref={ref} rows={1} className="input autogrow" value={value} onChange={(e) => onChange(e.target.value)} onBlur={onBlur} aria-label={label} style={{ overflow: 'hidden' }} />
 }
 
 /** S M T W T F S toggles, plus every day. At least one day stays chosen. */
@@ -1256,16 +1247,11 @@ function TitleBox({
   label?: string
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [value])
+  useAutoSize(ref, value)
   return (
     <textarea
       ref={ref}
-      className={className}
+      className={`${className} autogrow`}
       rows={1}
       value={value}
       style={{ color }}

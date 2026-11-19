@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type TextareaHTMLAttributes } from 'react'
 import { Icon } from './Icon'
+import { useAutoSize } from '../lib/autosize'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const Recognition: any = typeof window !== 'undefined' ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition : undefined
@@ -129,17 +130,12 @@ export function DictationArea({
 
   useEffect(() => () => stop(), []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // grow with the text instead of scrolling inside the box
-  useEffect(() => {
-    const el = ta.current
-    if (!autoGrow || !el) return
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight + 2}px`
-  }, [value, autoGrow])
+  // grow with the text instead of scrolling inside the box (without moving the page)
+  useAutoSize(ta, value, !!autoGrow, 2)
 
   return (
     <div className={`dictate${listening ? ' on' : ''}`}>
-      <textarea ref={ta} value={value} onChange={(e) => onChange(e.target.value)} {...rest} />
+      <textarea ref={ta} value={value} onChange={(e) => onChange(e.target.value)} {...rest} className={`${rest.className ?? ''}${autoGrow ? ' autogrow' : ''}`} />
       {canDictate && (
         <button
           type="button"
