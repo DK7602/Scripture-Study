@@ -899,3 +899,8 @@ input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color:
 .as-speed { font-family: var(--serif); font-weight: 600; font-size: calc(14.5px * var(--ui)); min-width: 4.6em; text-align: center; }
 :root[data-mode='dark'] .autoscroll-ctl { background: var(--panel-2); }
 .ab-offer { display: block; margin-top: 2px; font-family: var(--sans); font-size: calc(13px * var(--ui)); text-align: left; }
+.selhint { font-family: var(--sans); font-size: calc(12.5px * var(--ui)); color: var(--ink-faint); margin: -2px 0 6px; }
+/* while verses are selected, the whole verse is the tap target */
+.verses:has(.vrow.selected) .vrow { cursor: pointer; }
+.verses:has(.vrow.selected) .vtext .s:hover { color: inherit; }
+.vnum { min-height: 28px; }

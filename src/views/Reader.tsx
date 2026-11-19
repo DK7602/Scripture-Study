@@ -671,6 +671,8 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
   const onWord = (e: React.MouseEvent, t: Tok) => {
     const sel = window.getSelection()
     if (sel && !sel.isCollapsed) return
+    // while verses are selected, a tap anywhere on a verse adds or removes it (the row handles it)
+    if (getState().selection?.verses?.length) return
     e.stopPropagation()
     setVerse(p.v)
     if (t.s?.length) {
@@ -710,7 +712,11 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
     e.stopPropagation()
     const st = getState()
     const cur = new Set(st.selection?.verses ?? [])
-    if (cur.has(p.v)) cur.delete(p.v)
+    if (e.shiftKey && cur.size) {
+      // shift-click: everything from the nearest selected verse to this one
+      const near = [...cur].reduce((a, b) => (Math.abs(b - p.v) < Math.abs(a - p.v) ? b : a))
+      for (let v = Math.min(near, p.v); v <= Math.max(near, p.v); v++) cur.add(v)
+    } else if (cur.has(p.v)) cur.delete(p.v)
     else cur.add(p.v)
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
     setState({
@@ -728,9 +734,10 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
     <div
       className={`vrow${p.focus ? ' focus' : ''}${p.selected ? ' selected' : ''}${p.para ? ' para' : ''}`}
       data-vrow={p.v}
-      onClick={() => {
+      onClick={(e) => {
         const sel = window.getSelection()
         if (sel && !sel.isCollapsed) return
+        if (getState().selection?.verses?.length && !(e.target as Element).closest('button')) return toggleSelect(e)
         setVerse(p.v)
       }}
     >

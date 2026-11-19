@@ -41,7 +41,11 @@ export function SelectionBar() {
   }
   const first = verses[0]
   const last = verses[verses.length - 1]
-  const refLabel = locString(loc.book, loc.chapter, first, last !== first ? last : undefined)
+  // exactly what is selected: "John 15:1, 3, 5–7"
+  const refLabel =
+    runs.length > 1
+      ? `${locString(loc.book, loc.chapter)}:${runs.map(([a, z]) => (a === z ? `${a}` : `${a}–${z}`)).join(', ')}`
+      : locString(loc.book, loc.chapter, first, last !== first ? last : undefined)
 
   const done = () => {
     window.getSelection()?.removeAllRanges()
@@ -111,6 +115,11 @@ export function SelectionBar() {
           <Icon name="close" size={16} />
         </button>
       </div>
+      {!sel.words && (
+        <div className="selhint">
+          Tap other verses to add or remove them{window.matchMedia?.('(pointer: fine)').matches ? ' (shift-click a verse number for a range)' : ''}.
+        </div>
+      )}
       <div className="row">
         {labels.map((l) => (
           <button key={l.id} className="swatch" style={{ background: l.color }} onClick={() => highlight(l.id)} title={`Highlight as “${l.name}”`} disabled={licensed && !!sel.words}>
