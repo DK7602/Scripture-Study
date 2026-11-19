@@ -15,6 +15,7 @@ import { Popups } from './components/Popups'
 import { SelectionBar } from './components/SelectionBar'
 import { Editors } from './components/Editors'
 import { BottomBar } from './components/BottomBar'
+import { MiniPlayer } from './components/AudioBar'
 import { Icon } from './components/Icon'
 import { locString } from './lib/refs'
 import { startSync } from './lib/sync'
@@ -160,6 +161,7 @@ export function App() {
           </nav>
         </>
       )}
+      <MiniPlayer wide={wide} />
       <SelectionBar />
       <Popups />
       <Editors />

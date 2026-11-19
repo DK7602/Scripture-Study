@@ -12,6 +12,7 @@
  */
 import { useSyncExternalStore } from 'react'
 import { books, siteUrl } from './data'
+import { chapterText } from './providers'
 import { plainText } from './markup'
 import { getState, go, updateSettings } from './store'
 
@@ -44,9 +45,10 @@ export interface AudioState {
   offerLocal: boolean // no recording here: offer Michael made on this device
   slow: boolean // this device makes Michael's voice slower than he reads: offer the device voice
   localDevice: '' | 'webgpu' | 'wasm' // where Michael's on-device voice runs
+  mini: boolean // the player is minimized to the small floating bar (it keeps playing)
 }
 
-let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false, localDevice: '', slow: false }
+let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false, localDevice: '', slow: false, mini: false }
 const subs = new Set<() => void>()
 function set(p: Partial<AudioState>) {
   state = { ...state, ...p }
@@ -191,6 +193,28 @@ function stopEngines() {
   utter = null
   for (const u of localUrls) URL.revokeObjectURL(u)
   localUrls.clear()
+  keepAlive?.pause()
+}
+
+/**
+ * The phone's own voice is not an audio stream, so a phone may suspend the page once the screen is off. While it
+ * reads, an inaudible 20 Hz tone plays on an audio element: the page then counts as playing media (it keeps running,
+ * and the lock screen shows the controls).
+ */
+let keepAlive: HTMLAudioElement | null = null
+function keepAliveOn() {
+  if (!keepAlive) {
+    const sr = 8000
+    const x = new Float32Array(sr * 2)
+    for (let i = 0; i < x.length; i++) x[i] = 0.003 * Math.sin((2 * Math.PI * 20 * i) / sr)
+    keepAlive = new Audio(wavUrl(x, sr, false))
+    keepAlive.loop = true
+  }
+  void keepAlive.play().catch(() => {})
+}
+
+export function setMini(mini: boolean) {
+  set({ mini })
 }
 
 export function openPlayer() {
@@ -200,7 +224,7 @@ export function openPlayer() {
 export function closePlayer() {
   stopEngines()
   pendingStart = false
-  set({ open: false, playing: false, loading: false, verse: 0, engine: null })
+  set({ open: false, playing: false, loading: false, verse: 0, engine: null, mini: false })
   if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'none'
 }
 
@@ -400,7 +424,7 @@ function speakLocal(text: string, speed: number, run: number) {
 }
 
 /** 16-bit PCM WAV, so an ordinary audio element can play it (lock screen, speed). */
-function wavUrl(x: Float32Array, sr: number): string {
+function wavUrl(x: Float32Array, sr: number, track = true): string {
   const buf = new ArrayBuffer(44 + x.length * 2)
   const d = new DataView(buf)
   const str = (o: number, s: string) => [...s].forEach((c, i) => d.setUint8(o + i, c.charCodeAt(0)))
@@ -418,7 +442,7 @@ function wavUrl(x: Float32Array, sr: number): string {
   d.setUint32(40, x.length * 2, true)
   for (let i = 0; i < x.length; i++) d.setInt16(44 + i * 2, Math.max(-1, Math.min(1, x[i])) * 0x7fff, true)
   const url = URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }))
-  localUrls.add(url)
+  if (track) localUrls.add(url)
   return url
 }
 
@@ -521,6 +545,7 @@ function playDevice(v: number, my: number, withHeading: boolean, note = '') {
     return
   }
   set({ engine: 'device', loading: false, error: note })
+  keepAliveOn()
   const s = getState().settings
   const { voice, pitch } = pickDeviceVoice(s.audioVoice)
   const say = (text: string, onEnd: () => void, onStart?: () => void) => {
@@ -575,7 +600,14 @@ function chapterDone() {
   }
   pendingStart = true
   set({ loading: true, verse: 0 })
+  const version = chapter.version
   go({ book: bk.id, chapter: ch, verse: 1 })
+  // the Bible page may not be showing (another tab, or the screen off): fetch the next chapter's text here as well
+  chapterText(version, bk.id, ch)
+    .then((d) => {
+      if (pendingStart && !d.error && d.verses.length) setChapterText(version, bk.id, ch, d.verses)
+    })
+    .catch(() => {})
 }
 
 function mediaSession() {

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from 'react'
-import { MALE_US, canLocal, canSpeak, closePlayer, deviceVoices, realMaleVoice, voiceGender, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
-import { openPopup, updateSettings, useStore } from '../lib/store'
+import { MALE_US, canLocal, canSpeak, closePlayer, setMini, deviceVoices, realMaleVoice, voiceGender, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
+import { openPopup, setTab, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
 const RATES = [0.75, 0.85, 1, 1.15, 1.3, 1.5]
@@ -29,7 +29,7 @@ export function AudioBar() {
       live = false
     }
   }, [settings.version, loc.book, loc.chapter])
-  if (!a.open) return null
+  if (!a.open || a.mini) return null
 
   const dv = deviceVoices()
   const narrator = narrators[0]
@@ -91,7 +91,10 @@ export function AudioBar() {
           )}
           {!a.error && useDevice && !canSpeak && <div className="ab-err">This browser has no voice to read aloud.</div>}
         </div>
-        <button className="icon-btn" onClick={closePlayer} aria-label="Close the player">
+        <button className="icon-btn" onClick={() => setMini(true)} aria-label="Minimize the player (it keeps playing)" title="Minimize (keeps playing)">
+          <Icon name="down" size={18} />
+        </button>
+        <button className="icon-btn" onClick={closePlayer} aria-label="Stop and close the player" title="Stop">
           <Icon name="close" size={18} />
         </button>
       </div>
@@ -143,6 +146,37 @@ export function AudioBar() {
           <span className="switch" data-on={settings.audioContinue} />
         </button>
       </div>
+    </div>
+  )
+}
+
+/** The minimized player: a small floating bar that keeps playing, on every tab. */
+export function MiniPlayer({ wide }: { wide: boolean }) {
+  const a = useAudio()
+  const tab = useStore((st) => st.tab)
+  const away = !wide && tab !== 'bible' // on a phone the full player lives on the Bible page
+  if (!a.open || (!a.mini && !away)) return null
+  const expand = () => {
+    setMini(false)
+    if (away) setTab('bible')
+  }
+  const [title] = a.label.split(' · ')
+  return (
+    <div className="mini-player" role="region" aria-label="Audio Bible">
+      <button className="ab-play mini" onClick={toggle} aria-label={a.playing ? 'Pause' : 'Play'}>
+        <Icon name={a.playing ? 'pause' : 'play'} size={18} fill={!a.playing} stroke={a.playing ? 2.6 : 1.8} />
+      </button>
+      <button className="mini-label" onClick={expand} title="Show the player">
+        <Icon name="headphones" size={15} /> {title}
+        {a.verse ? `:${a.verse}` : ''}
+        {a.loading ? ' …' : ''}
+      </button>
+      <button className="icon-btn" onClick={expand} aria-label="Show the player">
+        <Icon name="up" size={18} />
+      </button>
+      <button className="icon-btn" onClick={closePlayer} aria-label="Stop and close the player">
+        <Icon name="close" size={16} />
+      </button>
     </div>
   )
 }
