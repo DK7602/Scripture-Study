@@ -31,7 +31,9 @@ export async function serveAudio(request: Request, env: AssetsEnv): Promise<Resp
   const headers = new Headers(res.headers)
   headers.set('accept-ranges', 'bytes')
   headers.delete('content-length')
-  headers.set('cache-control', 'public, max-age=604800')
+  // lists (which recordings and videos there are) are checked every time; the media themselves are kept a week
+  // (a remade tutorial video gets a new ?v= in its list, so it is fetched afresh)
+  headers.set('cache-control', url.pathname.endsWith('.json') ? 'no-cache' : 'public, max-age=604800')
   const m = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('range') ?? '')
   if (!m) return new Response(request.method === 'HEAD' ? null : res.body, { status: 200, headers })
   let size = Number(res.headers.get('content-length'))

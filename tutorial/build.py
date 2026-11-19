@@ -8,6 +8,7 @@ answers Range requests as iPhones need):
   public/audio/tutorial/<chapter>.mp4, .vtt (captions), .jpg (poster) and index.json,
 and tutorial/.build/scripture-study-tutorial.mp4, all chapters in one file.
 """
+import hashlib
 import json
 import os
 import re
@@ -165,7 +166,9 @@ def main():
         mp4 = build_chapter(ch, timeline[ch["id"]], durations)
         secs = duration(mp4)
         parts.append(mp4)
-        index.append({"id": ch["id"], "title": ch["title"], "seconds": round(secs), "video": f"{ch['id']}.mp4", "poster": f"{ch['id']}.jpg", "captions": f"{ch['id']}.vtt"})
+        # ?v= changes whenever a file is remade, so phones fetch the new one instead of a cached copy
+        v = lambda ext: f"{ch['id']}.{ext}?v={hashlib.md5(open(os.path.join(OUT, ch['id'] + '.' + ext), 'rb').read()).hexdigest()[:8]}"
+        index.append({"id": ch["id"], "title": ch["title"], "seconds": round(secs), "video": v("mp4"), "poster": v("jpg"), "captions": v("vtt")})
         print(f"{ch['id']}: {secs:.0f} s, {os.path.getsize(mp4) / 2**20:.1f} MB")
     json.dump({"chapters": index}, open(os.path.join(OUT, "index.json"), "w"), indent=1)
     if len(parts) == len(script["chapters"]):

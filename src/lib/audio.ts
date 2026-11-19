@@ -107,7 +107,7 @@ export function speakable(markup: string): string {
 // ---------------------------------------------------------------------------------------------
 let manifestP: Promise<Manifest> | null = null
 export function narrationManifest(): Promise<Manifest> {
-  manifestP ??= fetch(siteUrl('audio/index.json'))
+  manifestP ??= fetch(siteUrl('audio/index.json'), { cache: 'no-cache' }) // newly recorded translations show up at once
     .then((r) => (r.ok && (r.headers.get('content-type') ?? '').includes('json') ? r.json() : { voices: [] }))
     .catch(() => ({ voices: [] }))
   return manifestP

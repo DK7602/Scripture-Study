@@ -28,7 +28,7 @@ export function Tutorials() {
   const [open, setOpen] = useState<string | null>(null)
   const [auto, setAuto] = useState(false)
   useEffect(() => {
-    fetch(base() + 'index.json')
+    fetch(base() + 'index.json', { cache: 'no-cache' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setList(d?.chapters ?? []))
       .catch(() => setList([]))
