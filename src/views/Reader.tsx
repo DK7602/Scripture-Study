@@ -340,14 +340,16 @@ function BibleReader() {
     }
     let sx = 0
     let sy = 0
+    let st = 0
     let on = false
     let sideways: boolean | null = null
     const start = (e: TouchEvent) => {
       const t = e.touches[0]
-      // one finger, and not from the screen edge (Safari's back gesture)
-      on = e.touches.length === 1 && t.clientX > 24 && t.clientX < window.innerWidth - 24
+      // one finger, and not from the very edge of the screen (the browser's own back gesture)
+      on = e.touches.length === 1 && t.clientX > 16 && t.clientX < window.innerWidth - 16
       sx = t.clientX
       sy = t.clientY
+      st = Date.now()
       sideways = null
     }
     const move = (e: TouchEvent) => {
@@ -359,7 +361,8 @@ function BibleReader() {
       }
       const dx = e.touches[0].clientX - sx
       const dy = e.touches[0].clientY - sy
-      if (sideways === null && Math.hypot(dx, dy) > 12) sideways = Math.abs(dx) > Math.abs(dy) * 1.6
+      // a thumb swipe curves: judge the direction over the first 20 px, and accept a fair slant
+      if (sideways === null && Math.hypot(dx, dy) > 20) sideways = Math.abs(dx) > Math.abs(dy) * 1.1
       if (sideways) {
         page.style.transition = 'none'
         page.style.transform = `translateX(${dx * 0.45}px)`
@@ -373,7 +376,9 @@ function BibleReader() {
       const dx = t.clientX - sx
       const dy = t.clientY - sy
       const sel = window.getSelection()
-      if (sideways && Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6 && (!sel || sel.isCollapsed)) turn(dx < 0 ? 1 : -1)
+      const quick = Date.now() - st < 300 && Math.abs(dx) > 40 // a flick
+      const turned = (Math.abs(dx) > 70 || quick) && Math.abs(dx) > Math.abs(dy) * 1.2 && (!sel || sel.isCollapsed)
+      if (turned) turn(dx < 0 ? 1 : -1)
       else if (sideways) reset()
     }
     // trackpads: a two-finger sideways swipe
