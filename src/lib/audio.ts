@@ -130,6 +130,16 @@ export async function narratorsFor(version: string, book: string, ch: number): P
 const synth: SpeechSynthesis | undefined = typeof window !== 'undefined' ? window.speechSynthesis : undefined
 export const canSpeak = !!synth
 
+// Phones stop their own voice when the browser leaves the screen (it cannot be kept going in the background).
+// Coming back to the app, the reading carries on from the verse it had reached instead of staying silent.
+if (typeof document !== 'undefined')
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !synth) return
+    setTimeout(() => {
+      if (state.playing && state.engine === 'device' && !synth.speaking && !synth.pending) void play(state.verse || 1)
+    }, 400)
+  })
+
 // Browsers do not say whether a voice is a man's or a woman's; these are the well-known voices by name
 // (Windows, Edge, Apple, Google). Android's Chrome lists only languages: its voice is chosen in the phone's settings.
 const MALE = /\b(david|mark|guy|andrew|brian|christopher|eric|roger|steffan|davis|jason|tony|ryan|aaron|evan|nathan|tom|alex|fred|ralph|reed|rocko|eddy|grandpa|junior|daniel|arthur|oliver|george|thomas|james|lee|male)\b/i

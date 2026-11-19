@@ -61,6 +61,11 @@ export function AudioBar() {
           {a.info && <div className="ab-credit">{a.info}</div>}
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
+          {useDevice && a.engine === 'device' && !a.error && (
+            <div className="ab-credit">
+              The phone’s own voice pauses when you leave the app and carries on when you come back. Michael’s recordings (KJV, WEB, ASV, BSB) keep playing with the screen off.
+            </div>
+          )}
           {useDevice && a.engine === 'device' && /Android/i.test(navigator.userAgent) && (
             <button
               className="ref-link ab-offer"
