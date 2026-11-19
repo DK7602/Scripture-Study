@@ -251,11 +251,10 @@ async function playNarration(voice: NarratorVoice, v: number, my: number, local 
   const bookDir = `${root}${voice.id}/${chapter!.version}/${chapter!.book}`
   const base = `${bookDir}/${chapter!.chapter}`
   try {
-    // a fully recorded translation keeps the verse timings in one file per book; samples have one per chapter
-    const t =
-      voice.versions[chapter!.version] === 'all'
-        ? ((await bookTimings(bookDir + '.json'))[String(chapter!.chapter)] as Timings)
-        : await fetch(base + '.json').then((r) => r.json() as Promise<Timings>)
+    // recordings from Kaggle keep the verse timings in one file per book; the first samples had one per chapter
+    const full = voice.versions[chapter!.version] === 'all'
+    let t = (await bookTimings(bookDir + '.json').catch((e) => (full ? Promise.reject(e) : {})))[String(chapter!.chapter)] as Timings | undefined
+    if (!t && !full) t = await fetch(base + '.json').then((r) => (r.ok ? (r.json() as Promise<Timings>) : undefined))
     if (!t) throw new Error('no timings')
     if (my !== runId) return
     timings = t
