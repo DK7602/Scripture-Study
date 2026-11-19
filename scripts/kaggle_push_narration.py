@@ -46,7 +46,10 @@ def main():
     with tempfile.TemporaryDirectory() as d:
         open(os.path.join(d, "kernel.py"), "w").write(f"SCRIPTURE_NARRATION = {cfg!r}\n\n{src}")
         json.dump(meta, open(os.path.join(d, "kernel-metadata.json"), "w"), indent=1)
-        subprocess.run(["kaggle", "kernels", "push", "-p", d], check=True)
+        r = subprocess.run(["kaggle", "kernels", "push", "-p", d], capture_output=True, text=True)
+        print((r.stdout + r.stderr).strip())
+        if r.returncode or "error" in (r.stdout + r.stderr).lower():
+            raise SystemExit(f"not started: {OWNER}/{slug} (Kaggle runs at most two GPU jobs at once)")
     print(f"pushed {OWNER}/{slug}: https://www.kaggle.com/code/{OWNER}/{slug}")
 
 
