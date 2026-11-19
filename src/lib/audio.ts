@@ -253,7 +253,8 @@ async function playNarration(voice: NarratorVoice, v: number, my: number, local 
   try {
     // recordings from Kaggle keep the verse timings in one file per book; the first samples had one per chapter
     const full = voice.versions[chapter!.version] === 'all'
-    let t = (await bookTimings(bookDir + '.json').catch((e) => (full ? Promise.reject(e) : {})))[String(chapter!.chapter)] as Timings | undefined
+    const book: Record<string, Timings> = await bookTimings(bookDir + '.json').catch((e) => (full ? Promise.reject(e) : {}))
+    let t: Timings | undefined = book[String(chapter!.chapter)]
     if (!t && !full) t = await fetch(base + '.json').then((r) => (r.ok ? (r.json() as Promise<Timings>) : undefined))
     if (!t) throw new Error('no timings')
     if (my !== runId) return
