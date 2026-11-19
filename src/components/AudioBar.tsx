@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
-import { MALE_US, canLocal, canSpeak, closePlayer, setMini, deviceVoices, realMaleVoice, voiceGender, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
+import { MALE_US, canSpeak, closePlayer, setMini, deviceVoices, realMaleVoice, voiceGender, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, type NarratorVoice } from '../lib/audio'
 import { openPopup, setTab, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
@@ -17,11 +17,7 @@ export function AudioBar() {
   const loc = useStore((s) => s.loc)
   const [narrators, setNarrators] = useState<NarratorVoice[]>([])
   const [, refresh] = useReducer((x: number) => x + 1, 0)
-  const [mb, setMb] = useState(90)
   useEffect(() => onVoicesChanged(refresh), [])
-  useEffect(() => {
-    void localDownloadMB().then(setMb)
-  }, [])
   useEffect(() => {
     let live = true
     narratorsFor(settings.version, loc.book, loc.chapter).then((n) => live && setNarrators(n))
@@ -33,14 +29,12 @@ export function AudioBar() {
 
   const dv = deviceVoices()
   const narrator = narrators[0]
-  const localOk = canLocal && settings.audioLocal
   const deviceValue = `d:${settings.audioVoice || MALE_US}`
   const male = realMaleVoice()
-  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : localOk ? 'l:' : deviceValue
+  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : deviceValue
   const useDevice = value.startsWith('d:')
   const pick = (v: string) => {
     if (v.startsWith('n:')) setNarrator('')
-    else if (v === 'l:') useLocalMichael()
     else if (narrator) {
       // a recorded chapter: the listener prefers a device voice even where there are recordings
       updateSettings({ audioVoice: v.slice(2) })
@@ -67,7 +61,6 @@ export function AudioBar() {
           {a.info && <div className="ab-credit">{a.info}</div>}
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
-          {!a.error && !a.info && value === 'l:' && <div className="ab-credit">Michael's voice made on this device{a.localDevice === 'webgpu' ? ' (graphics chip)' : a.localDevice === 'wasm' ? ' (processor)' : ''} · Kokoro, Apache-2.0 · nothing is stored</div>}
           {useDevice && a.engine === 'device' && /Android/i.test(navigator.userAgent) && (
             <button
               className="ref-link ab-offer"
@@ -77,16 +70,6 @@ export function AudioBar() {
               }}
             >
               For a more natural man's voice
-            </button>
-          )}
-          {a.slow && a.engine === 'local' && (
-            <button className="ref-link ab-offer" onClick={() => useDeviceVoice()}>
-              This device makes Michael's voice slower than he reads, so there are pauses. Use the phone's own voice instead
-            </button>
-          )}
-          {a.offerLocal && !a.info && (
-            <button className="ref-link ab-offer" onClick={useLocalMichael}>
-              Use Michael's voice for {settings.version} (one-time download, about {mb} MB)
             </button>
           )}
           {!a.error && useDevice && !canSpeak && <div className="ab-err">This browser has no voice to read aloud.</div>}
@@ -123,11 +106,6 @@ export function AudioBar() {
                   {n.name}
                 </option>
               ))}
-            </optgroup>
-          )}
-          {!narrators.length && canLocal && (
-            <optgroup label="Made on this device">
-              <option value="l:">Michael (made on this device)</option>
             </optgroup>
           )}
           <optgroup label="This device's voices">

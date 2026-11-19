@@ -349,7 +349,10 @@ async function playNarration(voice: NarratorVoice, v: number, my: number, local 
 // ---------------------------------------------------------------------------------------------
 // Michael made on this device (Kokoro in a worker): every translation, nothing stored
 // ---------------------------------------------------------------------------------------------
-export const canLocal = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'
+// Turned off: on phones Michael's voice made on the device came out far slower than he reads (pauses of 10 s and
+// more between verses), so translations without a recording are read by the phone's own voice. The code stays for
+// fast computers; set this back to the check below to offer it again.
+export const canLocal = false // typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'
 
 /** Size of the one-time download for Michael's on-device voice: the full model where there is a real graphics chip. */
 let sizeP: Promise<number> | null = null
