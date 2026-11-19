@@ -52,7 +52,7 @@ def main():
     if not os.path.exists(py):
         sh("pip install -q uv")
         sh(f"uv venv -q --seed --python 3.12 {env}")
-        sh(f"uv pip install -q --python {py} torch==2.4.1 --index-url https://download.pytorch.org/whl/cu121")
+        sh(f"uv pip install -q --python {py} torch==2.6.0 --index-url https://download.pytorch.org/whl/cu124")
         sh(f"uv pip install -q --python {py} 'kokoro>=0.9.4' soundfile scipy 'numpy<2.3'")
         sh(f"uv pip install -q --python {py} https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.8.0/en_core_web_sm-3.8.0-py3-none-any.whl")
         if CFG.get("rvc"):  # the VoxaVersa voice conversion runs on onnxruntime
