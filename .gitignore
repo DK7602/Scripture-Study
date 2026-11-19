@@ -9,3 +9,4 @@ __pycache__/
 .narration-cache/
 .voice-model-cache/
 shots/
+tutorial/.build/

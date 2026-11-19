@@ -1,0 +1,44 @@
+{
+ "chapters": [
+  {
+   "id": "1-reading",
+   "title": "Reading the Bible",
+   "seconds": 53,
+   "video": "1-reading.mp4",
+   "poster": "1-reading.jpg",
+   "captions": "1-reading.vtt"
+  },
+  {
+   "id": "2-study",
+   "title": "Study tools",
+   "seconds": 42,
+   "video": "2-study.mp4",
+   "poster": "2-study.jpg",
+   "captions": "2-study.vtt"
+  },
+  {
+   "id": "3-listening",
+   "title": "Listening",
+   "seconds": 41,
+   "video": "3-listening.mp4",
+   "poster": "3-listening.jpg",
+   "captions": "3-listening.vtt"
+  },
+  {
+   "id": "4-prayer",
+   "title": "Your prayer list",
+   "seconds": 42,
+   "video": "4-prayer.mp4",
+   "poster": "4-prayer.jpg",
+   "captions": "4-prayer.vtt"
+  },
+  {
+   "id": "5-sermons",
+   "title": "Sermons and sermon notes",
+   "seconds": 51,
+   "video": "5-sermons.mp4",
+   "poster": "5-sermons.jpg",
+   "captions": "5-sermons.vtt"
+  }
+ ]
+}

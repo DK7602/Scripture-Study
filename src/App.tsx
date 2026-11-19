@@ -133,7 +133,7 @@ export function App() {
                 <Icon name="collapse" />
               </button>
             </div>
-            <div className="panel-body">
+            <div className="panel-body" key={toolTab}>
               <ToolView tab={toolTab} />
             </div>
           </section>
@@ -143,7 +143,7 @@ export function App() {
           {tab === 'bible' ? (
             <ReaderColumn onBooks={openDrawer} />
           ) : (
-            <div className="view">
+            <div className="view" key={tab /* each section opens at its top */}>
               <div className="panel-body">
                 <ToolView tab={tab} />
               </div>

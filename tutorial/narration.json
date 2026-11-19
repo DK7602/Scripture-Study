@@ -1,0 +1,59 @@
+{
+  "about": "The narrated tutorial videos (Settings > How to use Scripture Study). tutorial/README.md explains how they are made.",
+  "voice": "am_michael",
+  "chapters": [
+    {
+      "id": "1-reading",
+      "title": "Reading the Bible",
+      "scenes": [
+        { "id": "welcome", "say": "Welcome to Scripture Study. In a few short videos, I'll show you how to read, study, and listen to the Bible, and how to keep your prayers and sermon notes in one place. Let's begin with reading." },
+        { "id": "books", "say": "To choose a book, tap the menu button in the top corner. Pick a book, and then tap the chapter you'd like to read." },
+        { "id": "swipe", "say": "To turn the page, simply swipe left or right. The arrows at the bottom of the screen work too." },
+        { "id": "version", "say": "Change the translation from the toolbar. The King James, World English, American Standard, and Berean Standard Bibles are built in, and you can unlock others, like the Christian Standard Bible, in Settings." },
+        { "id": "textsize", "say": "Tap the letters button at the bottom to make the text larger or smaller, to choose a light or dark page, or to read in paragraphs instead of verses." }
+      ]
+    },
+    {
+      "id": "2-study",
+      "title": "Study tools",
+      "scenes": [
+        { "id": "strongs", "say": "Words with a faint dotted underline can be tapped. You'll see the original Hebrew or Greek word, what it means, and where else it appears in Scripture." },
+        { "id": "highlight", "say": "To mark a passage, tap a verse number. Tap more numbers to select several verses together, and then choose a highlight color." },
+        { "id": "note", "say": "From the same bar, you can write a note, or start a journal entry about those verses. Type it, or tap the microphone and speak." },
+        { "id": "studytab", "say": "The Study tab gathers commentaries, cross references, and background for the chapter you're reading." },
+        { "id": "maps", "say": "Maps and Helps has maps for every chapter, the journeys of Jesus and of Paul, and much more. Tap the corner button to see a map full screen, and tap it again to come back." }
+      ]
+    },
+    {
+      "id": "3-listening",
+      "title": "Listening",
+      "scenes": [
+        { "id": "listen", "say": "Tap Listen, and Michael reads the chapter aloud, highlighting each verse as he goes.", "michael": { "version": "KJV", "book": "ROM", "chapter": 8, "toVerse": 2 } },
+        { "id": "minimize", "say": "Tap the down arrow to tuck the player away. Michael keeps reading while you use the rest of the app, and even when your screen is locked." },
+        { "id": "scroll", "say": "If you'd rather read at your own pace, tap Scroll, and the page moves gently by itself. Use the plus and minus buttons to change the speed." }
+      ]
+    },
+    {
+      "id": "4-prayer",
+      "title": "Your prayer list",
+      "scenes": [
+        { "id": "resources", "say": "The Resources tab holds your prayer list, your church's sermons, and your sermon notes. Let's start with prayer." },
+        { "id": "add", "say": "Write down what's on your heart today. Type it, or tap the microphone and simply speak. Press enter to start a new line, and tap Add when you're done." },
+        { "id": "weekly", "say": "For the people you pray for every week, tick Repeat. You can choose the days, and those prayers come back on their own." },
+        { "id": "verse", "say": "Add an encouraging verse by typing its reference, or let the app suggest one for you." },
+        { "id": "answered", "say": "When God answers a prayer, tick it. It's kept in your answered prayers, a record of His faithfulness, with room to write down how He answered." }
+      ]
+    },
+    {
+      "id": "5-sermons",
+      "title": "Sermons and sermon notes",
+      "scenes": [
+        { "id": "sermons", "say": "Under Sermons, you'll find the latest messages from Paramount Church. Browse the newest ones, or look through each series." },
+        { "id": "play", "say": "Tap any sermon to listen right here in the app. You can skip back, jump ahead, or change the speed, and it keeps playing while you take notes." },
+        { "id": "takenotes", "say": "Tap Take notes, and your sermon notes begin with the title, the date, and the speaker already filled in." },
+        { "id": "template", "say": "Your notes follow the church's template. Tap the dot beside a section to change its color, use the menu to move or remove a section, and add more points or questions at the bottom." },
+        { "id": "wrap", "say": "Everything you write is saved on your phone, and when you sign in, it stays in sync across your devices. You can watch these videos again any time from Settings. Enjoy your time in the Word." }
+      ]
+    }
+  ]
+}

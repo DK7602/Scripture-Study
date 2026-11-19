@@ -1103,5 +1103,23 @@ textarea.autogrow { field-sizing: content; overflow: hidden; resize: none; }
 /* typing on a phone: the keyboard makes the app shorter (interactive-widget=resizes-content in index.html), and the
    bottom bar and floating players step aside so the text being written has the room */
 @media (max-width: 899px) {
-  .app:has(textarea:focus, input:focus:is([type='text'], [type='search'], [type='url'], [type='email'], :not([type]))) :is(.bottombar, .mini-player) { display: none; }
+  .app:has(textarea:focus, input:focus:is([type='text'], [type='search'], [type='url'], [type='email'], :not([type]))) .bottombar { display: none; }
+  /* the floating player comes back a moment after typing ends, so the tap that ended it cannot land on the player */
+  .mini-player { transition: visibility 0s linear 0.45s; }
+  .app:has(textarea:focus, input:focus:is([type='text'], [type='search'], [type='url'], [type='email'], :not([type]))) .mini-player { visibility: hidden; transition: none; }
 }
+
+/* Settings > How to use Scripture Study */
+.tutorials { padding: 12px; }
+.tut-head { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: var(--accent); }
+.tut-head b { font-family: var(--serif); font-size: calc(18px * var(--ui)); color: var(--ink); }
+.tut-row { border-top: 1px solid var(--rule); }
+.tut-pick { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 2px; border: 0; background: none; color: var(--ink); text-align: left; }
+.tut-pick img { width: 46px; height: 64px; object-fit: cover; object-position: top; border-radius: 6px; border: 1px solid var(--rule); flex: none; }
+.tut-title { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.tut-title b { font-family: var(--serif); font-size: calc(16.5px * var(--ui)); }
+.tut-play { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(180deg, var(--accent), var(--accent-dark)); color: #fff; flex: none; }
+.tut-player { padding: 8px 0 10px; }
+.tut-player-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tut-player-head b { font-family: var(--serif); font-size: calc(17px * var(--ui)); }
+.tut-player video { display: block; width: 100%; max-width: 380px; max-height: 72vh; margin: 6px auto 0; border-radius: 10px; background: #000; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); }

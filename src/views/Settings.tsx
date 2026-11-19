@@ -5,6 +5,7 @@ import { deleteItem, exportData, importData, newId, saveItem, updateSettings, us
 import type { CommentaryInfo, Settings, ThemeColor, ThemeMode } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { CHIPS } from './Study'
+import { Tutorials } from './Tutorials'
 import { SyncPanel } from './SyncPanel'
 import { ui } from '../lib/ui'
 
@@ -52,6 +53,7 @@ export function SettingsView() {
       <div className="section-title">
         <Icon name="gear" /> Settings
       </div>
+      <Tutorials />
       <SyncPanel />
 
       <div className="setting-row">
