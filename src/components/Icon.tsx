@@ -48,29 +48,62 @@ export function Icon({ name, size = 20, stroke = 1.8, fill }: { name: string; si
   )
 }
 
-/** The app mark: an open Bible with a cross, in gold. */
+/** The app mark: a gold cross over an open Bible, with a soft glow. */
 export function Logo({ size = 30 }: { size?: number }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" style={{ overflow: 'visible' }}>
       <defs>
-        <linearGradient id="lg-gold" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0" stopColor="#f6e3a1" />
-          <stop offset="1" stopColor="#b8892c" />
+        <linearGradient id="lg-gold" x1="0" x2="1" y1="0" y2="1">
+          <stop offset="0" stopColor="#fff5cc" />
+          <stop offset="0.35" stopColor="#f1d27a" />
+          <stop offset="0.6" stopColor="#c08c31" />
+          <stop offset="0.8" stopColor="#f0d488" />
+          <stop offset="1" stopColor="#97681f" />
         </linearGradient>
+        <linearGradient id="lg-gold-v" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#f9e6a2" />
+          <stop offset="0.55" stopColor="#d4a442" />
+          <stop offset="1" stopColor="#8a5d1c" />
+        </linearGradient>
+        <linearGradient id="lg-page" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#fffbf0" />
+          <stop offset="1" stopColor="#ead9b0" />
+        </linearGradient>
+        <radialGradient id="lg-glow">
+          <stop offset="0" stopColor="#ffe9a8" stopOpacity="0.55" />
+          <stop offset="1" stopColor="#ffe9a8" stopOpacity="0" />
+        </radialGradient>
       </defs>
-      <path d="M32 6v20M25 13h14" stroke="url(#lg-gold)" strokeWidth="5" strokeLinecap="round" />
-      <path d="M6 30c9-4 18-3 26 3 8-6 17-7 26-3v22c-9-4-18-3-26 3-8-6-17-7-26-3V30z" fill="url(#lg-gold)" />
-      <path d="M32 33v22M11 35c6-2 12-1.5 17 2M11 41c6-2 12-1.5 17 2M53 35c-6-2-12-1.5-17 2M53 41c-6-2-12-1.5-17 2" stroke="#7a5a1c" strokeWidth="1.6" fill="none" />
+      <circle cx="32" cy="21" r="21" fill="url(#lg-glow)" />
+      <path d="M29 2.5h6v11h9.5v6H35V38h-6V19.5h-9.5v-6H29z" fill="url(#lg-gold)" stroke="#5f400f" strokeWidth="0.9" strokeLinejoin="round" />
+      <path d="M2.5 38.5c10-4 20-3.6 29.5 2 9.5-5.6 19.5-6 29.5-2v17.5c-10-3.6-20-3-29.5 2.2-9.5-5.2-19.5-5.8-29.5-2.2z" fill="url(#lg-gold-v)" stroke="#5a3c0e" strokeWidth="0.9" strokeLinejoin="round" />
+      <path d="M6 36.5c9-3.6 18-3 26 2.2v17c-8-4.6-17-5.2-26-2z" fill="url(#lg-page)" stroke="#9c7633" strokeWidth="0.7" />
+      <path d="M58 36.5c-9-3.6-18-3-26 2.2v17c8-4.6 17-5.2 26-2z" fill="url(#lg-page)" stroke="#9c7633" strokeWidth="0.7" />
+      <path d="M10 41.5c5.5-1.6 11-1.3 17 1.2M10 45.5c5.5-1.6 11-1.3 17 1.2M10 49.5c5.5-1.6 11-1.3 17 1.2M54 41.5c-5.5-1.6-11-1.3-17 1.2M54 45.5c-5.5-1.6-11-1.3-17 1.2M54 49.5c-5.5-1.6-11-1.3-17 1.2" stroke="#b9a172" strokeWidth="1" fill="none" />
+      <path d="M32 38.7v17" stroke="#7d5a1e" strokeWidth="1.1" />
     </svg>
   )
 }
 
-export function Ornament({ width = 260 }: { width?: number }) {
+/** Printer's flourish under the book name. */
+export function Ornament({ width = 340 }: { width?: number }) {
   return (
-    <svg className="ornament" width={width} height="14" viewBox="0 0 260 14" aria-hidden="true">
-      <path d="M0 7h104M156 7h104" stroke="currentColor" strokeWidth="1.2" />
-      <path d="M130 1l7 6-7 6-7-6 7-6z" fill="currentColor" />
-      <path d="M104 7c6-6 12-6 16 0-4 6-10 6-16 0zM156 7c-6-6-12-6-16 0 4 6 10 6 16 0z" fill="none" stroke="currentColor" strokeWidth="1.2" />
+    <svg className="ornament" width={width} height="24" viewBox="0 0 340 24" aria-hidden="true">
+      <g fill="currentColor">
+        <path d="M134 11.1 4 12l130 0.9z" />
+        <path d="M206 11.1 336 12l-130 0.9z" />
+        <circle cx="3" cy="12" r="1.4" />
+        <circle cx="337" cy="12" r="1.4" />
+        <path d="M170 4.5 176.5 12 170 19.5 163.5 12z" />
+        <circle cx="156" cy="12" r="1.7" />
+        <circle cx="184" cy="12" r="1.7" />
+      </g>
+      <g fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
+        <path d="M178 12c7-8 19-8.5 21.5-2.5 2 5-4.5 7.5-7.5 3.5-1.8-2.5 1.2-4.6 3.3-3" />
+        <path d="M162 12c-7-8-19-8.5-21.5-2.5-2 5 4.5 7.5 7.5 3.5 1.8-2.5-1.2-4.6-3.3-3" />
+        <path d="M178 12c9 6.5 22 7 30 0" />
+        <path d="M162 12c-9 6.5-22 7-30 0" />
+      </g>
     </svg>
   )
 }

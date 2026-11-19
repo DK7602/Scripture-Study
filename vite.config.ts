@@ -28,7 +28,7 @@ export default defineConfig({
       },
       workbox: {
         // App shell is precached; Bible data is cached as it is read (or all at once from Settings).
-        globPatterns: ['**/*.{js,css,html,svg,woff2}', 'icons/icon-192.png', 'icons/favicon-64.png', 'data/books.json', 'data/versions.json'],
+        globPatterns: ['**/*.{js,css,html,svg,woff2}', 'icons/icon-192.png', 'icons/favicon-64.png', 'textures/*.webp', 'data/books.json', 'data/versions.json'],
         globIgnores: ['data/**/!(books|versions).json'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         // sign-in, sync and Cloudflare Access pages must always reach the network

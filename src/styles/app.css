@@ -7,25 +7,27 @@
   --accent-soft: #dfe9d8;
   --accent-ink: #ffffff;
   --gold: #c9a44c;
-  --gold-soft: #e9d49a;
+  --gold-soft: #ecd69a;
+  --gold-deep: #8a6728;
 
-  --page: #fbf6ea;
-  --page-2: #f3ead4;
-  --page-edge: #e6d8b6;
-  --ink: #2b241d;
-  --ink-soft: #6b5f50;
-  --ink-faint: #9b8f7d;
-  --rule: #d9cba8;
-  --panel: #fffdf7;
-  --panel-2: #f7f1e3;
-  --chrome: #1d3526;
-  --chrome-2: #24412f;
-  --chrome-ink: #f1e6c8;
-  --red: #a8201a;
-  --shadow: 0 8px 28px rgba(40, 30, 10, 0.18);
-  --strongs-line: rgba(120, 108, 85, 0.38);
-  --name: #7a4b0d;
-  --chip-bg: #ffffff;
+  /* parchment, like the page of a printed Bible */
+  --page: #f5e9cd;
+  --page-2: #e4d3ab;
+  --page-edge: #cdb684;
+  --ink: #21170d;
+  --ink-soft: #574631;
+  --ink-faint: #85725a;
+  --rule: #c9b183;
+  --panel: #f3e6c8;
+  --panel-2: #eadab4;
+  --chrome: #12261a;
+  --chrome-2: #1f3f2a;
+  --chrome-ink: #f3e6c3;
+  --red: #8c1a11;
+  --shadow: 0 10px 30px rgba(40, 26, 6, 0.28);
+  --strongs-line: rgba(110, 88, 58, 0.45);
+  --name: #6b3f08;
+  --chip-bg: #fbf3df;
   --hl-alpha: 1;
 
   --serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
@@ -45,17 +47,17 @@
 :root[data-color='slate'] { --accent: #47525e; --accent-dark: #313a43; --accent-soft: #e0e4e8; --chrome: #262d34; --chrome-2: #313a43; }
 
 :root[data-mode='sepia'] {
-  --page: #f1e2c0;
-  --page-2: #e8d5aa;
-  --page-edge: #d6bf8a;
-  --ink: #3a2c1c;
-  --ink-soft: #6c5638;
-  --ink-faint: #9a8460;
-  --rule: #ccb27a;
-  --panel: #f6ead0;
-  --panel-2: #eddcb6;
-  --red: #9a1d16;
-  --chip-bg: #fbf3df;
+  --page: #e9d4a4;
+  --page-2: #d6bc86;
+  --page-edge: #bf9f62;
+  --ink: #2c1d0c;
+  --ink-soft: #5c4425;
+  --ink-faint: #8a724c;
+  --rule: #b9995c;
+  --panel: #e8d3a6;
+  --panel-2: #dcc392;
+  --red: #841a10;
+  --chip-bg: #f4e5c2;
 }
 
 :root[data-mode='dark'] {
@@ -670,3 +672,160 @@ table.chart td { overflow-wrap: break-word; }
   table.chart.stack td[data-label]::before { content: attr(data-label); position: absolute; left: 0; top: 2px; width: 8.2em; font-size: 0.86em; line-height: inherit; font-weight: 600; color: var(--ink-soft); font-family: var(--serif); }
   table.chart.stack td.lead { font-family: var(--serif); font-weight: 600; font-size: 1.05em; white-space: normal !important; }
 }
+
+/* ============================================================================================
+   Printed-Bible finish: leather chrome, parchment pages and panels, gold lettering
+   (textures come from scripts/make_textures.py)
+   ============================================================================================ */
+body { background: url(/textures/leather.webp), var(--chrome); background-blend-mode: overlay; }
+
+/* top bar: green leather with a gilt edge */
+.topbar {
+  background: url(/textures/leather.webp), linear-gradient(180deg, var(--chrome-2), var(--chrome) 85%);
+  background-blend-mode: overlay, normal;
+  border-bottom: 1px solid #070f0a;
+  box-shadow: inset 0 -2px 0 rgba(201, 164, 76, 0.55), 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.brand {
+  font-family: var(--display); font-weight: 700; letter-spacing: 0.06em;
+  font-size: calc(19px * var(--ui));
+  background: linear-gradient(180deg, #fff6cf 0%, #f3d983 30%, #cf9d3e 52%, #f6e09a 72%, #b07f2c 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.7)) drop-shadow(0 0 5px rgba(232, 190, 100, 0.22));
+}
+.tabs { gap: 0; }
+.tab {
+  font-family: var(--serif); font-weight: 600; color: #efe2bd; opacity: 0.92;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+  border: 1px solid transparent; border-bottom: 0; margin-top: 6px;
+  position: relative;
+}
+.tab + .tab::before {
+  content: ''; position: absolute; left: -1px; top: 22%; bottom: 22%; width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(201, 164, 76, 0.45), transparent);
+}
+.tab[aria-selected='true']::before, .tab[aria-selected='true'] + .tab::before { display: none; }
+.tab:hover { background: rgba(255, 240, 200, 0.06); opacity: 1; }
+.tab[aria-selected='true'] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 62%, #fff1cf) 0%, var(--accent) 38%, var(--accent-dark) 100%);
+  border-color: #c9a44c; color: #fff8e2;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 -2px 8px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+:root[data-mode='dark'] .tab[aria-selected='true'] { background: linear-gradient(180deg, #4d7d57, #2d5537 40%, #1f3d28); }
+.topbar .icon-btn { color: #f0dfae; }
+
+/* parchment surfaces */
+.sidebar, .panel, .reader-toolbar, .bottombar, .single > .view, .pop, .modal, .drawer {
+  background-image: url(/textures/paper.webp);
+  background-blend-mode: multiply;
+}
+.workspace, .single { background: url(/textures/paper.webp), var(--page-2); background-blend-mode: multiply; }
+.sidebar { box-shadow: inset -8px 0 14px -10px rgba(70, 45, 10, 0.35); }
+.panel { box-shadow: inset 8px 0 14px -10px rgba(70, 45, 10, 0.35); }
+.panel-head { font-weight: 600; border-bottom-color: var(--rule); box-shadow: 0 1px 0 rgba(255, 250, 235, 0.5); }
+.reader-toolbar { border-bottom-color: var(--rule); box-shadow: inset 0 -1px 0 rgba(255, 250, 235, 0.45), 0 2px 4px rgba(70, 45, 10, 0.12); }
+.bottombar { border-top: 1px solid var(--rule); box-shadow: 0 -2px 6px rgba(70, 45, 10, 0.15); }
+.bottombar .icon-btn { color: var(--ink); }
+
+/* the page itself: grain, aged edges, and the shade of the binding on the inner margin */
+.page {
+  background:
+    linear-gradient(90deg, rgba(95, 62, 18, 0.13), rgba(95, 62, 18, 0.04) 26px, transparent 60px),
+    radial-gradient(ellipse at 50% 38%, rgba(255, 250, 232, 0.5), transparent 62%),
+    radial-gradient(ellipse at 50% 50%, transparent 58%, rgba(140, 96, 34, 0.16) 100%),
+    url(/textures/paper.webp),
+    var(--page);
+  background-blend-mode: normal, normal, normal, multiply;
+  border: 1px solid rgba(150, 115, 55, 0.4);
+  border-radius: 3px;
+  box-shadow: inset 0 0 50px rgba(140, 96, 34, 0.22), inset 0 0 8px rgba(120, 80, 25, 0.18), 0 2px 0 var(--page-edge), 0 4px 0 rgba(205, 182, 132, 0.6), 0 14px 32px rgba(40, 26, 6, 0.3);
+  font-weight: 500;
+}
+:root[data-mode='sepia'] .page {
+  background:
+    linear-gradient(90deg, rgba(95, 62, 18, 0.16), rgba(95, 62, 18, 0.05) 26px, transparent 60px),
+    radial-gradient(ellipse at 50% 38%, rgba(255, 244, 214, 0.45), transparent 62%),
+    radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(120, 78, 22, 0.24) 100%),
+    url(/textures/paper.webp),
+    var(--page);
+  background-blend-mode: normal, normal, normal, multiply;
+}
+:root[data-mode='dark'] .page { background: url(/textures/paper.webp), var(--page); background-blend-mode: multiply; border-color: #333; font-weight: 400; }
+@media (min-width: 900px) { .vtext { text-align: justify; hyphens: auto; -webkit-hyphens: auto; } }
+.vnum { color: #6d5a40; font-weight: 600; }
+:root[data-mode='dark'] .vnum { color: var(--ink-soft); }
+.vtext .dn { font-weight: 700; }
+
+/* book and chapter headings, set like a printed Bible */
+.book-title .pre { color: var(--ink); font-weight: 500; letter-spacing: 0.3em; font-size: 0.66em; }
+.book-title .name {
+  font-weight: 700; font-size: 2.55em; letter-spacing: 0.14em; color: #3a2310;
+  text-shadow: 0 1px 0 rgba(255, 248, 228, 0.7), 0 -1px 0 rgba(60, 35, 10, 0.12);
+}
+.chapter-title { font-weight: 700; letter-spacing: 0.22em; font-size: 1.16em; color: #3a2310; text-shadow: 0 1px 0 rgba(255, 248, 228, 0.6); }
+:root[data-mode='dark'] .book-title .name, :root[data-mode='dark'] .chapter-title { color: var(--ink); text-shadow: none; }
+.ornament { color: var(--gold-deep); margin: 6px auto 2px; max-width: 86%; height: auto; }
+:root[data-mode='dark'] .ornament { color: var(--gold); }
+
+/* sidebar */
+.books { font-weight: 500; }
+.books-head { font-weight: 600; }
+.testament { font-weight: 700; border-top-color: var(--rule); }
+.find input { background: #fbf5e4; border-color: var(--rule); box-shadow: inset 0 1px 2px rgba(70, 45, 10, 0.12); }
+:root[data-mode='dark'] .find input { background: var(--panel); }
+.book-btn[aria-current='true'], .chap-grid button[aria-current='true'] {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 70%, #fff1cf), var(--accent) 45%, var(--accent-dark));
+  color: #fff8e2; border: 1px solid rgba(201, 164, 76, 0.75);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28), 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.book-btn[aria-current='true'] { border-radius: 6px; margin-left: 10px; width: calc(100% - 18px); padding-left: 17px; }
+
+/* controls: raised parchment buttons, green-and-gold when chosen */
+.select, .seg, .btn, .pill, .chap-grid button, .input, .searchbox {
+  background-color: #f9f1dc;
+  border-color: #c2a774;
+}
+.select, .btn, .pill, .seg, .chap-grid button {
+  background-image: linear-gradient(180deg, rgba(255, 252, 240, 0.75), rgba(232, 214, 172, 0.35));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 2px rgba(70, 45, 10, 0.18);
+  color: var(--ink);
+}
+.select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%233a2a18' stroke-width='1.8'/%3E%3C/svg%3E"), linear-gradient(180deg, rgba(255, 252, 240, 0.75), rgba(232, 214, 172, 0.35));
+  background-repeat: no-repeat, no-repeat; background-position: right 10px center, 0 0;
+  font-weight: 500;
+}
+.pill { font-weight: 500; }
+.pill[aria-pressed='true'], .btn.primary {
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--accent) 66%, #fff1cf), var(--accent) 45%, var(--accent-dark));
+  color: #fff8e2; border-color: #b8933f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 1px 3px rgba(0, 0, 0, 0.25);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+}
+.input, .searchbox { box-shadow: inset 0 1px 3px rgba(70, 45, 10, 0.14); }
+:root[data-mode='dark'] :is(.select, .seg, .btn, .pill, .chap-grid button, .input, .searchbox) { background-color: var(--panel-2); border-color: var(--rule); background-image: none; box-shadow: none; }
+:root[data-mode='dark'] .select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23ccc' stroke-width='1.8'/%3E%3C/svg%3E"); }
+:root[data-mode='dark'] :is(.pill[aria-pressed='true'], .btn.primary) { background-image: linear-gradient(180deg, #4d7d57, #2d5537 45%, #1f3d28); color: #fff8e2; }
+
+/* cards, pop-ups and section titles */
+.card, .help-card, .notice, .place, .result-card {
+  background-color: #f8efd8;
+  background-image: url(/textures/paper.webp); background-blend-mode: multiply;
+  border-color: #cdb489;
+  box-shadow: inset 0 1px 0 rgba(255, 252, 240, 0.6), 0 1px 3px rgba(70, 45, 10, 0.12);
+}
+:root[data-mode='dark'] :is(.card, .help-card, .notice, .place) { background-color: var(--panel); box-shadow: none; }
+.pop { border-color: #b99a5e; box-shadow: 0 18px 44px rgba(30, 18, 4, 0.38), inset 0 0 40px rgba(140, 96, 34, 0.12); }
+.pop-head, .modal-head { border-bottom-color: #c9ad75; }
+.pop-head h3, .modal-head h3, .section-title { font-weight: 700; color: var(--ink); }
+.refbadge { background: linear-gradient(180deg, #f0f3d8, #dde6bd); border-color: #a9b77c; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6); }
+.card-head .ref { font-weight: 700; }
+.commentary { font-weight: 500; }
+.comm-entry.current { background: color-mix(in srgb, #dfe8c4 60%, transparent); }
+:root[data-mode='dark'] .comm-entry.current { background: color-mix(in srgb, var(--accent-soft) 80%, transparent); }
+:root[data-mode='dark'] :is(.book-btn[aria-current='true'], .chap-grid button[aria-current='true']) { background: linear-gradient(180deg, #4d7d57, #2d5537 45%, #1f3d28); color: #fff8e2; }
+:root[data-mode='dark'][data-color]:not([data-color='green']) :is(.book-btn[aria-current='true'], .chap-grid button[aria-current='true'], .pill[aria-pressed='true'], .btn.primary, .tab[aria-selected='true']) {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 55%, #000), color-mix(in srgb, var(--accent) 35%, #000));
+}
+input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color: var(--accent); }
