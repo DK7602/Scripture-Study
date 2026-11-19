@@ -55,6 +55,13 @@ const TAPS = () => {
     hasTouch: true,
   })
   await ctx.addInitScript(TAPS)
+  // the browser's own full screen would change the screen's shape mid-recording: the map's full-screen view is
+  // shown the way phones without that feature (iPhone) show it
+  await ctx.addInitScript(() => {
+    try {
+      Object.defineProperty(Document.prototype, 'fullscreenEnabled', { get: () => false })
+    } catch {}
+  })
   // recording a local build: the sermons and Michael's recordings come from the live site (the Worker serves them)
   if (!URL.startsWith(LIVE)) {
     await ctx.route(/\/(feed\/sermons|audio\/michael\/|audio\/index\.json)/, async (route) => {

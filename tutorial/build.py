@@ -59,8 +59,29 @@ def michael_clip(m, dest):
     return mp3, verses[1][0], verses[m["toVerse"]][1] + 0.5
 
 
+def even_frames(tl):
+    """Every frame the same size (a frame of another shape would break the video on phones)."""
+    from collections import Counter
+
+    from PIL import Image
+
+    paths = [os.path.join(tl["frames"], f["file"]) for f in tl["frameList"]]
+    sizes = {p: Image.open(p).size for p in paths}
+    size = Counter(sizes.values()).most_common(1)[0][0]
+    odd = [p for p, s in sizes.items() if s != size]
+    for p in odd:
+        im = Image.open(p).convert("RGB")
+        im.thumbnail(size)
+        canvas = Image.new("RGB", size, (24, 30, 26))
+        canvas.paste(im, ((size[0] - im.width) // 2, (size[1] - im.height) // 2))
+        canvas.save(p, quality=90)
+    if odd:
+        print(f"  {len(odd)} frames of another size were fitted to {size[0]}x{size[1]}")
+
+
 def build_chapter(ch, tl, durations):
     cid = ch["id"]
+    even_frames(tl)
     frames = tl["frameList"]
     scenes = tl["scenes"]
     t_start = scenes[0]["start"] - LEAD
