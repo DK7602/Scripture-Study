@@ -57,6 +57,7 @@ export const DEFAULT_SETTINGS: Settings = {
   mode: 'light',
   color: 'green',
   textSize: 20,
+  uiSize: 125,
   font: 'serif',
   layout: 'verse',
   strongsUnderline: true,

@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Icon } from './Icon'
 
-/** Floating card near (x, y) on large screens, bottom sheet on phones. */
+/** Floating card near (x, y) on large screens, bottom sheet on phones. `large`: a big centred window, or the whole screen on phones. */
 export function Popover({
   x,
   y,
@@ -11,6 +11,7 @@ export function Popover({
   children,
   footer,
   width,
+  large,
 }: {
   x: number
   y: number
@@ -20,6 +21,7 @@ export function Popover({
   children: ReactNode
   footer?: ReactNode
   width?: number
+  large?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ left: x, top: y })
@@ -27,7 +29,7 @@ export function Popover({
 
   useLayoutEffect(() => {
     const el = ref.current
-    if (!el || phone) return
+    if (!el || phone || large) return
     const r = el.getBoundingClientRect()
     let left = x
     let top = y
@@ -35,17 +37,17 @@ export function Popover({
     if (left + r.width > window.innerWidth - 12) left = window.innerWidth - r.width - 12
     if (top + r.height > window.innerHeight - 12) top = Math.max(12, window.innerHeight - r.height - 12)
     setPos({ left, top })
-  }, [x, y, phone, title])
+  }, [x, y, phone, title, large])
 
   return (
     <>
-      <div className="pop-backdrop" onClick={onClose} style={phone ? { background: 'rgba(0,0,0,.35)' } : undefined} />
+      <div className="pop-backdrop" onClick={onClose} style={phone || large ? { background: 'rgba(0,0,0,.35)' } : undefined} />
       <div
         ref={ref}
-        className={`pop${phone ? ' sheet' : ''}`}
+        className={`pop${phone ? ' sheet' : ''}${large ? ' large' : ''}`}
         role="dialog"
         aria-modal="true"
-        style={phone ? undefined : { left: pos.left, top: pos.top, width: width ? `min(${width}px, calc(100vw - 24px))` : undefined }}
+        style={phone || large ? undefined : { left: pos.left, top: pos.top, width: width ? `min(calc(${width}px * var(--ui)), calc(100vw - 24px))` : undefined }}
         onKeyDown={(e) => e.key === 'Escape' && onClose()}
       >
         <div className="pop-head">

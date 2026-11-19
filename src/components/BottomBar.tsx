@@ -3,6 +3,7 @@ import { step } from '../views/Reader'
 import { deleteItem, getState, newId, saveItem, setState, setTab, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 import { Popover } from './Popover'
+import { ui } from '../lib/ui'
 
 /** Phone toolbar: previous/next chapter, books, highlighter, bookmark, text size. */
 export function BottomBar({ onBooks }: { onBooks: () => void }) {
@@ -38,7 +39,7 @@ export function BottomBar({ onBooks }: { onBooks: () => void }) {
       <button className="icon-btn" aria-label={marked ? 'Remove bookmark' : 'Bookmark this verse'} aria-pressed={!!marked} onClick={toggleBookmark}>
         <Icon name="bookmark" size={22} fill={!!marked} />
       </button>
-      <button className="icon-btn" aria-label="Text settings" onClick={() => setAa(true)} style={{ fontFamily: 'var(--serif)', fontSize: 20 }}>
+      <button className="icon-btn" aria-label="Text settings" onClick={() => setAa(true)} style={{ fontFamily: 'var(--serif)', fontSize: ui(20) }}>
         Aa
       </button>
       <button className="icon-btn" aria-label="Next chapter" onClick={() => { setTab('bible'); step(1) }}>

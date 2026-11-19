@@ -16,6 +16,7 @@ import {
 import { formatRef, locString, parseRef } from '../lib/refs'
 import { Icon } from '../components/Icon'
 import { RefLinks } from './RefLinks'
+import { ui } from '../lib/ui'
 
 type Open = { kind: 'doc'; id: string; section?: number; find?: string } | { kind: 'father'; id: string } | null
 
@@ -263,12 +264,12 @@ export function DocViewer({ id, section, find, onBack }: { id: string; section?:
       <button className="btn small" onClick={onBack}>
         <Icon name="left" size={15} /> Results
       </button>
-      <h3 style={{ fontFamily: 'var(--serif)', fontSize: 25, margin: '12px 0 2px' }}>{caps(doc.title)}</h3>
+      <h3 style={{ fontFamily: 'var(--serif)', fontSize: ui(25), margin: '12px 0 2px' }}>{caps(doc.title)}</h3>
       <div className="faint" style={{ marginBottom: 8 }}>
         {[TYPE_LABEL[doc.type], doc.year, doc.author, doc.tradition].filter(Boolean).join(' · ')}
       </div>
       {doc.source && <div className="faint small" style={{ marginBottom: 8 }}>Text: {doc.source}</div>}
-      {doc.intro && <p style={{ fontFamily: 'var(--serif)', fontSize: 16.5 }}>{caps(doc.intro)}</p>}
+      {doc.intro && <p style={{ fontFamily: 'var(--serif)', fontSize: ui(16.5) }}>{caps(doc.intro)}</p>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 12 }}>
         <div className="searchbox" style={{ flex: '1 1 200px' }}>
           <Icon name="search" size={18} />
@@ -363,7 +364,7 @@ function FatherView({ father, onBack }: { father: { id: string; name: string; ye
       <button className="btn small" onClick={openBook ? () => setOpenBook(null) : onBack}>
         <Icon name="left" size={15} /> {openBook ? father.name : 'Results'}
       </button>
-      <h3 style={{ fontFamily: 'var(--serif)', fontSize: 25, margin: '12px 0 2px' }}>{father.name}</h3>
+      <h3 style={{ fontFamily: 'var(--serif)', fontSize: ui(25), margin: '12px 0 2px' }}>{father.name}</h3>
       <div className="faint" style={{ marginBottom: 10 }}>
         {father.years} · {father.era} · {father.count.toLocaleString()} comments on Scripture
       </div>

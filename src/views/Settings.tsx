@@ -6,6 +6,7 @@ import type { CommentaryInfo, Settings, ThemeColor, ThemeMode } from '../lib/typ
 import { Icon } from '../components/Icon'
 import { CHIPS } from './Study'
 import { SyncPanel } from './SyncPanel'
+import { ui } from '../lib/ui'
 
 const COLORS: { id: ThemeColor; label: string; swatch: string }[] = [
   { id: 'green', label: 'Green', swatch: '#2f5d3a' },
@@ -109,7 +110,7 @@ export function SettingsView() {
           </button>
         ))}
       </div>
-      <div className="label" style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: 17 }}>Color Theme</div>
+      <div className="label" style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: ui(17) }}>Color Theme</div>
       <div className="colors">
         {COLORS.map((c) => (
           <button key={c.id} className="color-btn" aria-pressed={s.color === c.id} onClick={() => set({ color: c.id })}>
@@ -119,11 +120,26 @@ export function SettingsView() {
         ))}
       </div>
       <div className="setting-row">
-        <div>Text Size</div>
+        <div>
+          Bible Text Size
+          <div className="desc">The Scripture text in the Bible tab</div>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontFamily: 'var(--serif)' }}>Aa</span>
-          <input type="range" min={14} max={34} value={s.textSize} onChange={(e) => set({ textSize: +e.target.value })} aria-label="Text size" />
+          <input type="range" min={14} max={34} value={s.textSize} onChange={(e) => set({ textSize: +e.target.value })} aria-label="Bible text size" />
           <span className="faint small">{s.textSize}px</span>
+        </div>
+      </div>
+      <div className="setting-row">
+        <div>
+          App Text Size
+          <div className="desc">Everything else: menus, commentary, notes, journal, search, maps and pop-ups</div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button className="btn small" onClick={() => set({ uiSize: Math.max(90, (s.uiSize ?? 125) - 5) })} aria-label="Smaller app text">A−</button>
+          <input type="range" min={90} max={180} step={5} value={s.uiSize ?? 125} onChange={(e) => set({ uiSize: +e.target.value })} aria-label="App text size" />
+          <button className="btn small" onClick={() => set({ uiSize: Math.min(180, (s.uiSize ?? 125) + 5) })} aria-label="Larger app text">A+</button>
+          <span className="faint small" style={{ minWidth: '3.2em' }}>{s.uiSize ?? 125}%</span>
         </div>
       </div>
       <div className="setting-row">

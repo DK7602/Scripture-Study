@@ -5,6 +5,7 @@ import { locString, splitRefs } from '../lib/refs'
 import { closeAllPopups, deleteItem, go, openPopup, setState } from '../lib/store'
 import type { JournalEntry, Note } from '../lib/types'
 import { Icon } from './Icon'
+import { ui } from '../lib/ui'
 
 /** Text with Scripture references turned into tap-to-preview links. */
 export function RichText({ text }: { text: string }) {
@@ -83,7 +84,7 @@ export function JournalCard({ entry, compact }: { entry: JournalEntry; compact?:
           {stamp(entry.created)}
         </span>
       </div>
-      {entry.title && <div style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: 17 }}>{entry.title}</div>}
+      {entry.title && <div style={{ fontFamily: 'var(--serif)', fontWeight: 600, fontSize: ui(17) }}>{entry.title}</div>}
       <div className="faint small">{t.short} template</div>
       {t.fields.map((f, i) =>
         entry.fields[f.key]?.trim() ? (

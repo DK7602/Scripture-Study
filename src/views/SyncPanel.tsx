@@ -2,6 +2,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react'
 import { newInvite, onSync, pendingInvite, refreshLicensed, saveEsvKey, saveLicensedIds, saveLicensedKey, signIn, signOut, syncInfo, syncNow, type LicensedInfo } from '../lib/sync'
 import { onShared, sharedVersions } from '../lib/shared'
 import { Icon } from '../components/Icon'
+import { ui } from '../lib/ui'
 
 /** Settings section: sign in with email to sync notes, journal and highlights across devices. */
 export function SyncPanel() {
@@ -76,7 +77,7 @@ export function SyncPanel() {
               <div className="small" style={{ fontWeight: 600 }}>Invite someone</div>
               <div className="small subtle" style={{ marginBottom: 6 }}>Only people who open this link can join. Share it privately.</div>
               <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <input className="input" readOnly value={info.invite} style={{ flex: '1 1 220px', fontSize: 13, fontFamily: 'var(--sans)' }} onFocus={(e) => e.target.select()} />
+                <input className="input" readOnly value={info.invite} style={{ flex: '1 1 220px', fontSize: ui(13), fontFamily: 'var(--sans)' }} onFocus={(e) => e.target.select()} />
                 <button className="btn small" onClick={copy}>
                   <Icon name={copied ? 'check' : 'copy'} size={15} /> {copied ? 'Copied' : 'Copy'}
                 </button>
@@ -157,7 +158,7 @@ function SharedTranslations() {
       </div>
       {data?.hasKey && <div className="small" style={{ marginBottom: 6 }}>✓ Key saved{data.usedThisMonth !== undefined && ` · ${data.usedThisMonth} of ${data.monthLimit} live loads used this month`}</div>}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
-        <input className="input" type="password" autoComplete="off" placeholder={data?.hasKey ? 'Replace API.Bible key' : 'API.Bible key'} value={key} onChange={(e) => setKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: 15 }} />
+        <input className="input" type="password" autoComplete="off" placeholder={data?.hasKey ? 'Replace API.Bible key' : 'API.Bible key'} value={key} onChange={(e) => setKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: ui(15) }} />
         <button className="btn small primary" disabled={busy || !key.trim()} onClick={saveKey}>
           Save key
         </button>
@@ -167,7 +168,7 @@ function SharedTranslations() {
           {LICENSED.map((v) => (
             <div className="setting-row" key={v} style={{ padding: '6px 0' }}>
               <span>{v}</span>
-              <select className="select" style={{ maxWidth: 230, fontSize: 14 }} value={ids[v] ?? ''} onChange={(e) => setIds({ ...ids, [v]: e.target.value })} aria-label={`API.Bible version for ${v}`}>
+              <select className="select" style={{ maxWidth: 230, fontSize: ui(14) }} value={ids[v] ?? ''} onChange={(e) => setIds({ ...ids, [v]: e.target.value })} aria-label={`API.Bible version for ${v}`}>
                 <option value="">Not shared</option>
                 {data.bibles!.map((b) => (
                   <option key={b.id} value={b.id}>
@@ -185,7 +186,7 @@ function SharedTranslations() {
       <div className="small" style={{ fontWeight: 600, marginTop: 12 }}>ESV {data?.hasEsvKey && <span style={{ fontWeight: 400 }}>— ✓ shared with your group</span>}</div>
       <div className="small subtle" style={{ marginBottom: 6 }}>Paste your free ESV key from api.esv.org (non-commercial use).</div>
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        <input className="input" type="password" autoComplete="off" placeholder={data?.hasEsvKey ? 'Replace ESV key' : 'ESV API key'} value={esvKey} onChange={(e) => setEsvKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: 15 }} />
+        <input className="input" type="password" autoComplete="off" placeholder={data?.hasEsvKey ? 'Replace ESV key' : 'ESV API key'} value={esvKey} onChange={(e) => setEsvKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: ui(15) }} />
         <button
           className="btn small primary"
           disabled={busy || !esvKey.trim()}

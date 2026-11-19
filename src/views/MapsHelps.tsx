@@ -10,6 +10,7 @@ import { MapView, type Marker } from './MapView'
 import { RefLinks } from './RefLinks'
 import { PlacePhoto } from './PlacePhoto'
 import { BreastplateDiagram, HerodTemple, NewJerusalem, SolomonTemple, Tabernacle, ThroneRoom } from './Diagrams'
+import { ui } from '../lib/ui'
 
 const CATS: { id: 'all' | HelpKind; label: string }[] = [
   { id: 'all', label: 'All' },
@@ -238,7 +239,7 @@ function HelpDetail({ id, data, onBack }: { id: string; data: HelpData | null; o
       <button className="btn small" onClick={onBack}>
         <Icon name="left" size={15} /> Maps / Helps
       </button>
-      <h3 style={{ fontFamily: 'var(--serif)', fontSize: 24, margin: '12px 0 2px' }}>{caps(title)}</h3>
+      <h3 style={{ fontFamily: 'var(--serif)', fontSize: ui(24), margin: '12px 0 2px' }}>{caps(title)}</h3>
       {item?.subtitle && <div className="faint" style={{ marginBottom: 8 }}>{caps(item.subtitle)}</div>}
       {refs.length > 0 && (
         <p style={{ margin: '4px 0 12px', fontFamily: 'var(--serif)' }}>
@@ -337,7 +338,7 @@ function RouteMap({ id }: { id: string }) {
   return (
     <>
       <MapView markers={drawn} route={r.route} layer={ROUTE_LAYER[id]} />
-      <ol style={{ fontFamily: 'var(--serif)', fontSize: 16, paddingLeft: 22 }}>
+      <ol style={{ fontFamily: 'var(--serif)', fontSize: ui(16), paddingLeft: 22 }}>
         {stops.map(([n, ref], i) => (
           <li key={i}>
             <b>{n.replace(/ \d$/, '')}</b> <span className="faint small">— now {found[n].m || 'uncertain'}</span> {ref && <RefLinks refs={[ref]} />}
@@ -417,7 +418,7 @@ function Prophecies({ data, focus }: { data: HelpData; focus?: number }) {
   const ref = useScrollToFocus(focus)
   const cats = [...new Set(data.prophecies.map((p) => p.category))]
   return (
-    <table className="chart">
+    <table className="chart stack">
       <thead>
         <tr>
           <th>Prophecy</th>
@@ -428,16 +429,16 @@ function Prophecies({ data, focus }: { data: HelpData; focus?: number }) {
       <tbody>
         {cats.flatMap((c) => [
           <tr key={c}>
-            <td colSpan={3} style={{ fontFamily: 'var(--display)', fontSize: 13, letterSpacing: '.08em', color: 'var(--accent)', paddingTop: 14 }}>
+            <td colSpan={3} style={{ fontFamily: 'var(--display)', fontSize: ui(13), letterSpacing: '.08em', color: 'var(--accent)', paddingTop: 14 }}>
               {caps(c).toUpperCase()}
             </td>
           </tr>,
           ...data.prophecies.map((p, i) =>
             p.category !== c ? null : (
               <tr key={i} ref={i === focus ? ref : undefined} style={i === focus ? { background: 'var(--accent-soft)' } : undefined}>
-                <td>{caps(p.title)}</td>
-                <td><RefLinks refs={p.ot} /></td>
-                <td><RefLinks refs={p.nt} /></td>
+                <td className="lead">{caps(p.title)}</td>
+                <td data-label="Old Testament"><RefLinks refs={p.ot} /></td>
+                <td data-label="Fulfilled"><RefLinks refs={p.nt} /></td>
               </tr>
             ),
           ),
@@ -451,7 +452,7 @@ function RevOt({ data, focus }: { data: HelpData; focus?: number }) {
   const caps = useCaps()
   const ref = useScrollToFocus(focus)
   return (
-    <table className="chart">
+    <table className="chart stack">
       <thead>
         <tr>
           <th>Revelation</th>
@@ -462,9 +463,9 @@ function RevOt({ data, focus }: { data: HelpData; focus?: number }) {
       <tbody>
         {data.revOt.map((r, i) => (
           <tr key={i} ref={i === focus ? ref : undefined} style={i === focus ? { background: 'var(--accent-soft)' } : undefined}>
-            <td style={{ whiteSpace: 'nowrap' }}><RefLinks refs={[r.rev]} /></td>
-            <td><RefLinks refs={r.ot} /></td>
-            <td>{caps(r.note)}</td>
+            <td className="lead" style={{ whiteSpace: 'nowrap' }}><RefLinks refs={[r.rev]} /></td>
+            <td data-label="Old Testament"><RefLinks refs={r.ot} /></td>
+            <td data-label="Image">{caps(r.note)}</td>
           </tr>
         ))}
       </tbody>
@@ -478,7 +479,7 @@ function RevStructureView({ data }: { data: HelpData }) {
   if (!s) return <p className="empty">Not available.</p>
   const col = (title: string, list: { n: number; title: string; ref: string }[], color: string) => (
     <div style={{ flex: '1 1 180px' }}>
-      <div style={{ fontFamily: 'var(--display)', fontSize: 14, letterSpacing: '.06em', color, marginBottom: 6 }}>{title}</div>
+      <div style={{ fontFamily: 'var(--display)', fontSize: ui(14), letterSpacing: '.06em', color, marginBottom: 6 }}>{title}</div>
       {list.map((x) => (
         <div key={x.n} className="card" style={{ padding: '8px 10px', marginBottom: 6, borderLeft: `5px solid ${color}` }}>
           <b>{x.n}.</b> {caps(x.title)} <div className="small"><RefLinks refs={[x.ref]} /></div>
@@ -494,13 +495,13 @@ function RevStructureView({ data }: { data: HelpData }) {
         {col('SEVEN BOWLS', s.bowls, '#5a3c7c')}
       </div>
       <div className="section-title" style={{ marginTop: 14 }}>Interludes</div>
-      <ul style={{ fontFamily: 'var(--serif)', fontSize: 16 }}>
+      <ul style={{ fontFamily: 'var(--serif)', fontSize: ui(16) }}>
         {s.interludes.map((x) => (
           <li key={x.ref}>{caps(x.title)} — <RefLinks refs={[x.ref]} /></li>
         ))}
       </ul>
       <div className="section-title">Outline of Revelation</div>
-      <ol style={{ fontFamily: 'var(--serif)', fontSize: 16 }}>
+      <ol style={{ fontFamily: 'var(--serif)', fontSize: ui(16) }}>
         {s.outline.map((x) => (
           <li key={x.ref}>{caps(x.title)} — <RefLinks refs={[x.ref]} /></li>
         ))}
@@ -520,8 +521,8 @@ function Names({ data, focus }: { data: HelpData; focus?: number }) {
           {data.names.map((n, i) => (
             <tr key={n.name} ref={i === focus ? ref : undefined} style={i === focus ? { background: 'var(--accent-soft)' } : undefined}>
               <td>
-                <b style={{ fontFamily: 'var(--serif)', fontSize: 17 }}>{caps(n.name)}</b>
-                <div lang="he" style={{ fontSize: 18 }}>{n.hebrew}</div>
+                <b style={{ fontFamily: 'var(--serif)', fontSize: ui(17) }}>{caps(n.name)}</b>
+                <div lang="he" style={{ fontSize: ui(18) }}>{n.hebrew}</div>
               </td>
               <td>
                 <i>{caps(n.meaning)}</i> — {caps(n.note)} <RefLinks refs={[n.ref]} />
@@ -552,7 +553,7 @@ function BookHelp({ data }: { data: HelpData }) {
       ) : (
         <>
           <h3 style={{ fontFamily: 'var(--display)', letterSpacing: '.08em', margin: '4px 0 8px' }}>{book(bk).name.toUpperCase()}</h3>
-          <p style={{ fontFamily: 'var(--serif)', fontSize: 17, fontStyle: 'italic', margin: '0 0 10px' }}>{caps(bg.theme)}</p>
+          <p style={{ fontFamily: 'var(--serif)', fontSize: ui(17), fontStyle: 'italic', margin: '0 0 10px' }}>{caps(bg.theme)}</p>
           <dl className="bg-grid">
             <dt>Author</dt>
             <dd>{caps(bg.author)}</dd>
@@ -565,13 +566,13 @@ function BookHelp({ data }: { data: HelpData }) {
             <dt>Key verses</dt>
             <dd><RefLinks refs={bg.keyVerses} short={false} /></dd>
           </dl>
-          <p style={{ fontFamily: 'var(--serif)', fontSize: 17, lineHeight: 1.55 }}>{caps(bg.summary)}</p>
+          <p style={{ fontFamily: 'var(--serif)', fontSize: ui(17), lineHeight: 1.55 }}>{caps(bg.summary)}</p>
           <div className="notice" style={{ marginBottom: 12 }}>
             <h4>CHRIST in {book(bk).name}</h4>
             {caps(bg.christ)}
           </div>
           <div className="section-title">Outline</div>
-          <ol className="outline" style={{ fontFamily: 'var(--serif)', fontSize: 16.5 }}>
+          <ol className="outline" style={{ fontFamily: 'var(--serif)', fontSize: ui(16.5) }}>
             {bg.outline.map((o) => {
               const r = parseRef(o.ref)
               return (

@@ -8,6 +8,7 @@ import { Icon } from '../components/Icon'
 import { loadPassage, passagePlain } from '../lib/passage'
 import { useCaps, useCapsHtml } from '../lib/caps'
 import { HistorySearch } from './History'
+import { ui } from '../lib/ui'
 
 type Mode = 'topical' | 'word' | 'history'
 
@@ -275,7 +276,7 @@ function TopicDetail({ source, name, onBack }: { source: string; name: string; o
       <button className="btn small" onClick={onBack}>
         <Icon name="left" size={15} /> Results
       </button>
-      <h3 style={{ fontFamily: 'var(--serif)', fontSize: 24, margin: '12px 0 2px' }}>{caps(name)}</h3>
+      <h3 style={{ fontFamily: 'var(--serif)', fontSize: ui(24), margin: '12px 0 2px' }}>{caps(name)}</h3>
       <div className="faint small" style={{ marginBottom: 10 }}>{SOURCES[source]}</div>
       {html === undefined && <div className="spinner" />}
       {html === null && <p className="empty">Topic not found.</p>}
@@ -398,7 +399,7 @@ function WordSearch({ q }: { q: string }) {
         ))}
       </div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
-        <select className="select" style={{ fontSize: 15 }} value={scope} onChange={(e) => setScope(e.target.value as typeof scope)} aria-label="Search scope">
+        <select className="select" style={{ fontSize: ui(15) }} value={scope} onChange={(e) => setScope(e.target.value as typeof scope)} aria-label="Search scope">
           <option value="all">Whole Bible</option>
           <option value="OT">Old Testament</option>
           <option value="NT">New Testament</option>

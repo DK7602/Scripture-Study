@@ -107,7 +107,7 @@ function StrongsPopup(p: { num: string; word: string; book: string; chapter: num
     <Popover
       x={p.x}
       y={p.y}
-      width={470}
+      large
       title={title}
       onClose={closeAllPopups}
       onBack={pick ? () => setPick(null) : mode !== 'def' ? () => setMode('def') : p.onBack}
@@ -148,16 +148,18 @@ function StrongsPopup(p: { num: string; word: string; book: string; chapter: num
             )}
           </dl>
           <hr className="rule" style={{ margin: '8px 0' }} />
-          <p style={{ margin: '0 0 8px' }}>
-            <b>Strong’s Definition:</b> <i>{caps(e.d)}</i>
-          </p>
+          {e.d.trim() && (
+            <p style={{ margin: '0 0 8px' }}>
+              <b>Strong’s Definition:</b> <i>{caps(e.d)}</i>
+            </p>
+          )}
           {e.r && (
-            <p className="subtle" style={{ margin: '0 0 8px', fontSize: 15 }}>
+            <p className="subtle" style={{ margin: '0 0 8px', fontSize: '0.92em' }}>
               <b>Derivation:</b> {caps(e.r)}
             </p>
           )}
           {e.k && (
-            <p style={{ margin: '0 0 8px', fontSize: 15.5 }}>
+            <p style={{ margin: '0 0 8px', fontSize: '0.95em' }}>
               <b>KJV renders it:</b> {caps(e.k)}
             </p>
           )}
@@ -278,7 +280,7 @@ function OrigWordsPopup(p: { word: string; book: string; chapter: number; verse:
     })
   }, [p.book, p.chapter, p.verse])
   return (
-    <Popover x={p.x} y={p.y} width={460} title={`Original words — ${locString(p.book, p.chapter, p.verse)}`} onClose={closeAllPopups} onBack={p.onBack}>
+    <Popover x={p.x} y={p.y} large title={`Original words — ${locString(p.book, p.chapter, p.verse)}`} onClose={closeAllPopups} onBack={p.onBack}>
       <p className="small subtle" style={{ marginTop: 0 }}>
         “{caps(p.word.replace(/[^\p{L}'’-]/gu, ''))}” has no direct match. These are the Hebrew/Greek words in this verse (with the KJV’s wording) — tap one:
       </p>

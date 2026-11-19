@@ -5,6 +5,7 @@ import { TEMPLATES } from '../lib/journal'
 import { locString } from '../lib/refs'
 import { setState, updateSettings, useStore } from '../lib/store'
 import type { JournalTemplateId } from '../lib/types'
+import { ui } from '../lib/ui'
 
 export function JournalView() {
   const loc = useStore((s) => s.loc)
@@ -66,7 +67,7 @@ export function JournalView() {
           <Icon name="search" size={18} />
           <input placeholder="Search entries…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search journal" />
         </div>
-        <select className="select" style={{ fontSize: 15 }} value={tfilter} onChange={(e) => setTfilter(e.target.value as JournalTemplateId | '')} aria-label="Filter by template">
+        <select className="select" style={{ fontSize: ui(15) }} value={tfilter} onChange={(e) => setTfilter(e.target.value as JournalTemplateId | '')} aria-label="Filter by template">
           <option value="">All templates</option>
           {TEMPLATES.map((t) => (
             <option key={t.id} value={t.id}>{t.short}</option>

@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { dataUrl, getJSON } from '../lib/data'
 import { MAP_LABELS } from '../lib/mapLabels'
 import { formatRef } from '../lib/refs'
-import { openPopup } from '../lib/store'
+import { openPopup, useStore } from '../lib/store'
 
 interface Basemap {
   w: number
@@ -108,6 +108,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
   const [layerId, setLayerId] = useState(layer ?? 'none')
   useEffect(() => setLayerId(layer ?? 'none'), [layer])
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
+  const uiK = (useStore((s) => s.settings.uiSize) ?? 125) / 100 // App text size setting
   const svgRef = useRef<SVGSVGElement>(null)
   const [pxPerUnit, setPxPerUnit] = useState(1)
   useEffect(() => {
@@ -267,20 +268,20 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
   const layout = useMemo(() => {
     if (!proj) return { labels: [], markerLabels: [], terrLabels: [], roadLabels: [] }
     const unit = 1 / Math.max(pxPerUnit, 0.01) // map units per screen pixel
-    const fsMarker = 13 * unit
+    const fsMarker = 13 * unit * uiK
     const placed: Box[] = []
     const visible = (x: number, y: number) => x > vb.x - 5 && x < vb.x + vb.w + 5 && y > vb.y - 5 && y < vb.y + vb.h + 5
     const charW = 0.6
     // keep labels inside the view and clear of the on-map controls (sizes in screen px)
     const W = vb.w / unit
     const H = vb.h / unit
-    const creditW = Math.min(W - 120, credit.length * 5.2 + 14)
+    const creditW = Math.min(W - 120, credit.length * 5.2 * uiK + 14)
     const ui: Box[] = [
-      active || (!now && terr) ? [0, 0, 200, 88] : [0, 0, 124, 50], // Then / Now and the borders picker
+      active || (!now && terr) ? [0, 0, 200 * uiK, 88 * uiK] : [0, 0, 124 * uiK, 50 * uiK], // Then / Now and the borders picker
       [W - 52, 0, 52, 132], // zoom tools
       [W - 48, H - 86, 48, 86], // north arrow
-      [W - creditW, H - 18, creditW, 18], // credit line
-      [0, H - 40, 112, 40], // scale bar
+      [W - creditW, H - 18 * uiK, creditW, 18 * uiK], // credit line
+      [0, H - 40 * uiK, 112 * uiK, 40 * uiK], // scale bar
     ].map(([x, y, w, h]) => ({ x: vb.x + x * unit, y: vb.y + y * unit, w: w * unit, h: h * unit }))
     placed.push(...ui)
     const pad = 3 * unit
@@ -350,7 +351,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
     const terrLabels = shapes
       .map((sh) => {
         const text = sh.t.n.toUpperCase()
-        const base = (sh.t.s ? 10.5 : 12.5) * unit
+        const base = (sh.t.s ? 10.5 : 12.5) * unit * uiK
         let fs = base
         let w = text.length * fs * 0.86
         if (sh.bw < w) {
@@ -367,7 +368,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
           }
         // still too small: set the name just outside with a short pointer line, as printed atlases do
         if (!visible(sh.lx, sh.ly)) return null
-        fs = 10 * unit
+        fs = 10 * unit * uiK
         w = text.length * fs * 0.84
         const h = fs * 1.1
         for (const d of [10, 22, 36].map((n) => n * unit))
@@ -387,7 +388,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
     const roadLabels = roads
       .map((rd) => {
         if (!rd.r.n) return null
-        const fs = 10 * unit
+        const fs = 10 * unit * uiK
         const w = rd.r.n.length * fs * 0.5
         if (rd.len < w * 2.2) return null
         const [mx, my] = rd.mid
@@ -416,7 +417,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
         if (!visible(x, y)) return null
         const text = now ? l.now ?? l.then : active?.era === 'nt' ? l.nt ?? l.then : l.then
         if (now && l.kind === 'region') return null // modern country names are shown instead
-        const fs = (l.kind === 'region' ? 11.5 : l.kind === 'water' ? 12 : 11) * unit
+        const fs = (l.kind === 'region' ? 11.5 : l.kind === 'water' ? 12 : 11) * unit * uiK
         const w = text.length * fs * (l.kind === 'region' ? 0.92 : l.kind === 'water' && text === text.toUpperCase() ? 1.0 : charW)
         const box: Box = l.rotate ? { x: x - fs, y: y - fs, w: 2 * fs, h: 2 * fs } : l.kind === 'city' || l.kind === 'mount' ? { x: x + 5 * unit, y: y - fs * 0.7, w, h: fs * 1.1 } : { x: x - w / 2, y: y - fs * 0.8, w, h: fs * 1.1 }
         let dx = 0
@@ -435,7 +436,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
       })
       .filter((x): x is NonNullable<typeof x> => !!x)
     return { labels, markerLabels, terrLabels, roadLabels }
-  }, [proj, markers, now, vb, pxPerUnit, shapes, roads, active, credit])
+  }, [proj, markers, now, vb, pxPerUnit, shapes, roads, active, credit, uiK])
 
   if (!base || !proj) return <div className="spinner" />
   const unit = 1 / Math.max(pxPerUnit, 0.01)
@@ -545,7 +546,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
           ))}
         {now &&
           base.countries.map((c) => {
-            const fs = 11 * unit
+            const fs = 11 * unit * uiK
             return (
               <text key={c.n + 't'} x={c.lx} y={c.ly} fontSize={fs} textAnchor="middle" fill={dark ? '#d8cfe0' : '#5e3f70'} stroke={halo} strokeWidth={fs / 4} paintOrder="stroke" fontFamily="var(--sans)" fontWeight={600} letterSpacing="0.08em" style={{ textTransform: 'uppercase', pointerEvents: 'none' }}>
                 {c.n}

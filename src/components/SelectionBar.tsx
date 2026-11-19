@@ -6,6 +6,7 @@ import type { Highlight } from '../lib/types'
 import { chapterText } from '../lib/providers'
 import { plainText } from '../lib/markup'
 import { Icon } from './Icon'
+import { ui } from '../lib/ui'
 
 /** Appears when verse numbers are tapped or text is selected: highlight, note, journal, copy, bookmark. */
 export function SelectionBar() {
@@ -102,7 +103,7 @@ export function SelectionBar() {
   return (
     <div ref={ref} className="selbar" style={{ left: pos.left, top: pos.top }} role="toolbar" aria-label="Selection actions" onMouseDown={(e) => e.preventDefault()}>
       <div className="row" style={{ justifyContent: 'space-between' }}>
-        <strong style={{ fontFamily: 'var(--serif)', fontSize: 16 }}>
+        <strong style={{ fontFamily: 'var(--serif)', fontSize: ui(16) }}>
           {refLabel}
           {sel.words && <span className="faint small"> · selected words</span>}
         </strong>

@@ -6,6 +6,7 @@ import type { CommentaryChapter, CommentaryInfo } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { useCapsHtml } from '../lib/caps'
 import { FathersPanel } from './History'
+import { ui } from '../lib/ui'
 
 interface Chip {
   id: string
@@ -132,12 +133,12 @@ export function StudyPanel() {
         </button>
       </div>
       <div className="row" style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', marginBottom: 10 }}>
-        <select className="select" style={{ fontSize: 15, flex: '1 1 140px' }} value={view.book} aria-label="Commentary book" onChange={(e) => { setFollow(false); setView({ book: e.target.value, chapter: 1, verse: 1 }) }}>
+        <select className="select" style={{ fontSize: ui(15), flex: '1 1 140px' }} value={view.book} aria-label="Commentary book" onChange={(e) => { setFollow(false); setView({ book: e.target.value, chapter: 1, verse: 1 }) }}>
           {books().map((b) => (
             <option key={b.id} value={b.id}>{b.name}</option>
           ))}
         </select>
-        <select className="select" style={{ fontSize: 15, flex: '0 1 110px' }} value={view.chapter} aria-label="Commentary chapter" onChange={(e) => { setFollow(false); setView({ ...view, chapter: +e.target.value, verse: 1 }) }}>
+        <select className="select" style={{ fontSize: ui(15), flex: '0 1 110px' }} value={view.chapter} aria-label="Commentary chapter" onChange={(e) => { setFollow(false); setView({ ...view, chapter: +e.target.value, verse: 1 }) }}>
           {book(view.book).v.map((_, i) => (
             <option key={i} value={i + 1}>Ch. {i + 1}</option>
           ))}

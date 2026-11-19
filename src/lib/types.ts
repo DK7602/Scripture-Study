@@ -106,7 +106,8 @@ export interface Settings {
   redLetters: boolean
   mode: ThemeMode
   color: ThemeColor
-  textSize: number // px
+  textSize: number // px, Bible text
+  uiSize: number // percent, all other text in the app
   font: 'serif' | 'sans'
   layout: 'verse' | 'paragraph'
   strongsUnderline: boolean

@@ -41,7 +41,7 @@ const PATHS: Record<string, string> = {
 
 export function Icon({ name, size = 20, stroke = 1.8, fill }: { name: string; size?: number; stroke?: number; fill?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"
+    <svg width={size} height={size} style={{ width: `calc(${size}px * (0.5 + var(--ui, 1) / 2))`, height: `calc(${size}px * (0.5 + var(--ui, 1) / 2))` }} viewBox="0 0 24 24" aria-hidden="true" focusable="false"
       fill={fill ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round">
       <path d={PATHS[name] ?? PATHS.help} />
     </svg>

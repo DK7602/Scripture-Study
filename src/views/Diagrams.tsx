@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { Breastplate } from '../lib/helps'
 import { useCaps } from '../lib/caps'
 import { RefLinks } from './RefLinks'
+import { ui } from '../lib/ui'
 
 /** A legend row: what each numbered item in a diagram is, with its Scripture. */
 export interface LegendItem {
@@ -16,7 +17,7 @@ export function Legend({ items }: { items: LegendItem[] }) {
   return (
     <ol className="outline" style={{ listStyle: 'none', padding: 0, marginTop: 12 }}>
       {items.map((it) => (
-        <li key={it.n} style={{ marginBottom: 10, fontFamily: 'var(--serif)', fontSize: 16 }}>
+        <li key={it.n} style={{ marginBottom: 10, fontFamily: 'var(--serif)', fontSize: ui(16) }}>
           <b>
             <span className="vtag" style={{ marginLeft: 0, marginRight: 6 }}>{it.n}</span>
             {caps(it.title)}
@@ -283,10 +284,10 @@ export function BreastplateDiagram({ data }: { data: Breastplate }) {
         )}
         <text x={(cw * 3 + 80) / 2} y={ch * 4 + 96} textAnchor="middle" fontSize={11} fill="var(--ink-soft)">Four rows of three stones, each engraved with the name of a tribe (Exod 28:17–21)</text>
       </svg>
-      <p style={{ fontFamily: 'var(--serif)', fontSize: 16 }}>
+      <p style={{ fontFamily: 'var(--serif)', fontSize: ui(16) }}>
         {caps(data.intro)} <RefLinks refs={data.refs} />
       </p>
-      <table className="chart">
+      <table className="chart stack">
         <thead>
           <tr>
             <th>Row</th>
@@ -300,14 +301,14 @@ export function BreastplateDiagram({ data }: { data: Breastplate }) {
           {data.rows.flatMap((row, r) =>
             row.map((st) => (
               <tr key={st.stone}>
-                <td>{r + 1}</td>
-                <td>
+                <td data-label="Row">{r + 1}</td>
+                <td data-label="Stone (KJV)">
                   <span style={{ display: 'inline-block', width: 12, height: 12, borderRadius: 3, background: st.color, marginRight: 6, verticalAlign: -1 }} />
                   {st.stone}
                 </td>
-                <td><i>{st.hebrew}</i></td>
-                <td>{st.identification}</td>
-                <td>{st.tribe}</td>
+                <td data-label="Hebrew"><i>{st.hebrew}</i></td>
+                <td data-label="Probably">{st.identification}</td>
+                <td data-label="Tribe">{st.tribe}</td>
               </tr>
             )),
           )}

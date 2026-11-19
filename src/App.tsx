@@ -84,9 +84,10 @@ export function App() {
     r.dataset.color = settings.color
     r.dataset.font = settings.font
     r.style.setProperty('--text-size', `${settings.textSize}px`)
+    r.style.setProperty('--ui', String((settings.uiSize ?? 125) / 100))
     const meta = document.querySelector('meta[name="theme-color"]')
     meta?.setAttribute('content', getComputedStyle(r).getPropertyValue('--chrome').trim() || '#1f3d2b')
-  }, [settings.mode, settings.color, settings.font, settings.textSize])
+  }, [settings.mode, settings.color, settings.font, settings.textSize, settings.uiSize])
 
   if (error) return <div className="loading">Could not load Scripture Study data: {error}</div>
   if (!ready)
