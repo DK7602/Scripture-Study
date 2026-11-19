@@ -67,7 +67,7 @@ def main():
     args = [sys.executable, os.path.join(repo, "scripts", "narrate.py"), "--version", version, "--book", CFG.get("book", "ALL"),
             "--chapters", str(CFG.get("chapters", "all")), "--kokoro-model", f"{models}/kokoro-v1.0.onnx",
             "--kokoro-voices", f"{models}/voices-v1.0.bin", "--kokoro-voice", CFG.get("kokoro_voice", "am_michael"),
-            "--voice-id", voice, "--out", out, "--threads", "4"]
+            "--voice-id", voice, "--out", out, "--threads", "4", "--bitrate", CFG.get("bitrate", "32k")]
     if CFG.get("rvc"):
         packs = glob.glob("/kaggle/input/**/vocalset-male8.vxpack", recursive=True)
         encs = glob.glob("/kaggle/input/**/contentvec-768.onnx", recursive=True)
@@ -84,17 +84,34 @@ def main():
             print("resuming from", prev, flush=True)
             with tarfile.open(prev) as t:
                 t.extractall(out, filter="data")
+            # unpack the per-book timings back into per-chapter files so narrate.py skips finished chapters
+            for bj in glob.glob(os.path.join(out, voice, version, "*.json")):
+                for ch, tm in json.load(open(bj)).items():
+                    json.dump(tm, open(os.path.join(bj[:-5], f"{ch}.json"), "w"), separators=(",", ":"))
+                os.remove(bj)
 
     left = CFG.get("hours", 11) - (time.time() - START) / 3600 - 0.25
     args += ["--hours", f"{max(0.1, left):.2f}"]
     print("+ " + " ".join(args), flush=True)
     subprocess.run(args, check=True)
 
-    # pack what is done (also after a time-limit stop) and report progress
+    # pack what is done (also after a time-limit stop) and report progress. Verse timings go in one file per
+    # book (<BOOK>.json: {chapter: timings}) to keep the site under the host's file-count limit.
     root = os.path.join(out, voice, version)
     done = sorted(os.path.relpath(p, root)[:-4] for p in glob.glob(os.path.join(root, "*", "*.mp3")))
     with tarfile.open(archive, "w") as t:
-        t.add(os.path.join(out, voice), arcname=voice)
+        for bdir in sorted(glob.glob(os.path.join(root, "*"))):
+            if not os.path.isdir(bdir):
+                continue
+            book = os.path.basename(bdir)
+            timing = {}
+            for mp3 in sorted(glob.glob(os.path.join(bdir, "*.mp3"))):
+                ch = os.path.basename(mp3)[:-4]
+                t.add(mp3, arcname=f"{voice}/{version}/{book}/{ch}.mp3")
+                timing[ch] = json.load(open(mp3[:-4] + ".json"))
+            bj = os.path.join(TMP, f"{book}.json")
+            json.dump(timing, open(bj, "w"), separators=(",", ":"))
+            t.add(bj, arcname=f"{voice}/{version}/{book}.json")
     books = json.load(open(os.path.join(repo, "public", "data", "books.json")))
     books = books["books"] if isinstance(books, dict) else books
     want = [f"{b['id']}/{c}" for b in books for c in range(1, len(b["v"]) + 1)]

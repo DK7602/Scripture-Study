@@ -28,13 +28,14 @@ def main():
     ap.add_argument("--hours", type=float, default=11)
     ap.add_argument("--branch", default="claude/affectionate-pasteur-c22ifu")
     ap.add_argument("--resume", action="store_true")
+    ap.add_argument("--bitrate", default="32k")
     ap.add_argument("--test", action="store_true", help="a separate kernel for trial runs")
     a = ap.parse_args()
 
     title = f"Scripture Study narration {a.voice_id} {a.version}" + (" test" if a.test else "")
     slug = title.lower().replace(" ", "-")
     cfg = {"branch": a.branch, "version": a.version, "voice_id": a.voice_id, "kokoro_voice": a.kokoro_voice, "rvc": a.rvc,
-           "book": a.book, "chapters": a.chapters, "hours": a.hours, "resume": a.resume}
+           "book": a.book, "chapters": a.chapters, "hours": a.hours, "resume": a.resume, "bitrate": a.bitrate}
     src = open(os.path.join(ROOT, "scripts", "kaggle_narrate.py")).read()
     sources = [VOXAVERSA_VOICE] if a.rvc else []
     if a.resume:
@@ -43,7 +44,7 @@ def main():
             "is_private": True, "enable_gpu": True, "enable_internet": True, "dataset_sources": [], "kernel_sources": sources,
             "competition_sources": [], "model_sources": []}
     with tempfile.TemporaryDirectory() as d:
-        open(os.path.join(d, "kernel.py"), "w").write(f"SCRIPTURE_NARRATION = {json.dumps(cfg)}\n\n{src}")
+        open(os.path.join(d, "kernel.py"), "w").write(f"SCRIPTURE_NARRATION = {cfg!r}\n\n{src}")
         json.dump(meta, open(os.path.join(d, "kernel-metadata.json"), "w"), indent=1)
         subprocess.run(["kaggle", "kernels", "push", "-p", d], check=True)
     print(f"pushed {OWNER}/{slug}: https://www.kaggle.com/code/{OWNER}/{slug}")

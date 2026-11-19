@@ -136,6 +136,20 @@ export function onVoicesChanged(f: () => void) {
 // ---------------------------------------------------------------------------------------------
 // playback
 // ---------------------------------------------------------------------------------------------
+const bookCache = new Map<string, Promise<Record<string, Timings>>>()
+function bookTimings(url: string) {
+  let p = bookCache.get(url)
+  if (!p) {
+    p = fetch(url).then((r) => {
+      if (!r.ok) throw new Error(`timings ${r.status}`)
+      return r.json()
+    })
+    p.catch(() => bookCache.delete(url))
+    bookCache.set(url, p)
+  }
+  return p
+}
+
 let audioEl: HTMLAudioElement | null = null
 let timings: Timings | null = null
 let raf = 0
@@ -216,9 +230,16 @@ export async function play(v = 1) {
 
 async function playNarration(voice: NarratorVoice, v: number, my: number) {
   const m = await narrationManifest()
-  const base = m.base ? `${m.base.replace(/\/$/, '')}/${voice.id}/${chapter!.version}/${chapter!.book}/${chapter!.chapter}` : siteUrl(`audio/${voice.id}/${chapter!.version}/${chapter!.book}/${chapter!.chapter}`)
+  const root = m.base ? `${m.base.replace(/\/$/, '')}/` : siteUrl('audio/')
+  const bookDir = `${root}${voice.id}/${chapter!.version}/${chapter!.book}`
+  const base = `${bookDir}/${chapter!.chapter}`
   try {
-    const t = await fetch(base + '.json').then((r) => r.json() as Promise<Timings>)
+    // a fully recorded translation keeps the verse timings in one file per book; samples have one per chapter
+    const t =
+      voice.versions[chapter!.version] === 'all'
+        ? ((await bookTimings(bookDir + '.json'))[String(chapter!.chapter)] as Timings)
+        : await fetch(base + '.json').then((r) => r.json() as Promise<Timings>)
+    if (!t) throw new Error('no timings')
     if (my !== runId) return
     timings = t
     audioEl ??= new Audio()

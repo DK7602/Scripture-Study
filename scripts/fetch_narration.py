@@ -91,8 +91,13 @@ def main():
                 download(match[0]["url"], dest)
             with tarfile.open(dest) as t:
                 t.extractall(DIST, filter="data")
-            voice = s["voice"]
-            index["voices"] = [v for v in index["voices"] if v["id"] != voice["id"]] + [voice]
+            voice = dict(s["voice"])
+            old = next((v for v in index["voices"] if v["id"] == voice["id"]), None)
+            if old:  # one narrator, several translations: merge
+                old.update({k: v for k, v in voice.items() if k != "versions"})
+                old["versions"] = {**old.get("versions", {}), **voice.get("versions", {})}
+            else:
+                index["voices"].append(voice)
             print(f"narration: added {voice['id']} ({os.path.getsize(dest) // 2**20} MB)")
         except Exception as e:  # never block a deploy over the recordings
             print(f"narration: {s.get('archive')} failed: {e}")
