@@ -4,6 +4,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // Relative base so the same build works at a domain root or a sub-path (e.g. GitHub Pages).
 export default defineConfig({
+  // cross-origin isolation lets the on-device voice use every processor core (see public/_headers)
+  server: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'credentialless' } },
+  preview: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'credentialless' } },
   base: './',
   plugins: [
     react(),

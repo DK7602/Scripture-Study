@@ -1,0 +1,5 @@
+# Cross-origin isolation: lets Michael's on-device voice use every processor core (shared memory for the
+# WebAssembly threads). "credentialless" keeps outside images (Wikimedia place photos) and scripts working.
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: credentialless

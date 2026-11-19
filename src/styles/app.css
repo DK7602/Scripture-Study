@@ -904,3 +904,6 @@ input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color:
 .verses:has(.vrow.selected) .vrow { cursor: pointer; }
 .verses:has(.vrow.selected) .vtext .s:hover { color: inherit; }
 .vnum { min-height: 28px; }
+/* the page follows a sideways swipe; vertical scrolling stays with the browser */
+.page-scroll { touch-action: pan-y pinch-zoom; overscroll-behavior-x: none; }
+

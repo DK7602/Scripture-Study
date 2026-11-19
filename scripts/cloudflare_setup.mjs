@@ -167,6 +167,12 @@ const env = { ...process.env, CLOUDFLARE_ACCOUNT_ID: account, CI: '1', WRANGLER_
 if (DEPLOY) {
   step('Build & deploy')
   execSync('npm run build', { stdio: 'inherit', env })
+  // Michael's on-device voice, hosted here so phones never need the Hugging Face servers
+  try {
+    execSync('python3 scripts/fetch_voice_model.py', { stdio: 'inherit', env })
+  } catch {
+    console.log('  voice model download failed - the app will fetch it from Hugging Face instead')
+  }
   // the narrated audio Bible lives on Kaggle (too big for git); add it to the build when a key is set
   if (process.env.KAGGLE_API_TOKEN || process.env.KAGGLE_KEY) {
     try {

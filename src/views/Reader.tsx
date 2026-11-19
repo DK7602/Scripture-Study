@@ -317,6 +317,101 @@ function BibleReader() {
     }
   }, [scroll.on, scroll.running, settings.scrollSpeed, settings.textSize, settings.audioContinue])
 
+  // swipe sideways to turn the page: left for the next chapter, right for the previous one
+  useEffect(() => {
+    const el = scrollRef.current
+    const page = el?.querySelector('.page') as HTMLElement | null
+    if (!el || !page) return
+    const reset = (ms = 200) => {
+      page.style.transition = `transform ${ms}ms ease-out, opacity ${ms}ms`
+      page.style.transform = ''
+      page.style.opacity = ''
+    }
+    const turn = (dir: 1 | -1) => {
+      page.style.transition = 'transform 170ms ease-in, opacity 170ms'
+      page.style.transform = `translateX(${dir > 0 ? -60 : 60}%)`
+      page.style.opacity = '0'
+      setTimeout(() => {
+        step(dir)
+        page.style.transition = 'none'
+        page.style.transform = `translateX(${dir > 0 ? 35 : -35}%)`
+        requestAnimationFrame(() => requestAnimationFrame(() => reset(230)))
+      }, 170)
+    }
+    let sx = 0
+    let sy = 0
+    let on = false
+    let sideways: boolean | null = null
+    const start = (e: TouchEvent) => {
+      const t = e.touches[0]
+      // one finger, and not from the screen edge (Safari's back gesture)
+      on = e.touches.length === 1 && t.clientX > 24 && t.clientX < window.innerWidth - 24
+      sx = t.clientX
+      sy = t.clientY
+      sideways = null
+    }
+    const move = (e: TouchEvent) => {
+      if (!on) return
+      if (e.touches.length > 1) {
+        on = false
+        reset()
+        return
+      }
+      const dx = e.touches[0].clientX - sx
+      const dy = e.touches[0].clientY - sy
+      if (sideways === null && Math.hypot(dx, dy) > 12) sideways = Math.abs(dx) > Math.abs(dy) * 1.6
+      if (sideways) {
+        page.style.transition = 'none'
+        page.style.transform = `translateX(${dx * 0.45}px)`
+        page.style.opacity = String(1 - Math.min(Math.abs(dx) / 700, 0.35))
+      }
+    }
+    const end = (e: TouchEvent) => {
+      if (!on) return
+      on = false
+      const t = e.changedTouches[0]
+      const dx = t.clientX - sx
+      const dy = t.clientY - sy
+      const sel = window.getSelection()
+      if (sideways && Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6 && (!sel || sel.isCollapsed)) turn(dx < 0 ? 1 : -1)
+      else if (sideways) reset()
+    }
+    // trackpads: a two-finger sideways swipe
+    let acc = 0
+    let lockUntil = 0
+    const wheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.5 || e.ctrlKey) return
+      if (Date.now() < lockUntil) return
+      acc += e.deltaX
+      if (Math.abs(acc) > 160) {
+        lockUntil = Date.now() + 900
+        turn(acc > 0 ? 1 : -1)
+        acc = 0
+      }
+    }
+    // keyboard: the arrow keys, when not typing
+    const key = (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return
+      if ((e.target as Element | null)?.closest?.('input, textarea, select, [contenteditable], .pop, .modal')) return
+      if (getState().tab !== 'bible' && window.innerWidth < 900) return
+      if (e.key === 'ArrowRight') turn(1)
+      else if (e.key === 'ArrowLeft') turn(-1)
+    }
+    el.addEventListener('touchstart', start, { passive: true })
+    el.addEventListener('touchmove', move, { passive: true })
+    el.addEventListener('touchend', end)
+    el.addEventListener('touchcancel', () => (on ? ((on = false), reset()) : undefined))
+    el.addEventListener('wheel', wheel, { passive: true })
+    window.addEventListener('keydown', key)
+    return () => {
+      el.removeEventListener('touchstart', start)
+      el.removeEventListener('touchmove', move)
+      el.removeEventListener('touchend', end)
+      el.removeEventListener('wheel', wheel)
+      window.removeEventListener('keydown', key)
+    }
+  }, [])
+
   // scroll to the focused verse after navigation
   useEffect(() => {
     if (!data) return

@@ -290,18 +290,9 @@ async function playNarration(voice: NarratorVoice, v: number, my: number, local 
 // ---------------------------------------------------------------------------------------------
 export const canLocal = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'
 
-/** Size of the one-time download for Michael's on-device voice: the full model with WebGPU, else the compact one. */
-let sizeP: Promise<number> | null = null
+/** Size of the one-time download for Michael's on-device voice (served from this site, see kokoro.worker.ts). */
 export function localDownloadMB(): Promise<number> {
-  sizeP ??= (async () => {
-    try {
-      const gpu = (navigator as unknown as { gpu?: { requestAdapter(): Promise<unknown> } }).gpu
-      return gpu && (await gpu.requestAdapter()) ? 310 : 90
-    } catch {
-      return 90
-    }
-  })()
-  return sizeP
+  return Promise.resolve(90)
 }
 let worker: Worker | null = null
 let reqId = 0
