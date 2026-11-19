@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
-import { canLocal, canSpeak, closePlayer, deviceVoices, voiceGender, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
+import { MALE_US, canLocal, canSpeak, closePlayer, deviceVoices, realMaleVoice, voiceGender, localDownloadMB, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
 import { openPopup, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
@@ -34,7 +34,8 @@ export function AudioBar() {
   const dv = deviceVoices()
   const narrator = narrators[0]
   const localOk = canLocal && settings.audioLocal
-  const deviceValue = `d:${settings.audioVoice || dv[0]?.voiceURI || ''}`
+  const deviceValue = `d:${settings.audioVoice || MALE_US}`
+  const male = realMaleVoice()
   const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : localOk ? 'l:' : deviceValue
   const useDevice = value.startsWith('d:')
   const pick = (v: string) => {
@@ -48,9 +49,10 @@ export function AudioBar() {
   }
   const short = (v: SpeechSynthesisVoice) => {
     const name = v.name.replace(/^(Microsoft|Google)\s+/i, '').replace(/\s*\(.*?\)\s*/g, ' ').replace(/ - English.*$/i, '').trim()
-    const where = /^en[-_]US/i.test(v.lang) ? 'US' : /^en[-_]GB/i.test(v.lang) ? 'UK' : v.lang.replace(/^en[-_]/i, '')
     const g = voiceGender(v)
-    return `${name} (${[where, g].filter(Boolean).join(', ')})`
+    // Android lists only "English United States": the phone's own voice, set in its settings
+    if (/^English United States$/i.test(name)) return 'American female (phone voice)'
+    return `${name}${g ? ` (American ${g})` : ' (American)'}`
   }
 
   return (
@@ -74,7 +76,7 @@ export function AudioBar() {
                 openPopup({ kind: 'info', title: "A man's voice on Android", text: ANDROID_VOICE, x: r.left, y: r.top - 240 })
               }}
             >
-              Choose a man's voice
+              For a more natural man's voice
             </button>
           )}
           {a.slow && a.engine === 'local' && (
@@ -126,15 +128,14 @@ export function AudioBar() {
             </optgroup>
           )}
           <optgroup label="This device's voices">
-            {dv.length ? (
-              dv.map((v) => (
+            <option value={`d:${MALE_US}`}>{male ? `American male (${short(male).replace(/ \(American male\)$/, '')})` : 'American male (phone voice, deeper)'}</option>
+            {dv
+              .filter((v) => v !== male)
+              .map((v) => (
                 <option key={v.voiceURI} value={`d:${v.voiceURI}`}>
                   {short(v)}
                 </option>
-              ))
-            ) : (
-              <option value="d:">Default voice</option>
-            )}
+              ))}
           </optgroup>
         </select>
         <button className="toggle ab-cont" onClick={() => updateSettings({ audioContinue: !settings.audioContinue })} title="Keep reading into the next chapter">

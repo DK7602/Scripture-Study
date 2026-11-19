@@ -137,10 +137,12 @@ export function voiceGender(v: SpeechSynthesisVoice): 'male' | 'female' | '' {
 }
 const american = (v: SpeechSynthesisVoice) => /^en[-_]US/i.test(v.lang)
 
-/** English voices, best first: American, natural-sounding, and a man's voice (the narrator Michael is an American man). */
+/** American voices (others only if there are none), best first: natural-sounding, then a man's voice. */
 export function deviceVoices(): SpeechSynthesisVoice[] {
   if (!synth) return []
-  const all = synth.getVoices().filter((v) => /^en(-|_|$)/i.test(v.lang))
+  const english = synth.getVoices().filter((v) => /^en(-|_|$)/i.test(v.lang))
+  const us = english.filter(american)
+  const all = us.length ? us : english
   const score = (v: SpeechSynthesisVoice) =>
     (american(v) ? 0 : 10) +
     (/natural|neural|premium|enhanced|siri|online/i.test(v.name) ? 0 : /google|microsoft/i.test(v.name) ? 2 : 3) +
@@ -498,6 +500,21 @@ function playLocal(v: number, my: number, withHeading: boolean) {
   void next(0)
 }
 
+/** "male:us": a real American man's voice if the device has one, else its American voice made deeper. */
+export const MALE_US = 'male:us'
+export function realMaleVoice(): SpeechSynthesisVoice | undefined {
+  return deviceVoices().find((x) => american(x) && voiceGender(x) === 'male')
+}
+function pickDeviceVoice(choice: string): { voice?: SpeechSynthesisVoice; pitch: number } {
+  const list = deviceVoices()
+  if (!choice || choice === MALE_US) {
+    const male = realMaleVoice()
+    if (male) return { voice: male, pitch: 1 }
+    return { voice: list[0], pitch: 0.75 } // a lower pitch: the phone's voice as a man's
+  }
+  return { voice: list.find((x) => x.voiceURI === choice) ?? list[0], pitch: 1 }
+}
+
 function playDevice(v: number, my: number, withHeading: boolean, note = '') {
   if (!synth || !chapter) {
     set({ playing: false, loading: false, error: 'This browser cannot read aloud.' })
@@ -505,7 +522,7 @@ function playDevice(v: number, my: number, withHeading: boolean, note = '') {
   }
   set({ engine: 'device', loading: false, error: note })
   const s = getState().settings
-  const voice = deviceVoices().find((x) => x.voiceURI === s.audioVoice) ?? deviceVoices()[0]
+  const { voice, pitch } = pickDeviceVoice(s.audioVoice)
   const say = (text: string, onEnd: () => void, onStart?: () => void) => {
     const u = new SpeechSynthesisUtterance(text)
     if (voice) {
@@ -513,6 +530,7 @@ function playDevice(v: number, my: number, withHeading: boolean, note = '') {
       u.lang = voice.lang
     } else u.lang = 'en-US'
     u.rate = s.audioRate || 1
+    u.pitch = pitch
     u.onstart = () => my === runId && onStart?.()
     u.onend = () => my === runId && onEnd()
     u.onerror = (e) => {
