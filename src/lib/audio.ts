@@ -42,10 +42,11 @@ export interface AudioState {
   error: string
   info: string // e.g. download progress of Michael's on-device voice
   offerLocal: boolean // no recording here: offer Michael made on this device
+  slow: boolean // this device makes Michael's voice slower than he reads: offer the device voice
   localDevice: '' | 'webgpu' | 'wasm' // where Michael's on-device voice runs
 }
 
-let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false, localDevice: '' }
+let state: AudioState = { open: false, playing: false, loading: false, verse: 0, count: 0, engine: null, label: '', error: '', info: '', offerLocal: false, localDevice: '', slow: false }
 const subs = new Set<() => void>()
 function set(p: Partial<AudioState>) {
   state = { ...state, ...p }
@@ -57,6 +58,10 @@ const subscribe = (f: () => void) => {
 }
 export function useAudio(): AudioState {
   return useSyncExternalStore(subscribe, () => state)
+}
+/** One field only, so the Bible page does not redraw on every progress update of the player. */
+export function useAudioField<K extends keyof AudioState>(k: K): AudioState[K] {
+  return useSyncExternalStore(subscribe, () => state[k])
 }
 export function audioState(): AudioState {
   return state
@@ -293,6 +298,8 @@ export const canLocal = typeof Worker !== 'undefined' && typeof WebAssembly !== 
 
 /** Size of the one-time download for Michael's on-device voice: the full model where there is a real graphics chip. */
 let sizeP: Promise<number> | null = null
+/** Phones run the voice on the processor: on their graphics chip it competes with drawing the screen and stutters. */
+const phone = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 900
 const softwareGpu = (() => {
   try {
     return localStorage.getItem('ss:voice-gpu') === 'any' // testing only: allow a software WebGPU adapter
@@ -306,7 +313,7 @@ export function localDownloadMB(): Promise<number> {
       const gpu = (navigator as unknown as { gpu?: { requestAdapter(o?: object): Promise<{ isFallbackAdapter?: boolean; info?: Record<string, string> } | null> } }).gpu
       const a = gpu && (await gpu.requestAdapter({ powerPreference: 'high-performance' }))
       const soft = !!a && (a.isFallbackAdapter || /swiftshader/i.test(`${a.info?.vendor} ${a.info?.architecture} ${a.info?.description}`))
-      return a && (!soft || softwareGpu) ? 310 : 90
+      return a && !phone && (!soft || softwareGpu) ? 310 : 90
     } catch {
       return 90
     }
@@ -323,10 +330,20 @@ function kokoro(): Worker {
     worker = new Worker(new URL('./kokoro.worker.ts', import.meta.url), { type: 'module' })
     worker.onmessage = (e: MessageEvent) => {
       const m = e.data
-      if (m.type === 'mode') set({ localDevice: m.device })
-      else if (m.type === 'progress') set({ info: `Downloading Michael's voice: ${Math.round((m.loaded / Math.max(m.total, 1)) * 100)}% (once, about ${Math.round(m.total / 2 ** 20)} MB)` })
+      if (m.type === 'mode') set({ localDevice: m.device, info: state.loading ? "Michael's voice is ready, starting…" : '' })
+      else if (m.type === 'progress') {
+        const pct = Math.round((m.loaded / Math.max(m.total, 1)) * 100)
+        const info =
+          pct >= 100
+            ? "Preparing Michael's voice… (the first time on this device can take a minute)"
+            : `Downloading Michael's voice: ${pct}% (once, about ${Math.round(m.total / 2 ** 20)} MB)`
+        if (info !== state.info) set({ info })
+      }
       else if (m.type === 'audio') {
-        set({ info: '' })
+        // how fast this device makes speech, against how long the speech lasts
+        madeSec += m.audio.length / m.sr
+        spentSec += m.ms / 1000
+        if (++piecesMade > 3 && madeSec / spentSec < 0.85 && !state.slow) set({ slow: true })
         waiting.get(m.id)?.res({ audio: m.audio, sr: m.sr })
         waiting.delete(m.id)
       } else if (m.type === 'error') {
@@ -339,11 +356,15 @@ function kokoro(): Worker {
   return worker
 }
 
-function speakLocal(text: string, speed: number) {
+let madeSec = 0
+let spentSec = 0
+let piecesMade = 0
+
+function speakLocal(text: string, speed: number, run: number) {
   const id = ++reqId
   return new Promise<{ audio: Float32Array; sr: number }>((res, rej) => {
     waiting.set(id, { res, rej })
-    kokoro().postMessage({ type: 'speak', id, text, voice: 'am_michael', speed, softwareGpu })
+    kokoro().postMessage({ type: 'speak', id, run, text, voice: 'am_michael', speed, softwareGpu, preferGpu: !phone })
   })
 }
 
@@ -370,6 +391,19 @@ function wavUrl(x: Float32Array, sr: number): string {
   return url
 }
 
+/** Splits a long verse at sentence ends (and, if still long, at semicolons/colons), keeping pieces of a useful size. */
+function pieces(text: string): string[] {
+  if (text.length <= 160) return text ? [text] : []
+  const parts = text.match(/[^.!?;:]+[.!?;:]+["'”’)]*\s*|[^.!?;:]+$/g) ?? [text]
+  const out: string[] = []
+  for (const p of parts.map((x) => x.trim()).filter(Boolean)) {
+    const last = out[out.length - 1]
+    if (last !== undefined && (last.length < 60 || p.length < 30)) out[out.length - 1] = `${last} ${p}`
+    else out.push(p)
+  }
+  return out
+}
+
 function playLocal(v: number, my: number, withHeading: boolean) {
   if (!chapter) return
   set({ engine: 'local', loading: true, error: '' })
@@ -381,11 +415,12 @@ function playLocal(v: number, my: number, withHeading: boolean) {
   }
   for (let i = v; i <= chapter.verses.length; i++) {
     const t = speakable(chapter.verses[i - 1] ?? '')
-    if (t) items.push({ verse: i, text: t })
+    // long verses in sentence-sized pieces: the first sound comes sooner and the reading keeps pace
+    for (const piece of pieces(t)) items.push({ verse: i, text: piece })
   }
-  const made = new Map<number, Promise<string>>()
+  const ready = new Map<number, Promise<string>>()
   const make = (k: number) => {
-    if (k < items.length && !made.has(k)) made.set(k, speakLocal(items[k].text, speed).then((r) => wavUrl(r.audio, r.sr)))
+    if (k < items.length && !ready.has(k)) ready.set(k, speakLocal(items[k].text, speed, my).then((r) => wavUrl(r.audio, r.sr)))
   }
   const next = async (k: number) => {
     if (my !== runId) return
@@ -395,17 +430,21 @@ function playLocal(v: number, my: number, withHeading: boolean) {
     make(k + 2)
     let url: string
     try {
-      url = await made.get(k)!
+      url = await ready.get(k)!
     } catch (e) {
       if (my !== runId) return
       playDevice(items[k].verse, my, false, `Michael's voice could not be made on this device (${(e as Error).message}); using the device voice.`)
       return
     }
     if (my !== runId) return
-    set({ verse: items[k].verse, loading: false })
     audioEl ??= new Audio()
     audioEl.src = url
     audioEl.playbackRate = 1
+    // highlight the verse the moment its sound starts
+    audioEl.onplaying = () => {
+      if (my === runId && (state.verse !== items[k].verse || state.loading || state.info)) set({ verse: items[k].verse, loading: false, info: '' })
+    }
+    if (state.loading) set({ loading: false })
     audioEl.onended = () => {
       URL.revokeObjectURL(url)
       localUrls.delete(url)

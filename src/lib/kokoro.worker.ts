@@ -43,7 +43,12 @@ async function hasGpu(allowSoftware: boolean): Promise<boolean> {
 
 let ready: Promise<any> | null = null
 
+let lastPost = 0
 function progress(loaded: number, total: number) {
+  // a few updates a second are plenty (every small chunk would flood the page with redraws)
+  const now = Date.now()
+  if (now - lastPost < 250 && loaded < total) return
+  lastPost = now
   postMessage({ type: 'progress', loaded, total })
 }
 
@@ -107,7 +112,7 @@ function onProgress(p: any) {
   progress(a, b)
 }
 
-function load(allowSoftwareGpu = false) {
+function load(allowSoftwareGpu = false, preferGpu = true) {
   ready ??= (async () => {
     man = await manifest()
     const { KokoroTTS, env } = await import(/* @vite-ignore */ man ? SITE + man.lib : CDN_LIB)
@@ -118,7 +123,7 @@ function load(allowSoftwareGpu = false) {
       postMessage({ type: 'mode', device, source: man ? 'site' : 'cdn' })
       return tts
     }
-    if (await hasGpu(allowSoftwareGpu)) {
+    if (preferGpu && (await hasGpu(allowSoftwareGpu))) {
       try {
         return await make('webgpu', 'fp32')
       } catch (e) {
@@ -131,19 +136,32 @@ function load(allowSoftwareGpu = false) {
   return ready
 }
 
-onmessage = async (e: MessageEvent) => {
+// one piece at a time, in the order asked: the piece needed next is never slowed by the ones after it
+let queue: Promise<void> = Promise.resolve()
+
+// which reading is current: pieces of earlier readings (the listener skipped or paused) are dropped, not made
+let latestRun = 0
+
+onmessage = (e: MessageEvent) => {
   const m = e.data
-  try {
-    if (m.type === 'load') {
-      await load(m.softwareGpu)
-      postMessage({ type: 'ready' })
-    } else if (m.type === 'speak') {
-      const tts = await load(m.softwareGpu)
-      const out = await tts.generate(m.text, { voice: m.voice, speed: m.speed })
-      const audio = out.audio as Float32Array
-      postMessage({ type: 'audio', id: m.id, audio, sr: out.sampling_rate }, [audio.buffer])
+  if (typeof m.run === 'number' && m.run > latestRun) latestRun = m.run // before queuing: the queue may run at once
+  queue = queue.then(async () => {
+    try {
+      if (m.type === 'cancel') return
+      if (m.type === 'load') {
+        await load(m.softwareGpu, m.preferGpu)
+        postMessage({ type: 'ready' })
+      } else if (m.type === 'speak') {
+        if (m.run !== latestRun) return // an earlier reading the listener has moved on from
+        const tts = await load(m.softwareGpu, m.preferGpu)
+        const t0 = performance.now()
+        const out = await tts.generate(m.text, { voice: m.voice, speed: m.speed })
+        const audio = out.audio as Float32Array
+        postMessage({ type: 'audio', id: m.id, audio, sr: out.sampling_rate, ms: performance.now() - t0 }, [audio.buffer])
+      }
+    } catch (err) {
+      postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
     }
-  } catch (err) {
-    postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
-  }
+  })
 }
+

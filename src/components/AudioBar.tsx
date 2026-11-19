@@ -55,6 +55,11 @@ export function AudioBar() {
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
           {!a.error && !a.info && value === 'l:' && <div className="ab-credit">Michael's voice made on this device{a.localDevice === 'webgpu' ? ' (graphics chip)' : a.localDevice === 'wasm' ? ' (processor)' : ''} · Kokoro, Apache-2.0 · nothing is stored</div>}
+          {a.slow && a.engine === 'local' && (
+            <button className="ref-link ab-offer" onClick={() => setNarrator('device')}>
+              This device makes Michael's voice slower than he reads, so there are pauses. Use the phone's own voice instead
+            </button>
+          )}
           {a.offerLocal && !a.info && (
             <button className="ref-link ab-offer" onClick={useLocalMichael}>
               Use Michael's voice for {settings.version} (one-time download, about {mb} MB)

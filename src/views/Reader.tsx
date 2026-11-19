@@ -12,7 +12,7 @@ import { useSyncExternalStore } from 'react'
 import type { Highlight, Label, Place } from '../lib/types'
 import { Icon, Ornament } from '../components/Icon'
 import { AudioBar } from '../components/AudioBar'
-import { openPlayer, pause as pauseAudio, play as playAudio, setChapterText, toggle as toggleAudio, useAudio } from '../lib/audio'
+import { openPlayer, pause as pauseAudio, play as playAudio, setChapterText, toggle as toggleAudio, useAudioField } from '../lib/audio'
 import { pauseScroll, resumeScroll, SCROLL_SPEEDS, startScroll, stopScroll, useAutoScroll } from '../lib/autoscroll'
 
 // ---------------------------------------------------------------------------------------------
@@ -25,7 +25,7 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
   const labels = useStore((s) => s.labels)
   const hlLabel = useStore((s) => s.highlightLabel)
   const [hlOpen, setHlOpen] = useState(false)
-  const audio = useAudio()
+  const audio = { open: useAudioField('open') }
   const scroll = useAutoScroll()
   const b = book(loc.book)
   const label = labels.find((l) => l.id === hlLabel) ?? labels[0]
@@ -248,7 +248,7 @@ function BibleReader() {
   }, [data, settings.version, loc.book, loc.chapter])
 
   // highlight the verse being read and keep it in view (unless the reader is scrolling by hand)
-  const audio = useAudio()
+  const audio = { open: useAudioField('open'), playing: useAudioField('playing'), verse: useAudioField('verse') }
   const handScroll = useRef(0)
   useEffect(() => {
     const el = scrollRef.current
@@ -269,7 +269,7 @@ function BibleReader() {
     if (!row) return
     row.classList.add('speaking')
     const box = scrollRef.current
-    if (!audio.playing || !box || Date.now() - handScroll.current < 6000) return
+    if (!audio.playing || !box || Date.now() - handScroll.current < 3500) return
     const r = row.getBoundingClientRect()
     const b2 = box.getBoundingClientRect()
     if (r.top < b2.top + b2.height * 0.12 || r.bottom > b2.top + b2.height * 0.72)
