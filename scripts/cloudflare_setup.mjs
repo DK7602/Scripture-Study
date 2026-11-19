@@ -148,7 +148,7 @@ workers_dev = true
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/api/*", "/audio/*"]
+run_worker_first = ["/api/*", "/audio/*", "/feed/*"]
 
 [[d1_databases]]
 binding = "DB"
