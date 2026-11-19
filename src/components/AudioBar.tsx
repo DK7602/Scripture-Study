@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
-import { MALE_US, canSpeak, closePlayer, setMini, deviceVoices, realMaleVoice, voiceGender, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, type NarratorVoice } from '../lib/audio'
+import { LOCAL_NAME, MALE_US, canLocal, canSpeak, closePlayer, setMini, deviceVoices, localDownloadMB, realMaleVoice, voiceGender, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
 import { openPopup, setTab, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
@@ -17,7 +17,11 @@ export function AudioBar() {
   const loc = useStore((s) => s.loc)
   const [narrators, setNarrators] = useState<NarratorVoice[]>([])
   const [, refresh] = useReducer((x: number) => x + 1, 0)
+  const [mb, setMb] = useState(75)
   useEffect(() => onVoicesChanged(refresh), [])
+  useEffect(() => {
+    void localDownloadMB().then(setMb)
+  }, [])
   useEffect(() => {
     let live = true
     narratorsFor(settings.version, loc.book, loc.chapter).then((n) => live && setNarrators(n))
@@ -31,10 +35,12 @@ export function AudioBar() {
   const narrator = narrators[0]
   const deviceValue = `d:${settings.audioVoice || MALE_US}`
   const male = realMaleVoice()
-  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : deviceValue
+  const localOk = canLocal && settings.audioLocal
+  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : localOk ? 'l:' : deviceValue
   const useDevice = value.startsWith('d:')
   const pick = (v: string) => {
     if (v.startsWith('n:')) setNarrator('')
+    else if (v === 'l:') useLocalMichael()
     else if (narrator) {
       // a recorded chapter: the listener prefers a device voice even where there are recordings
       updateSettings({ audioVoice: v.slice(2) })
@@ -61,10 +67,26 @@ export function AudioBar() {
           {a.info && <div className="ab-credit">{a.info}</div>}
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
+          {!a.error && !a.info && value === 'l:' && (
+            <div className="ab-credit">
+              {LOCAL_NAME}’s voice, made on this phone · keeps playing with the screen off · nothing is stored · Piper (MIT), voice from RyanSpeech (CC BY-NC-SA 4.0)
+            </div>
+          )}
           {useDevice && a.engine === 'device' && !a.error && (
             <div className="ab-credit">
-              The phone’s own voice pauses when you leave the app and carries on when you come back. Michael’s recordings (KJV, WEB, ASV, BSB) keep playing with the screen off.
+              The phone’s own voice pauses when you leave the app and carries on when you come back.
+              {canLocal ? ` ${LOCAL_NAME}’s voice and Michael’s recordings keep playing with the screen off.` : ' Michael’s recordings (KJV, WEB, ASV, BSB) keep playing with the screen off.'}
             </div>
+          )}
+          {a.offerLocal && !a.info && (
+            <button className="ref-link ab-offer" onClick={useLocalMichael}>
+              Use {LOCAL_NAME}’s natural voice for {settings.version}: it keeps playing with the screen off (one-time download, about {mb} MB)
+            </button>
+          )}
+          {a.slow && a.engine === 'local' && (
+            <button className="ref-link ab-offer" onClick={() => useDeviceVoice()}>
+              This device makes {LOCAL_NAME}’s voice slower than he reads, so there are pauses. Use the phone’s own voice instead
+            </button>
           )}
           {useDevice && a.engine === 'device' && /Android/i.test(navigator.userAgent) && (
             <button
@@ -111,6 +133,11 @@ export function AudioBar() {
                   {n.name}
                 </option>
               ))}
+            </optgroup>
+          )}
+          {!narrators.length && canLocal && (
+            <optgroup label="Made on this phone">
+              <option value="l:">{LOCAL_NAME} (natural voice, plays with the screen off)</option>
             </optgroup>
           )}
           <optgroup label="This device's voices">

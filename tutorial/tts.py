@@ -4,8 +4,8 @@
 Kokoro (Apache-2.0) through kokoro-onnx, on the processor. Writes tutorial/.build/audio/<chapter>/<scene>.wav and
 tutorial/.build/durations.json (seconds per scene), which the recording (record.cjs) waits for.
 
-Needs: pip install kokoro-onnx soundfile; the Kokoro model (the 310 MB model.onnx that scripts/fetch_voice_model.py
-caches in .voice-model-cache, or --model) and voices-v1.0.bin (downloaded once from the kokoro-onnx releases).
+Needs: pip install kokoro-onnx soundfile. The Kokoro model (310 MB) and voices-v1.0.bin are downloaded once into
+.voice-model-cache (or pass --model / --voices).
 """
 import argparse
 import json
@@ -17,6 +17,7 @@ import soundfile as sf
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HERE = os.path.join(ROOT, "tutorial")
 BUILD = os.path.join(HERE, ".build")
+MODEL_URL = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model.onnx"
 VOICES_URL = "https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0/voices-v1.0.bin"
 
 
@@ -26,6 +27,10 @@ def main():
     ap.add_argument("--voices", default=os.path.join(ROOT, ".voice-model-cache", "voices-v1.0.bin"))
     ap.add_argument("--speed", type=float, default=1.0)
     a = ap.parse_args()
+    if not os.path.exists(a.model):
+        os.makedirs(os.path.dirname(a.model), exist_ok=True)
+        print("downloading", MODEL_URL)
+        urllib.request.urlretrieve(MODEL_URL, a.model)
     if not os.path.exists(a.voices):
         os.makedirs(os.path.dirname(a.voices), exist_ok=True)
         print("downloading", VOICES_URL)

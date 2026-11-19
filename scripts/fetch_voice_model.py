@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Hosts Michael's on-device voice (Kokoro) on the site itself, so phones only ever talk to our own domain.
+"""Hosts Ryan's on-device voice (Piper) on the site itself, so phones only ever talk to our own domain.
 
-Run by the deploy after the build (scripts/cloudflare_setup.mjs). Downloads, once (cached in .voice-model-cache):
-  - the kokoro-js browser build and the ONNX Runtime WebAssembly files it uses (jsDelivr),
-  - the Kokoro model files and Michael's voice from Hugging Face,
-and writes them to dist/voice-model/, with the 88 MB model split into parts under the host's 25 MiB file limit.
-The app's worker (src/lib/kokoro.worker.ts) reads dist/voice-model/manifest.json, downloads the files from the site and
-places them in the browser cache under their Hugging Face addresses, where kokoro-js looks for them first.
+Run by the deploy after the build (scripts/cloudflare_setup.mjs). Downloads once (cached in .voice-model-cache) the
+Piper voice en_US-ryan-medium (rhasspy/piper-voices on Hugging Face; Piper is MIT, the voice's training data,
+RyanSpeech, is CC BY-NC-SA 4.0: fine for this free app, credited in the player; for unrestricted use pick
+en_US-john-medium or en_US-norman-medium (public domain) or en_US-joe-medium (CC0) here, in piper.worker.ts and as
+LOCAL_NAME in audio.ts) and writes dist/voice-model/piper/:
+the model split into parts under the host's 25 MiB file limit, its configuration, and manifest.json, which the
+app's worker (src/lib/piper.worker.ts) reads. ONNX Runtime and eSpeak come with the app's own build.
 """
 import json
 import os
@@ -15,14 +16,11 @@ import sys
 import urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CACHE = os.path.join(ROOT, ".voice-model-cache")
-OUT = os.path.join(ROOT, "dist", "voice-model")
+CACHE = os.path.join(ROOT, ".voice-model-cache", "piper")
+OUT = os.path.join(ROOT, "dist", "voice-model", "piper")
 
-KOKORO_JS = "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js"
-ORT = "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/"  # the version bundled in kokoro-js 1.2.1
-HF = "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/"
-SMALL = ["config.json", "tokenizer.json", "tokenizer_config.json", "voices/am_michael.bin"]
-MODELS = {"q8": "onnx/model_quantized.onnx", "fp32": "onnx/model.onnx"}  # 88 MB for the processor, 310 MB for WebGPU
+VOICE = "en_US-ryan-medium"
+HF = "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/medium/"
 PART = 20 * 2**20
 
 
@@ -40,39 +38,21 @@ def get(url: str, dest: str):
 def main():
     if not os.path.isdir(os.path.join(ROOT, "dist")):
         sys.exit("run the build first")
-    get(KOKORO_JS, os.path.join(CACHE, "kokoro.web.js"))
-    for f in ("ort-wasm-simd-threaded.jsep.mjs", "ort-wasm-simd-threaded.jsep.wasm"):
-        get(ORT + f, os.path.join(CACHE, "ort", f))
-    for f in SMALL + list(MODELS.values()):
-        get(HF + f, os.path.join(CACHE, "hf", f))
+    model, config = f"{VOICE}.onnx", f"{VOICE}.onnx.json"
+    get(HF + model, os.path.join(CACHE, model))
+    get(HF + config, os.path.join(CACHE, config))
 
     shutil.rmtree(OUT, ignore_errors=True)
     os.makedirs(OUT)
-    shutil.copy(os.path.join(CACHE, "kokoro.web.js"), OUT)
-    shutil.copytree(os.path.join(CACHE, "ort"), os.path.join(OUT, "ort"))
-    files = {}
-    for f in SMALL:
-        dest = os.path.join(OUT, "hf", f)
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        shutil.copy(os.path.join(CACHE, "hf", f), dest)
-        files[f] = os.path.getsize(dest)
-    models = {}
-    for dtype, path in MODELS.items():
-        src = os.path.join(CACHE, "hf", path)
-        size = os.path.getsize(src)
-        parts = 0
-        os.makedirs(os.path.join(OUT, "hf", os.path.dirname(path)), exist_ok=True)
-        with open(src, "rb") as f:
-            while True:
-                chunk = f.read(PART)
-                if not chunk:
-                    break
-                open(os.path.join(OUT, "hf", f"{path}.{parts:03d}"), "wb").write(chunk)
-                parts += 1
-        models[dtype] = {"path": path, "size": size, "parts": parts}
-        print(f"voice model: {dtype} {size // 2**20} MB in {parts} parts")
-    manifest = {"hf": HF, "files": files, "models": models, "ort": "ort/", "lib": "kokoro.web.js"}
-    json.dump(manifest, open(os.path.join(OUT, "manifest.json"), "w"), indent=1)
+    shutil.copy(os.path.join(CACHE, config), OUT)
+    src = os.path.join(CACHE, model)
+    size, parts = os.path.getsize(src), 0
+    with open(src, "rb") as f:
+        while chunk := f.read(PART):
+            open(os.path.join(OUT, f"{model}.{parts:03d}"), "wb").write(chunk)
+            parts += 1
+    json.dump({"voice": VOICE, "config": config, "model": {"path": model, "size": size, "parts": parts}}, open(os.path.join(OUT, "manifest.json"), "w"), indent=1)
+    print(f"voice model: {VOICE} {size // 2**20} MB in {parts} parts")
 
 
 if __name__ == "__main__":

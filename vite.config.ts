@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import { fileURLToPath } from 'node:url'
 
 // Relative base so the same build works at a domain root or a sub-path (e.g. GitHub Pages).
 export default defineConfig({
@@ -8,6 +9,9 @@ export default defineConfig({
   server: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'credentialless' } },
   preview: { headers: { 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Embedder-Policy': 'credentialless' } },
   base: './',
+  // ONNX Runtime's WebAssembly-only build, with its .wasm/.mjs as separate files (the on-device voice, piper.worker.ts)
+  resolve: { alias: { 'onnxruntime-web-wasm': fileURLToPath(new URL('./node_modules/onnxruntime-web/dist/ort.wasm.min.mjs', import.meta.url)) } },
+  worker: { format: 'es' },
   plugins: [
     react(),
     VitePWA({
@@ -32,7 +36,7 @@ export default defineConfig({
       workbox: {
         // App shell is precached; Bible data is cached as it is read (or all at once from Settings).
         globPatterns: ['**/*.{js,css,html,svg,woff2}', 'icons/icon-192.png', 'icons/favicon-64.png', 'textures/*.webp', 'data/books.json', 'data/versions.json'],
-        globIgnores: ['data/**/!(books|versions).json'],
+        globIgnores: ['data/**/!(books|versions).json', '**/piper.worker-*.js'], // the on-device voice: only when chosen
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         // sign-in, sync and Cloudflare Access pages must always reach the network
         navigateFallbackDenylist: [/^\/api\//, /^\/cdn-cgi\//, /^\/feed\//, /^\/audio\//],

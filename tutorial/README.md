@@ -16,7 +16,7 @@ python3 tutorial/build.py         # 3. picture + narration          -> public/au
   `--only 3-listening` re-records one chapter.
 - Each scene in `narration.json` is matched by its `id` to the taps and scrolling in `record.cjs`; a scene lasts as
   long as its narration (plus a breath), or longer if its actions need it.
-- Needs: `pip install kokoro-onnx soundfile`, Playwright with Chromium, and ffmpeg. The Kokoro model is the one
-  `scripts/fetch_voice_model.py` caches in `.voice-model-cache/`; `tts.py` downloads the voices file once.
+- Needs: `pip install kokoro-onnx soundfile`, Playwright with Chromium, and ffmpeg. `tts.py` downloads the Kokoro
+  model and voices once into `.voice-model-cache/`.
 - The videos are served from `/audio/tutorial/` through the Worker, which answers the Range requests that iPhones
   need to play video. `tutorial/.build/scripture-study-tutorial.mp4` has all chapters in one file.
