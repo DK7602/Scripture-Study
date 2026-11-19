@@ -1,0 +1,41 @@
+{
+  "about": "Recorded narration for the audio Bible (scripts/narrate.py). versions: translation -> book -> chapters ('all' or a list). Chapters not listed are read by the device's own voice.",
+  "voices": [
+    {
+      "id": "male8",
+      "name": "VoxaVersa: Male 8 (deep)",
+      "credit": "AI narration in a VoxaVersa voice, trained on VocalSet singer male8 (CC BY 4.0, Wilkins et al., ISMIR 2018); read by Kokoro (Apache-2.0)",
+      "versions": {
+        "KJV": {
+          "JHN": [
+            15
+          ]
+        }
+      }
+    },
+    {
+      "id": "michael",
+      "name": "Narrator: Michael (American)",
+      "credit": "AI narration: Kokoro neural voice (Apache-2.0)",
+      "versions": {
+        "KJV": {
+          "JHN": [
+            15
+          ]
+        }
+      }
+    },
+    {
+      "id": "george",
+      "name": "Narrator: George (British)",
+      "credit": "AI narration: Kokoro neural voice (Apache-2.0)",
+      "versions": {
+        "KJV": {
+          "JHN": [
+            15
+          ]
+        }
+      }
+    }
+  ]
+}

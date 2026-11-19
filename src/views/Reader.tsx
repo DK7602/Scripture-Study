@@ -11,6 +11,9 @@ import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/ali
 import { useSyncExternalStore } from 'react'
 import type { Highlight, Label, Place } from '../lib/types'
 import { Icon, Ornament } from '../components/Icon'
+import { AudioBar } from '../components/AudioBar'
+import { openPlayer, pause as pauseAudio, play as playAudio, setChapterText, toggle as toggleAudio, useAudio } from '../lib/audio'
+import { pauseScroll, resumeScroll, SCROLL_SPEEDS, startScroll, stopScroll, useAutoScroll } from '../lib/autoscroll'
 
 // ---------------------------------------------------------------------------------------------
 // Toolbar
@@ -22,6 +25,8 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
   const labels = useStore((s) => s.labels)
   const hlLabel = useStore((s) => s.highlightLabel)
   const [hlOpen, setHlOpen] = useState(false)
+  const audio = useAudio()
+  const scroll = useAutoScroll()
   const b = book(loc.book)
   const label = labels.find((l) => l.id === hlLabel) ?? labels[0]
   const showNames = true
@@ -53,6 +58,35 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
           </option>
         ))}
       </select>
+      <button
+        className="tool-btn"
+        aria-pressed={audio.open}
+        onClick={() => {
+          stopScroll()
+          if (audio.open) toggleAudio()
+          else {
+            openPlayer()
+            void playAudio(loc.verse > 1 ? loc.verse : 1)
+          }
+        }}
+        title="Listen: read this chapter aloud"
+      >
+        <Icon name="headphones" size={18} /> Listen
+      </button>
+      <button
+        className="tool-btn"
+        aria-pressed={scroll.on}
+        onClick={() => {
+          if (scroll.on) stopScroll()
+          else {
+            pauseAudio()
+            startScroll()
+          }
+        }}
+        title="Auto-scroll: the page moves slowly as you read"
+      >
+        <Icon name="autoscroll" size={18} /> Scroll
+      </button>
       <div className="seg hide-phone">
         <button title="Previous chapter" onClick={() => step(-1)}>
           <Icon name="left" size={18} />
@@ -133,6 +167,7 @@ export function ReaderColumn({ onBooks }: { onBooks: () => void }) {
     <div className="reader-col">
       <ReaderToolbar onBooks={onBooks} />
       <BibleReader />
+      <AudioBar />
     </div>
   )
 }
@@ -199,6 +234,88 @@ function BibleReader() {
       live = false
     }
   }, [loc.book, loc.chapter, settings.version, settings.placeChips, shared])
+
+  // the audio Bible reads the chapter on screen
+  useEffect(() => {
+    if (data && !data.error) setChapterText(settings.version, loc.book, loc.chapter, data.verses)
+  }, [data, settings.version, loc.book, loc.chapter])
+
+  // highlight the verse being read and keep it in view (unless the reader is scrolling by hand)
+  const audio = useAudio()
+  const handScroll = useRef(0)
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const mark = () => (handScroll.current = Date.now())
+    el.addEventListener('wheel', mark, { passive: true })
+    el.addEventListener('touchmove', mark, { passive: true })
+    return () => {
+      el.removeEventListener('wheel', mark)
+      el.removeEventListener('touchmove', mark)
+    }
+  }, [])
+  useEffect(() => {
+    const root = versesRef.current
+    root?.querySelectorAll('.vrow.speaking').forEach((n) => n.classList.remove('speaking'))
+    if (!audio.open || !audio.verse || !root) return
+    const row = root.querySelector(`[data-vrow="${audio.verse}"]`) as HTMLElement | null
+    if (!row) return
+    row.classList.add('speaking')
+    const box = scrollRef.current
+    if (!audio.playing || !box || Date.now() - handScroll.current < 6000) return
+    const r = row.getBoundingClientRect()
+    const b2 = box.getBoundingClientRect()
+    if (r.top < b2.top + b2.height * 0.12 || r.bottom > b2.top + b2.height * 0.72)
+      box.scrollTo({ top: box.scrollTop + r.top - b2.top - b2.height * 0.25, behavior: 'smooth' })
+  }, [audio.verse, audio.open, audio.playing, data])
+
+  // auto-scroll: a steady glide down the page, paused when the reader touches it
+  const scroll = useAutoScroll()
+  const ready = useRef(false)
+  ready.current = !!data && !data.error
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!scroll.on || !scroll.running || !el) return
+    el.style.scrollBehavior = 'auto'
+    let pos = el.scrollTop
+    let last = performance.now()
+    let endSince = 0
+    let id = 0
+    const loop = (t: number) => {
+      const dt = Math.min(0.1, (t - last) / 1000)
+      last = t
+      if (Math.abs(el.scrollTop - pos) > 3) pos = el.scrollTop // the page moved (new chapter, or a jump)
+      const max = el.scrollHeight - el.clientHeight
+      const speed = SCROLL_SPEEDS[Math.min(9, Math.max(0, (settings.scrollSpeed || 4) - 1))] * (settings.textSize / 20)
+      if (pos < max - 1) {
+        pos = Math.min(max, pos + speed * dt)
+        el.scrollTop = pos
+        endSince = 0
+      } else if (ready.current && settings.audioContinue) {
+        if (!endSince) endSince = t
+        else if (t - endSince > 2500) {
+          endSince = 0
+          step(1)
+        }
+      }
+      id = requestAnimationFrame(loop)
+    }
+    id = requestAnimationFrame(loop)
+    const userTook = (e: Event) => {
+      if ((e.target as Element | null)?.closest?.('.autoscroll-ctl')) return
+      pauseScroll()
+    }
+    el.addEventListener('wheel', userTook, { passive: true })
+    el.addEventListener('touchstart', userTook, { passive: true })
+    el.addEventListener('mousedown', userTook)
+    return () => {
+      cancelAnimationFrame(id)
+      el.style.scrollBehavior = ''
+      el.removeEventListener('wheel', userTook)
+      el.removeEventListener('touchstart', userTook)
+      el.removeEventListener('mousedown', userTook)
+    }
+  }, [scroll.on, scroll.running, settings.scrollSpeed, settings.textSize, settings.audioContinue])
 
   // scroll to the focused verse after navigation
   useEffect(() => {
@@ -328,6 +445,24 @@ function BibleReader() {
     )
 
   return (
+    <div className="page-wrap">
+    {scroll.on && (
+      <div className="autoscroll-ctl" role="group" aria-label="Auto-scroll">
+        <button className="icon-btn" onClick={scroll.running ? pauseScroll : resumeScroll} aria-label={scroll.running ? 'Pause scrolling' : 'Resume scrolling'}>
+          <Icon name={scroll.running ? 'pause' : 'play'} size={18} fill={!scroll.running} />
+        </button>
+        <button className="icon-btn" onClick={() => updateSettings({ scrollSpeed: Math.max(1, (settings.scrollSpeed || 4) - 1) })} aria-label="Slower">
+          <Icon name="slower" size={18} />
+        </button>
+        <span className="as-speed">{scroll.running ? `Speed ${settings.scrollSpeed || 4}` : 'Paused'}</span>
+        <button className="icon-btn" onClick={() => updateSettings({ scrollSpeed: Math.min(10, (settings.scrollSpeed || 4) + 1) })} aria-label="Faster">
+          <Icon name="faster" size={18} />
+        </button>
+        <button className="icon-btn" onClick={stopScroll} aria-label="Stop auto-scroll">
+          <Icon name="close" size={16} />
+        </button>
+      </div>
+    )}
     <div className={`page-scroll${settings.strongsUnderline ? ' underline' : ''}`} ref={scrollRef}>
       <article className="page">
         <header>
@@ -383,6 +518,7 @@ function BibleReader() {
           </button>
         </nav>
       </article>
+    </div>
     </div>
   )
 }

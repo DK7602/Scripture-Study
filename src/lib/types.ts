@@ -108,6 +108,11 @@ export interface Settings {
   color: ThemeColor
   textSize: number // px, Bible text
   uiSize: number // percent, all other text in the app
+  audioRate: number // reading speed for the audio Bible
+  audioVoice: string // device voice (voiceURI)
+  audioNarrator: string // narrated recording voice id, 'device' for the device voice, '' for automatic
+  audioContinue: boolean // read on into the next chapter
+  scrollSpeed: number // auto-scroll speed, 1..10
   font: 'serif' | 'sans'
   layout: 'verse' | 'paragraph'
   strongsUnderline: boolean

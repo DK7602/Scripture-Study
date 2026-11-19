@@ -6,6 +6,11 @@ export function dataUrl(path: string): string {
   return `${BASE}data/${path}`
 }
 
+/** A file served from the site root (audio, icons), respecting the deploy base path. */
+export function siteUrl(path: string): string {
+  return `${BASE}${path}`
+}
+
 const cache = new Map<string, Promise<unknown>>()
 
 export function getJSON<T>(path: string): Promise<T> {

@@ -5,6 +5,7 @@ import { newId, openPopup, saveItem, setState, useStore } from '../lib/store'
 import type { JournalEntry, JournalTemplateId, Note } from '../lib/types'
 import { Icon } from './Icon'
 import { Modal } from './Popover'
+import { DictationArea } from './Dictate'
 
 export function Editors() {
   const editor = useStore((s) => s.editor)
@@ -70,7 +71,7 @@ function NoteEditor({ note }: { note: Partial<Note> }) {
       <RefInput text={r.text} setText={r.setText} ok={!!r.ref} />
       <div className="field">
         <label htmlFor="note-text">Note</label>
-        <textarea id="note-text" className="input" style={{ minHeight: 180 }} value={text} onChange={(e) => setText(e.target.value)} autoFocus placeholder="Your explanation, insight or question about this passage…" />
+        <DictationArea id="note-text" className="input" style={{ minHeight: 180 }} value={text} onChange={setText} autoFocus placeholder="Your explanation, insight or question about this passage… (tap the microphone to speak)" />
       </div>
       {note.updated && <p className="faint small">Last edited {new Date(note.updated).toLocaleString()}</p>}
     </Modal>
@@ -139,7 +140,7 @@ function JournalEditor({ entry }: { entry: Partial<JournalEntry> }) {
             <Icon name={f.icon} size={17} /> {f.label}
           </label>
           <span className="hint">{f.hint}</span>
-          <textarea id={`j-${f.key}`} className="input" value={fields[f.key] ?? ''} onChange={(e) => setFields({ ...fields, [f.key]: e.target.value })} style={{ minHeight: tid === 'blank' ? 220 : 90 }} />
+          <DictationArea id={`j-${f.key}`} className="input" value={fields[f.key] ?? ''} onChange={(v) => setFields((fs) => ({ ...fs, [f.key]: v }))} style={{ minHeight: tid === 'blank' ? 220 : 90 }} />
           {f.key === 'scriptures' && <RefChips text={fields[f.key] ?? ''} />}
         </div>
       ))}
