@@ -145,8 +145,72 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
     return { x: (x0 + x1) / 2 - w / 2, y: (y0 + y1) / 2 - h / 2, w, h }
   }, [base, proj, markers, bounds, height])
 
+  // full screen: the map covers the whole screen (and the browser goes full screen where it can); the view takes the
+  // screen's shape, keeping in sight what was shown
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [full, setFull] = useState(false)
+  const [screenAspect, setScreenAspect] = useState(0)
+  const askedFs = useRef(false)
+  const enterFull = () => {
+    setFull(true)
+    const d = document.documentElement
+    if (document.fullscreenEnabled && !document.fullscreenElement && d.requestFullscreen) {
+      askedFs.current = true
+      d.requestFullscreen().catch(() => (askedFs.current = false))
+    }
+  }
+  const exitFull = () => {
+    setFull(false)
+    if (askedFs.current && document.fullscreenElement) void document.exitFullscreen().catch(() => {})
+    askedFs.current = false
+  }
+  useEffect(() => {
+    if (!full) {
+      setScreenAspect(0)
+      return
+    }
+    const el = wrapRef.current
+    if (!el) return
+    const measure = () => {
+      const r = el.getBoundingClientRect()
+      if (r.width && r.height) setScreenAspect(r.width / r.height)
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    const key = (e: KeyboardEvent) => e.key === 'Escape' && exitFull()
+    // the browser's own way out of full screen (Esc, back) also returns the map to its place
+    const fsChange = () => {
+      if (askedFs.current && !document.fullscreenElement) {
+        askedFs.current = false
+        setFull(false)
+      }
+    }
+    addEventListener('keydown', key)
+    document.addEventListener('fullscreenchange', fsChange)
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      ro.disconnect()
+      removeEventListener('keydown', key)
+      document.removeEventListener('fullscreenchange', fsChange)
+      document.body.style.overflow = overflow
+    }
+  }, [full])
+  // leaving the page while full screen: give the screen back
+  useEffect(() => () => void (askedFs.current && document.fullscreenElement && document.exitFullscreen().catch(() => {})), [])
+  const aspect = screenAspect || initial.w / initial.h
+  // contain: show at least all of v (going full screen, reset); otherwise keep the zoom (coming back from full screen)
+  const shape = (v: typeof initial, contain = true) => {
+    if (Math.abs(v.w / v.h - aspect) < 0.001) return v
+    const w = contain ? Math.max(v.w, v.h * aspect) : Math.min(v.w, v.h * aspect)
+    const h = w / aspect
+    return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h }
+  }
+
   const [vb, setVb] = useState(initial)
-  useEffect(() => setVb(initial), [initial])
+  useEffect(() => setVb(shape(initial)), [initial]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setVb((v) => shape(v, !!screenAspect)), [aspect]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // keep track of how many screen pixels one map unit is (for the scale bar and label sizes)
   useEffect(() => {
@@ -473,11 +537,11 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
   const [hx1, hy1] = hl ? proj(hl.bbox[2], hl.bbox[1]) : [0, 0]
 
   return (
-    <div className="map-wrap atlas">
+    <div ref={wrapRef} className={`map-wrap atlas${full ? ' full' : ''}`}>
       <svg
         ref={svgRef}
         viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
-        style={{ aspectRatio: `${vb.w} / ${vb.h}`, maxHeight: height }}
+        style={full ? { width: '100%', height: '100%' } : { aspectRatio: `${vb.w} / ${vb.h}`, maxHeight: height }}
         onPointerDown={onDown}
         onPointerMove={onMove}
         onPointerUp={onUp}
@@ -682,9 +746,14 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
         )}
       </div>
       <div className="map-tools">
+        <button className="map-full-btn" onClick={full ? exitFull : enterFull} aria-label={full ? 'Exit full screen' : 'Full screen'} title={full ? 'Back to normal size' : 'Full screen'}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d={full ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5'} />
+          </svg>
+        </button>
         <button onClick={() => zoom(0.75)} aria-label="Zoom in">+</button>
         <button onClick={() => zoom(1.33)} aria-label="Zoom out">−</button>
-        <button onClick={() => setVb(initial)} aria-label="Reset map" style={{ fontSize: 13 }}>⟲</button>
+        <button onClick={() => setVb(shape(initial))} aria-label="Reset map" style={{ fontSize: 13 }}>⟲</button>
       </div>
       <div className="map-legend" aria-hidden="true">
         <svg width="26" height="30" viewBox="0 0 26 30">
