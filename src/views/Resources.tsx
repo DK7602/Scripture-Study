@@ -351,7 +351,7 @@ function PrayerRow({
     <div className={`prayer-row${answered ? ' answered' : ''}${tag ? ' weekly' : ''}`}>
       <label className="answered-box" title={doneLabel}>
         <input type="checkbox" checked={answered} onChange={(e) => onAnswered(e.target.checked)} aria-label={doneLabel} />
-        <span>{answered ? doneLabel : ''}</span>
+        <span className={answered ? '' : 'faint'}>{doneLabel}</span>
       </label>
       <div className="prayer-body">
         {tag &&
