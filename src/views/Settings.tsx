@@ -215,6 +215,10 @@ function LicensedKeys() {
         These translations are copyrighted, so they are read live from their publishers’ services with your own free key and never stored on
         the device. The KJV, BSB, WEB and ASV are built in and work offline.
       </p>
+      <p className="small" style={{ marginTop: 0 }}>
+        <b>Keys entered here work on this phone only.</b> To let family and friends read these translations too, sign in under “Sync across
+        devices” above and tap “Share the keys already on this phone”.
+      </p>
       <div className="field">
         <label htmlFor="esv">
           ESV API key <a className="hint" href="https://api.esv.org/account/create-application/" target="_blank" rel="noreferrer">get a key</a>

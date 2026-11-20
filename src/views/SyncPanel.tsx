@@ -3,6 +3,7 @@ import { newInvite, onSync, pendingInvite, refreshLicensed, saveEsvKey, saveLice
 import { onShared, sharedVersions } from '../lib/shared'
 import { Icon } from '../components/Icon'
 import { ui } from '../lib/ui'
+import { useStore } from '../lib/store'
 
 /** Settings section: sign in with email to sync notes, journal and highlights across devices. */
 export function SyncPanel() {
@@ -117,6 +118,31 @@ function SharedTranslations() {
   const [msg, setMsg] = useState('')
   const [ids, setIds] = useState<Record<string, string>>({})
   const [esvKey, setEsvKey] = useState('')
+  // keys the owner typed into this phone's own settings (they work on this phone only): share them in one tap
+  const settings = useStore((st) => st.settings)
+  const phoneKey = settings.apiBibleKey?.trim() ?? ''
+  const phoneEsv = settings.esvKey?.trim() ?? ''
+  const canShareMine = !!data && ((!!phoneKey && !data.hasKey) || (!!phoneEsv && !data.hasEsvKey))
+  const shareMine = async () => {
+    setBusy(true)
+    setMsg('')
+    try {
+      if (phoneKey && !data?.hasKey) {
+        const d = await saveLicensedKey(phoneKey)
+        const merged: Record<string, string> = { ...(d.ids ?? {}) }
+        for (const v of LICENSED) if (settings.apiBibleIds?.[v]) merged[v] = settings.apiBibleIds[v]
+        await saveLicensedIds(merged)
+      }
+      if (phoneEsv && !data?.hasEsvKey) await saveEsvKey(phoneEsv)
+      const fresh = await refreshLicensed(true)
+      setData(fresh)
+      setIds(fresh?.ids ?? {})
+      setMsg(fresh?.versions.length ? `Shared: ${fresh.versions.join(', ')}. ${fresh.public === false ? 'Signed-in members' : 'Everyone who opens the app'} can read them now.` : 'Saved, but no translation matched: choose them below.')
+    } catch (e) {
+      setMsg((e as Error).message)
+    }
+    setBusy(false)
+  }
   useEffect(() => {
     refreshLicensed(true).then((d) => {
       setData(d)
@@ -156,6 +182,17 @@ function SharedTranslations() {
         Paste your API.Bible key once. It stays on your Cloudflare server (never on anyone’s phone). Chapters are kept for 25 days, so everyone
         shares your free monthly allowance, and a monthly cap keeps it inside the free plan.
       </div>
+      {canShareMine && (
+        <div className="notice small" style={{ margin: '4px 0 10px' }}>
+          You entered {phoneKey && !data?.hasKey && phoneEsv && !data?.hasEsvKey ? 'an API.Bible key and an ESV key' : phoneKey && !data?.hasKey ? 'an API.Bible key' : 'an ESV key'} in this
+          phone’s settings, so the translations work on this phone only.
+          <div style={{ marginTop: 8 }}>
+            <button className="btn small primary" disabled={busy} onClick={shareMine}>
+              <Icon name="share" size={15} /> Share the keys already on this phone
+            </button>
+          </div>
+        </div>
+      )}
       {(data?.hasKey || data?.hasEsvKey) && (
         <button
           className="toggle"
