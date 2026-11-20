@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { book, books, concordance, strongs } from '../lib/data'
-import { helpData, helpsForChapter, placesForChapter, type BookBackground, type VerseHelp } from '../lib/helps'
+import { helpData, helpsForChapter, placesForChapter, type BookBackground, type HelpData, type VerseHelp } from '../lib/helps'
 import { loadPassage, passagePlain, type PassageVerse } from '../lib/passage'
 import { decodeVid, formatRef, locString, parseRef } from '../lib/refs'
 import { closeAllPopups, closePopup, go, newId, openPopup, setState, useStore } from '../lib/store'
@@ -11,6 +11,7 @@ import { Popover } from './Popover'
 import { PlacePhoto } from '../views/PlacePhoto'
 import { chapterAlign } from '../lib/align'
 import { JournalCard, NoteCard } from './Cards'
+import { RefLinks } from '../views/RefLinks'
 
 export function Popups() {
   const popup = useStore((s) => s.popup)
@@ -418,7 +419,11 @@ function JournalPopup(p: { book: string; chapter: number; verse?: number; x: num
 function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number; y: number; onBack?: () => void }) {
   const [items, setItems] = useState<VerseHelp[] | null>(null)
   const [pl, setPl] = useState<Place[]>([])
+  const [hd, setHd] = useState<HelpData | null>(null)
   const caps = useCaps()
+  useEffect(() => {
+    void helpData().then(setHd)
+  }, [])
   useEffect(() => {
     helpsForChapter(p.book, p.chapter).then((m) => setItems(p.verse ? [...(m.get(p.verse) ?? [])] : m.get(0) ?? []))
     if (p.verse) placesForChapter(p.book, p.chapter).then((m) => setPl(m.get(p.verse) ?? []))
@@ -434,7 +439,11 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
   return (
     <Popover x={p.x} y={p.y} width={430} title={`Maps & Helps — ${locString(p.book, p.chapter, p.verse || undefined)}`} onClose={closeAllPopups} onBack={p.onBack}>
       {!items && <div className="spinner" />}
-      {items?.map((h, i) => (
+      {items?.map((h, i) =>
+        // a prophecy, a name of GOD or a Revelation reference: shown here with its passages
+        hd && /^(prophecy|revot|name):\d+$/.test(h.id) ? (
+          <HelpInline key={i} id={h.id} label={h.title} data={hd} onMore={() => open(h.id)} />
+        ) : (
         <button key={i} className="help-card" onClick={() => open(h.id)}>
           <span className="thumb">
             <Icon name={h.id.startsWith('map') ? 'map' : h.id.startsWith('layout') ? 'layout' : h.id.startsWith('prophecy') ? 'scroll' : h.id.startsWith('name') ? 'crown' : 'chart'} />
@@ -444,7 +453,8 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
             {h.detail && <div className="small subtle">{caps(h.detail)}</div>}
           </span>
         </button>
-      ))}
+        ),
+      )}
       {pl.length > 0 && (
         <>
           <div className="section-title small" style={{ marginTop: 8 }}>
@@ -468,6 +478,56 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
       )}
       {items && !items.length && !pl.length && <p className="empty">No helps for this verse.</p>}
     </Popover>
+  )
+}
+
+/** A prophecy of CHRIST, a name of GOD or one of Revelation's Old Testament references, in full in the verse's pop-up:
+ * its passages tap open (with ‹ back to here), and "All …" opens the whole chart. */
+function HelpInline({ id, label, data, onMore }: { id: string; label: string; data: HelpData; onMore: () => void }) {
+  const caps = useCaps()
+  const [kind, n] = id.split(':')
+  const i = +n
+  let title = ''
+  let note = ''
+  let rows: [string, string[]][] = []
+  let more = ''
+  if (kind === 'prophecy' && data.prophecies[i]) {
+    const p = data.prophecies[i]
+    title = p.title
+    rows = [['Old Testament', p.ot], ['Fulfilled', p.nt]]
+    more = 'All prophecies of CHRIST'
+  } else if (kind === 'revot' && data.revOt[i]) {
+    const r = data.revOt[i]
+    title = r.note
+    rows = [['Revelation', [r.rev]], ['Old Testament', r.ot]]
+    more = 'All of Revelation’s Old Testament references'
+  } else if (kind === 'name' && data.names[i]) {
+    const x = data.names[i]
+    title = `${x.name}${x.hebrew ? ` (${x.hebrew})` : ''}`
+    note = `${x.meaning}${x.note ? ` — ${x.note}` : ''}`
+    rows = [['Scripture', [x.ref]]]
+    more = 'All the names of GOD'
+    label = 'Name of GOD'
+  } else return null
+  return (
+    <div className="help-inline">
+      <div className="help-inline-label">
+        <Icon name={kind === 'name' ? 'crown' : 'scroll'} size={15} /> {caps(label)}
+      </div>
+      <div className="help-inline-title">{caps(title)}</div>
+      {note && <div className="help-inline-note">{caps(note)}</div>}
+      {rows.map(([k, refs]) => (
+        <div key={k} className="help-inline-row">
+          <span className="k">{k}</span>
+          <span>
+            <RefLinks refs={refs} stack />
+          </span>
+        </div>
+      ))}
+      <button className="ref-link help-inline-more" onClick={onMore}>
+        {caps(more)} ›
+      </button>
+    </div>
   )
 }
 

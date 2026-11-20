@@ -3,7 +3,7 @@ import { formatRef } from '../lib/refs'
 import { openPopup } from '../lib/store'
 
 /** Inline list of tappable Scripture references (opens the passage pop-up). */
-export function RefLinks({ refs, short = true, sep = '; ' }: { refs: string[]; short?: boolean; sep?: string }) {
+export function RefLinks({ refs, short = true, sep = '; ', stack = false }: { refs: string[]; short?: boolean; sep?: string; stack?: boolean }) {
   return (
     <>
       {refs.map((r, i) => (
@@ -13,7 +13,7 @@ export function RefLinks({ refs, short = true, sep = '; ' }: { refs: string[]; s
             onClick={(e) => {
               e.stopPropagation()
               const rr = (e.currentTarget as HTMLElement).getBoundingClientRect()
-              openPopup({ kind: 'ref', ref: r, x: rr.left, y: rr.bottom + 6 })
+              openPopup({ kind: 'ref', ref: r, x: rr.left, y: rr.bottom + 6 }, stack) // stack: the passage's ‹ back returns to the pop-up it came from
             }}
           >
             {formatRef(r, short)}

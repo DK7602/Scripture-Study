@@ -570,6 +570,14 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.45; }
 .place b { font-family: var(--serif); font-size: calc(16px * var(--ui)); }
 .help-card { border: 1px solid var(--rule); border-radius: 10px; padding: 10px 12px; background: var(--panel); display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; margin-bottom: 8px; font-family: var(--serif); font-size: calc(17px * var(--ui)); }
 .help-card:hover { border-color: var(--accent); }
+/* a prophecy / name of GOD / Revelation reference shown in full in a verse's "?" pop-up */
+.help-inline { border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: 10px; padding: 10px 12px 8px; background: var(--panel); margin-bottom: 8px; }
+.help-inline-label { display: flex; align-items: center; gap: 6px; font-family: var(--sans); font-size: calc(12px * var(--ui)); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
+.help-inline-title { font-family: var(--serif); font-weight: 600; font-size: calc(18.5px * var(--ui)); line-height: 1.3; margin-bottom: 6px; }
+.help-inline-note { font-family: var(--serif); font-style: italic; font-size: calc(16px * var(--ui)); color: var(--ink-soft); margin: -2px 0 6px; }
+.help-inline-row { display: grid; grid-template-columns: 7.8em minmax(0, 1fr); gap: 10px; align-items: baseline; font-family: var(--serif); font-size: calc(16.5px * var(--ui)); padding: 3px 0; }
+.help-inline-row .k { color: var(--ink-soft); font-weight: 600; }
+.help-inline-more { display: inline-block; margin-top: 6px; font-family: var(--sans); font-size: calc(13.5px * var(--ui)); }
 .help-card .thumb { width: 44px; height: 44px; border-radius: 8px; background: var(--accent-soft); display: grid; place-items: center; color: var(--accent); flex: none; }
 .diagram { width: 100%; height: auto; display: block; border: 1px solid var(--rule); border-radius: 10px; background: #f8f1df; }
 :root[data-mode='dark'] .diagram { background: #2a2a24; }
