@@ -53,8 +53,8 @@ export function StudyPanel() {
   const bodyRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [menu, setMenu] = useState(false) // the round commentary button's menu
-  const [fatherChs, setFatherChs] = useState<Record<string, number[]>>({})
-  const [sermonChs, setSermonChs] = useState<number[]>([])
+  const [fatherChs, setFatherChs] = useState<Record<string, number[]> | null>(null) // null: not known yet
+  const [sermonChs, setSermonChs] = useState<{ book: string; chs: number[] } | null>(null)
   const capsHtml = useCapsHtml()
   const show = (html: string) => ({ __html: capsHtml(clean(html)) })
 
@@ -66,7 +66,24 @@ export function StudyPanel() {
     if (follow) setView({ book: loc.book, chapter: loc.chapter, verse: loc.verse })
   }, [loc.book, loc.chapter, loc.verse, follow])
 
-  const info = index.find((c) => c.id === cid)
+  // what each commentary has on the chapter in view: true, false, or undefined while that is still loading
+  const avail = (id: string): boolean | undefined =>
+    id === 'fathers'
+      ? fatherChs
+        ? !!fatherChs[view.book]?.includes(view.chapter)
+        : undefined
+      : id === 'sermons'
+        ? sermonChs?.book === view.book
+          ? sermonChs.chs.includes(view.chapter)
+          : undefined
+        : index.length
+          ? !!index.find((x) => x.id === id)?.books[view.book]?.includes(view.chapter)
+          : undefined
+  const offered = CHIPS.filter((c) => avail(c.id) === true)
+  // the one chosen, where it has notes on this chapter; elsewhere the primary commentary (the choice comes back with
+  // the chapters it covers: Burkitt in the New Testament, say)
+  const shown = avail(cid) === false ? (offered.find((c) => c.id === primary)?.id ?? offered[0]?.id ?? cid) : cid
+  const info = index.find((c) => c.id === shown)
   const covered = info?.books[view.book]
   useEffect(() => {
     let live = true
@@ -75,12 +92,12 @@ export function StudyPanel() {
     if (!info) return
     if (!covered?.includes(view.chapter)) {
       setData(null)
-    } else commentaryChapter(cid, view.book, view.chapter).then((d) => live && setData(d))
-    if (covered?.includes(0) && view.chapter === 1) commentaryChapter(cid, view.book, 0).then((d) => live && setIntro(d?.i ?? null))
+    } else commentaryChapter(shown, view.book, view.chapter).then((d) => live && setData(d))
+    if (covered?.includes(0) && view.chapter === 1) commentaryChapter(shown, view.book, 0).then((d) => live && setIntro(d?.i ?? null))
     return () => {
       live = false
     }
-  }, [cid, info, covered, view.book, view.chapter])
+  }, [shown, info, covered, view.book, view.chapter])
   useEffect(() => {
     crossRefs(view.book).then(setXref)
   }, [view.book])
@@ -89,8 +106,8 @@ export function StudyPanel() {
   }, [])
   useEffect(() => {
     let live = true
-    setSermonChs([])
-    sermonsOn(view.book).then((x) => live && setSermonChs(Object.keys(x).map(Number)))
+    const b = view.book
+    sermonsOn(b).then((x) => live && setSermonChs({ book: b, chs: Object.keys(x).map(Number) }))
     return () => {
       live = false
     }
@@ -102,14 +119,6 @@ export function StudyPanel() {
     return () => window.removeEventListener('keydown', esc)
   }, [menu])
 
-  // the commentaries with something on the chapter in view, for the round button's menu
-  const offered = CHIPS.filter((c) =>
-    c.id === 'fathers'
-      ? !!fatherChs[view.book]?.includes(view.chapter)
-      : c.id === 'sermons'
-        ? sermonChs.includes(view.chapter)
-        : !!index.find((x) => x.id === c.id)?.books[view.book]?.includes(view.chapter),
-  )
   const pick = (id: string) => {
     setMenu(false)
     setCid(id)
@@ -165,8 +174,8 @@ export function StudyPanel() {
         <Icon name="book" /> Commentaries
       </div>
       <div className="pills" role="tablist" aria-label="Commentaries">
-        {CHIPS.map((c) => (
-          <button key={c.id} className="pill" aria-pressed={cid === c.id} onClick={() => setCid(c.id)} title={index.find((x) => x.id === c.id)?.name ?? (c.id === 'sermons' ? 'Spurgeon’s sermons, by their texts' : 'Church Fathers')}>
+        {CHIPS.filter((c) => avail(c.id) === true || c.id === shown).map((c) => (
+          <button key={c.id} className="pill" aria-pressed={shown === c.id} onClick={() => setCid(c.id)} title={index.find((x) => x.id === c.id)?.name ?? (c.id === 'sermons' ? 'Spurgeon’s sermons, by their texts' : 'Church Fathers')}>
             {c.label}
           </button>
         ))}
@@ -207,9 +216,9 @@ export function StudyPanel() {
       </div>
 
       <div ref={contentRef} className="comm-anchor" />
-      {cid === 'fathers' ? (
+      {shown === 'fathers' ? (
         <FathersPanel bookId={view.book} chapter={view.chapter} verse={view.verse} onVerse={(v) => setView({ ...view, verse: v })} />
-      ) : cid === 'sermons' ? (
+      ) : shown === 'sermons' ? (
         <SpurgeonSermons
           bookId={view.book}
           chapter={view.chapter}
@@ -224,9 +233,9 @@ export function StudyPanel() {
       ) : (
         <div className="commentary" ref={bodyRef} onClick={onClick}>
           <h3>{info?.name ?? ''}</h3>
-          {info && primary !== cid && (
-            <button className="btn small" style={{ marginBottom: 8 }} onClick={() => updateSettings({ primaryCommentary: cid })}>
-              Make {CHIPS.find((c) => c.id === cid)?.label} my primary commentary
+          {info && primary !== shown && (
+            <button className="btn small" style={{ marginBottom: 8 }} onClick={() => updateSettings({ primaryCommentary: shown })}>
+              Make {CHIPS.find((c) => c.id === shown)?.label} my primary commentary
             </button>
           )}
           {data === undefined && info && <div className="spinner" />}
@@ -291,8 +300,8 @@ export function StudyPanel() {
           <div className="comm-fab-menu" role="menu" aria-label={`Commentaries on ${locString(view.book, view.chapter)}`}>
             <div className="comm-fab-head">On {locString(view.book, view.chapter)}</div>
             {offered.map((c) => (
-              <button key={c.id} role="menuitemradio" aria-checked={cid === c.id} onClick={() => pick(c.id)}>
-                {cid === c.id && <Icon name="check" size={15} stroke={2.6} />}
+              <button key={c.id} role="menuitemradio" aria-checked={shown === c.id} onClick={() => pick(c.id)}>
+                {shown === c.id && <Icon name="check" size={15} stroke={2.6} />}
                 {c.label}
               </button>
             ))}
