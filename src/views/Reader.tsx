@@ -141,6 +141,9 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
 
 /** Turn to the next/previous chapter with the page-turn animation when the reader is on screen. */
 let turnHandler: ((dir: 1 | -1) => void) | null = null
+/** The reading position on the Bible page, while another tab is open (see the reader's scroll handling). */
+let readingPlace: { key: string; tick: number; verse: string; offset: number; atTop: boolean } | null = null
+
 export function turnPage(dir: 1 | -1) {
   if (turnHandler) turnHandler(dir)
   else step(dir)
@@ -450,9 +453,44 @@ function BibleReader() {
     if (data && entering.current) slideIn()
   }, [data])
 
-  // scroll to the focused verse after navigation
+  // where the reader is in the chapter (the verse at the top of the page), kept while another tab is open: a phone
+  // shows one tab at a time, and the Bible page is made afresh on coming back to it
+  useEffect(() => {
+    const box = scrollRef.current
+    if (!box) return
+    let frame = 0
+    const save = () => {
+      frame = 0
+      const top = box.getBoundingClientRect().top
+      for (const row of versesRef.current?.querySelectorAll<HTMLElement>('[data-vrow]') ?? []) {
+        const r = row.getBoundingClientRect()
+        if (r.bottom > top + 1) {
+          readingPlace = { key: `${loc.book}.${loc.chapter}`, tick: focusTick, verse: row.dataset.vrow!, offset: r.top - top, atTop: box.scrollTop < 2 }
+          return
+        }
+      }
+    }
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(save)
+    }
+    box.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      box.removeEventListener('scroll', onScroll)
+      cancelAnimationFrame(frame)
+    }
+  }, [loc.book, loc.chapter, focusTick])
+
+  // scroll to the focused verse after navigation (or, coming back from another tab, to where the reading was)
   useEffect(() => {
     if (!data) return
+    const box = scrollRef.current
+    const back = readingPlace
+    if (box && back && back.key === `${loc.book}.${loc.chapter}` && back.tick === focusTick) {
+      const row = versesRef.current?.querySelector(`[data-vrow="${back.verse}"]`) as HTMLElement | null
+      if (back.atTop || !row) box.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })
+      else box.scrollTo({ top: box.scrollTop + row.getBoundingClientRect().top - box.getBoundingClientRect().top - back.offset, behavior: 'instant' as ScrollBehavior })
+      return
+    }
     const el = versesRef.current?.querySelector(`[data-vrow="${loc.verse}"]`) as HTMLElement | null
     if (el && loc.verse > 1) el.scrollIntoView({ block: 'center', behavior: 'smooth' })
     else scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior })

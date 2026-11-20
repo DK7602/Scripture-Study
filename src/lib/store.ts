@@ -38,6 +38,7 @@ export interface State {
   editor: { kind: 'note'; note: Partial<Note> } | { kind: 'journal'; entry: Partial<JournalEntry> } | null
   focusTick: number // bumps when navigation should scroll to loc.verse
   helpItem: string | null // selected item in Maps / Helps
+  helpOverlay: string | null // on a phone: a map or help shown full screen over the Bible (from the "?" chip)
   highlightLabel: string // label used by the highlighter button
 }
 
@@ -119,6 +120,7 @@ let state: State = {
   editor: null,
   focusTick: 0,
   helpItem: null,
+  helpOverlay: null,
   highlightLabel: 'promise',
 }
 
@@ -179,6 +181,7 @@ export function go(loc: Partial<Loc>, opts: { tab?: Tab } = {}) {
     selection: null,
     popup: null,
     popupStack: [],
+    helpOverlay: null,
     ...(opts.tab ? { tab: opts.tab } : {}),
   }))
 }

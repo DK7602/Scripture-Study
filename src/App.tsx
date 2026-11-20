@@ -6,6 +6,7 @@ import { TopBar } from './components/TopBar'
 import { BookSidebar } from './components/BookSidebar'
 import { ReaderColumn } from './views/Reader'
 import { StudyPanel } from './views/Study'
+import { HelpOverlay } from './components/HelpOverlay'
 import { MapsHelps } from './views/MapsHelps'
 import { NotesView } from './views/Notes'
 import { JournalView } from './views/Journal'
@@ -167,6 +168,7 @@ export function App() {
           </nav>
         </>
       )}
+      <HelpOverlay />
       <MiniPlayer wide={wide} />
       <SermonMini />
       <SelectionBar />

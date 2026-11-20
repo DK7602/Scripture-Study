@@ -203,13 +203,14 @@ function ItemCard({ h, onOpen }: { h: HelpItem; onOpen: (id: string) => void }) 
 // ---------------------------------------------------------------------------------------------
 // Detail views
 // ---------------------------------------------------------------------------------------------
-function HelpDetail({ id, data, onBack }: { id: string; data: HelpData | null; onBack: () => void }) {
+/** One map or help. `bare`: without the way back to the Maps / Helps list (shown full screen over the Bible). */
+export function HelpDetail({ id, data, onBack, bare }: { id: string; data: HelpData | null; onBack: () => void; bare?: boolean }) {
   const caps = useCaps()
   const item = CURATED.find((c) => c.id === id)
   const [kind, idx] = id.split(':')
   const title =
     item?.title ??
-    (kind === 'place' ? idx : kind === 'prophecy' ? 'Old Testament Prophecies of CHRIST' : kind === 'revot' ? 'Revelation: Old Testament References' : kind === 'name' ? 'The Names of GOD' : 'Help')
+    (kind === 'place' ? placeName(id.slice(6)) : kind === 'prophecy' ? 'Old Testament Prophecies of CHRIST' : kind === 'revot' ? 'Revelation: Old Testament References' : kind === 'name' ? 'The Names of GOD' : 'Help')
   const refs = item?.refs.filter((r) => parseRef(r)) ?? []
   const scrollRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -236,10 +237,12 @@ function HelpDetail({ id, data, onBack }: { id: string; data: HelpData | null; o
 
   return (
     <div ref={scrollRef}>
-      <button className="btn small" onClick={onBack}>
-        <Icon name="left" size={15} /> Maps / Helps
-      </button>
-      <h3 style={{ fontFamily: 'var(--serif)', fontSize: ui(24), margin: '12px 0 2px' }}>{caps(title)}</h3>
+      {!bare && (
+        <button className="btn small" onClick={onBack}>
+          <Icon name="left" size={15} /> Maps / Helps
+        </button>
+      )}
+      <h3 style={{ fontFamily: 'var(--serif)', fontSize: ui(24), margin: bare ? '0 0 2px' : '12px 0 2px' }}>{caps(title)}</h3>
       {item?.subtitle && <div className="faint" style={{ marginBottom: 8 }}>{caps(item.subtitle)}</div>}
       {refs.length > 0 && (
         <p style={{ margin: '4px 0 12px', fontFamily: 'var(--serif)' }}>

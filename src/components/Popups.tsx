@@ -425,7 +425,11 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
   }, [p.book, p.chapter, p.verse])
   const open = (id: string, place?: string) => {
     closeAllPopups()
-    setState({ tab: 'maps', panel: true, helpItem: place ? `place:${place}` : id })
+    const item = place ? `place:${place}` : id
+    // on a phone: full screen over the Bible, closed with its ✕ (the page stays where it was); on a wider screen the
+    // Maps / Helps panel beside the Bible
+    if (window.innerWidth < 900) setState({ helpOverlay: item })
+    else setState({ tab: 'maps', panel: true, helpItem: item })
   }
   return (
     <Popover x={p.x} y={p.y} width={430} title={`Maps & Helps — ${locString(p.book, p.chapter, p.verse || undefined)}`} onClose={closeAllPopups} onBack={p.onBack}>

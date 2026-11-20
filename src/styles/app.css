@@ -962,6 +962,18 @@ input[type='range'], input[type='checkbox'], input[type='radio'] { accent-color:
 .mini-player .icon-btn { width: 36px; height: 36px; color: var(--ink); }
 :root[data-mode='dark'] .mini-player { background: var(--panel-2); }
 
+/* a map or help over the Bible, on a phone (from a verse's "?" chip); popups (z 80) open above it */
+.help-overlay {
+  position: fixed; inset: 0; z-index: 58; display: grid; grid-template-rows: auto minmax(0, 1fr);
+  background: var(--panel); padding-top: env(safe-area-inset-top);
+}
+.help-overlay-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--rule); background: var(--panel-2); }
+.help-overlay-close {
+  width: 46px; height: 46px; flex: none; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--rule); background: var(--panel); color: var(--ink); box-shadow: 0 2px 6px rgba(40, 26, 6, 0.18);
+}
+.help-overlay-body { overflow: auto; overscroll-behavior: contain; padding: 14px 16px calc(40px + env(safe-area-inset-bottom)); }
+
 /* the map at full screen: above the page, its bars and the mini player; popups (z 80) still open above it */
 .map-wrap.full {
   position: fixed; inset: 0; z-index: 60; border: 0; border-radius: 0; width: 100vw; height: 100vh; height: 100dvh;
