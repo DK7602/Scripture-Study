@@ -1,5 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
-import { LOCAL_NAME, MALE_US, canLocal, canSpeak, closePlayer, setMini, deviceVoices, localDownloadMB, realMaleVoice, voiceGender, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
+import { LOCAL_VOICES, MALE_US, canLocal, localName, localVoice, useLocalVoice, canSpeak, closePlayer, setMini, deviceVoices, localDownloadMB, realMaleVoice, voiceGender, narratorsFor, onVoicesChanged, setNarrator, setRate, skip, toggle, useAudio, useDeviceVoice, useLocalMichael, type NarratorVoice } from '../lib/audio'
 import { openPopup, setTab, updateSettings, useStore } from '../lib/store'
 import { Icon } from './Icon'
 
@@ -21,7 +21,7 @@ export function AudioBar() {
   useEffect(() => onVoicesChanged(refresh), [])
   useEffect(() => {
     void localDownloadMB().then(setMb)
-  }, [])
+  }, [settings.localVoice])
   useEffect(() => {
     let live = true
     narratorsFor(settings.version, loc.book, loc.chapter).then((n) => live && setNarrators(n))
@@ -36,11 +36,13 @@ export function AudioBar() {
   const deviceValue = `d:${settings.audioVoice || MALE_US}`
   const male = realMaleVoice()
   const localOk = canLocal && settings.audioLocal
-  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : localOk ? 'l:' : deviceValue
+  const lv = localVoice()
+  const value = narrator ? (settings.audioNarrator === 'device' ? deviceValue : `n:${narrator.id}`) : localOk ? `l:${lv.id}` : deviceValue
+  const LOCAL_NAME = localName()
   const useDevice = value.startsWith('d:')
   const pick = (v: string) => {
     if (v.startsWith('n:')) setNarrator('')
-    else if (v === 'l:') useLocalMichael()
+    else if (v.startsWith('l:')) useLocalVoice(v.slice(2))
     else if (narrator) {
       // a recorded chapter: the listener prefers a device voice even where there are recordings
       updateSettings({ audioVoice: v.slice(2) })
@@ -67,9 +69,10 @@ export function AudioBar() {
           {a.info && <div className="ab-credit">{a.info}</div>}
           {a.error && <div className="ab-err">{a.error}</div>}
           {!a.error && !a.info && value.startsWith('n:') && narrator?.credit && <div className="ab-credit">{narrator.credit}</div>}
-          {!a.error && !a.info && value === 'l:' && (
+          {!a.error && !a.info && value.startsWith('l:') && (
             <div className="ab-credit">
-              {LOCAL_NAME}’s voice, made on this phone · keeps playing with the screen off · nothing is stored · Piper (MIT), voice from RyanSpeech (CC BY-NC-SA 4.0)
+              {LOCAL_NAME}’s voice, made on this phone · keeps playing with the screen off · nothing is stored ·{' '}
+              {lv.engine === 'piper' ? 'Piper (MIT), voice from RyanSpeech (CC BY-NC-SA 4.0)' : 'Supertonic 2 by Supertone (OpenRAIL-M)'}
             </div>
           )}
           {useDevice && a.engine === 'device' && !a.error && (
@@ -80,13 +83,19 @@ export function AudioBar() {
           )}
           {a.offerLocal && !a.info && (
             <button className="ref-link ab-offer" onClick={useLocalMichael}>
-              Use {LOCAL_NAME}’s natural voice for {settings.version}: it keeps playing with the screen off (one-time download, about {mb} MB)
+              Use {LOCAL_NAME}’s natural voice for {settings.version}: it keeps playing with the screen off (one-time download, about {mb} MB). More men’s and women’s voices are in the voice menu
             </button>
           )}
           {a.slow && a.engine === 'local' && (
-            <button className="ref-link ab-offer" onClick={() => useDeviceVoice()}>
-              This device makes {LOCAL_NAME}’s voice slower than he reads, so there are pauses. Use the phone’s own voice instead
-            </button>
+            lv.engine === 'supertonic' ? (
+              <button className="ref-link ab-offer" onClick={() => useLocalVoice('ryan')}>
+                This device makes {LOCAL_NAME}’s voice slower than it reads, so there are pauses. Use Ryan’s voice instead (lighter and quicker to make)
+              </button>
+            ) : (
+              <button className="ref-link ab-offer" onClick={() => useDeviceVoice()}>
+                This device makes {LOCAL_NAME}’s voice slower than he reads, so there are pauses. Use the phone’s own voice instead
+              </button>
+            )
           )}
           {useDevice && a.engine === 'device' && /Android/i.test(navigator.userAgent) && (
             <button
@@ -137,7 +146,11 @@ export function AudioBar() {
           )}
           {!narrators.length && canLocal && (
             <optgroup label="Made on this phone">
-              <option value="l:">{LOCAL_NAME} (natural voice, plays with the screen off)</option>
+              {LOCAL_VOICES.map((v) => (
+                <option key={v.id} value={`l:${v.id}`}>
+                  {v.engine === 'piper' ? `${v.name} (man, quick download)` : `${v.name} (${v.man ? 'man' : 'woman'})`}
+                </option>
+              ))}
             </optgroup>
           )}
           <optgroup label="This device's voices">

@@ -41,8 +41,8 @@ export interface AudioState {
   engine: 'narration' | 'local' | 'device' | null
   label: string
   error: string
-  info: string // e.g. download progress of Ryan's on-device voice
-  offerLocal: boolean // no recording here: offer Ryan's voice made on this device
+  info: string // e.g. download progress of the on-device voice
+  offerLocal: boolean // no recording here: offer a voice made on this device
   slow: boolean // this device makes the voice slower than it reads: offer the device voice
   localDevice: '' | 'webgpu' | 'wasm' // where the on-device voice runs
   mini: boolean // the player is minimized to the small floating bar (it keeps playing)
@@ -363,29 +363,73 @@ async function playNarration(voice: NarratorVoice, v: number, my: number, local 
 }
 
 // ---------------------------------------------------------------------------------------------
-// Ryan's voice made on this device (Piper in a worker, piper.worker.ts): every translation, nothing stored.
+// Voices made on this device (Ryan by Piper, piper.worker.ts; Supertonic's ten, supertonic.worker.ts): every translation, nothing stored.
 // Piper is fast enough on a phone to make a chapter well ahead of the reading, and its sound plays from an
 // ordinary audio element, so the reading goes on with the screen off (the phone's own voice stops there).
 // (Before it, Michael's Kokoro voice was made here, but on phones far slower than he reads.)
 // ---------------------------------------------------------------------------------------------
 export const canLocal = typeof Worker !== 'undefined' && typeof WebAssembly !== 'undefined'
-export const LOCAL_NAME = 'Ryan'
+/** The voices made on the phone: Ryan (Piper, small) and Supertonic's five men and five women (one larger model). */
+export interface LocalVoice {
+  id: string
+  name: string
+  engine: 'piper' | 'supertonic'
+  mb: number // the one-time download
+  man: boolean
+}
+export const LOCAL_VOICES: LocalVoice[] = [
+  { id: 'ryan', name: 'Ryan', engine: 'piper', mb: 75, man: true },
+  ...[1, 2, 3, 4, 5].map((n) => ({ id: `st:M${n}`, name: `Supertonic M${n}`, engine: 'supertonic' as const, mb: 265, man: true })),
+  ...[1, 2, 3, 4, 5].map((n) => ({ id: `st:F${n}`, name: `Supertonic F${n}`, engine: 'supertonic' as const, mb: 265, man: false })),
+]
+export function localVoice(): LocalVoice {
+  const id = getState().settings.localVoice
+  return LOCAL_VOICES.find((v) => v.id === id) ?? LOCAL_VOICES[0]
+}
+/** The chosen voice's name ("Ryan", "Supertonic M3"). */
+export function localName(): string {
+  return localVoice().name
+}
 
-/** Size of the one-time download (the voice, ONNX Runtime and eSpeak), in MB. */
+/** Size of the one-time download for the chosen voice (the model, ONNX Runtime, eSpeak), in MB. */
 export function localDownloadMB(): Promise<number> {
-  return Promise.resolve(75)
+  return Promise.resolve(localVoice().mb)
+}
+
+/** Choose the voice made on the phone (and use it where there is no recording). */
+export function useLocalVoice(id: string) {
+  updateSettings({ localVoice: id, audioLocal: true, audioLocalAsked: true })
+  set({ offerLocal: false, slow: false })
+  madeSec = spentSec = piecesMade = 0
+  void play(state.verse || startVerse())
 }
 let worker: Worker | null = null
+let workerEngine: LocalVoice['engine'] | null = null
+let voiceLoading = false // the voice is downloading or starting: its progress is shown, not the wait for a verse
 let reqId = 0
 const waiting = new Map<number, { res: (r: { audio: Float32Array; sr: number }) => void; rej: (e: Error) => void }>()
 const localUrls = new Set<string>()
 
 function voiceWorker(): Worker {
+  const engine = localVoice().engine
+  if (worker && workerEngine !== engine) {
+    // another voice engine was chosen: let the old one go (its model memory with it)
+    worker.terminate()
+    worker = null
+    voiceLoading = false
+    for (const w of waiting.values()) w.rej(new Error('another voice was chosen'))
+    waiting.clear()
+  }
   if (!worker) {
-    worker = new Worker(new URL('./piper.worker.ts', import.meta.url), { type: 'module' })
+    workerEngine = engine
+    worker =
+      engine === 'supertonic'
+        ? new Worker(new URL('./supertonic.worker.ts', import.meta.url), { type: 'module' })
+        : new Worker(new URL('./piper.worker.ts', import.meta.url), { type: 'module' })
     // if the voice engine dies (out of memory, say), give up on it at once instead of waiting forever
     worker.onerror = (e) => {
       e.preventDefault?.()
+      voiceLoading = false
       for (const w of waiting.values()) w.rej(new Error('the voice engine stopped, perhaps for lack of memory'))
       waiting.clear()
       worker?.terminate()
@@ -393,13 +437,15 @@ function voiceWorker(): Worker {
     }
     worker.onmessage = (e: MessageEvent) => {
       const m = e.data
-      if (m.type === 'mode') set({ localDevice: m.device, info: state.loading ? `${LOCAL_NAME}'s voice is ready, starting…` : '' })
+      if (m.type === 'mode') voiceLoading = false
+      if (m.type === 'mode') set({ localDevice: m.device, info: state.loading ? `${localName()}'s voice is ready, starting…` : '' })
       else if (m.type === 'progress') {
+        voiceLoading = true
         const pct = Math.round((m.loaded / Math.max(m.total, 1)) * 100)
         const info =
           pct >= 100
-            ? `Preparing ${LOCAL_NAME}'s voice…`
-            : `Downloading ${LOCAL_NAME}'s voice: ${pct}% (once, about ${Math.round(m.total / 2 ** 20)} MB)`
+            ? `Preparing ${localName()}'s voice…`
+            : `Downloading ${localName()}'s voice: ${pct}% (once, about ${Math.round(m.total / 2 ** 20)} MB)`
         if (info !== state.info) set({ info })
       }
       else if (m.type === 'audio') {
@@ -412,6 +458,7 @@ function voiceWorker(): Worker {
       } else if (m.type === 'dropped') {
         waiting.delete(m.id) // a piece for a reading the listener has left
       } else if (m.type === 'error') {
+        voiceLoading = false
         set({ info: '' })
         waiting.get(m.id)?.rej(new Error(m.error))
         waiting.delete(m.id)
@@ -427,9 +474,10 @@ let piecesMade = 0
 
 function speakLocal(text: string, speed: number, run: number) {
   const id = ++reqId
+  const w = voiceWorker() // first: a change of voice engine lets go of the old engine's pieces, not this one
   return new Promise<{ audio: Float32Array; sr: number }>((res, rej) => {
     waiting.set(id, { res, rej })
-    voiceWorker().postMessage({ type: 'speak', id, run, text, speed })
+    w.postMessage({ type: 'speak', id, run, text, speed, voice: localVoice().id.replace(/^st:/, '') })
   })
 }
 
@@ -485,7 +533,10 @@ function playLocal(v: number, my: number, withHeading: boolean) {
   }
   const ready = new Map<number, Promise<string>>()
   const make = (k: number) => {
-    if (k < items.length && !ready.has(k)) ready.set(k, speakLocal(items[k].text, speed, my).then((r) => wavUrl(r.audio, r.sr)))
+    if (k >= items.length || ready.has(k)) return
+    const url = speakLocal(items[k].text, speed, my).then((r) => wavUrl(r.audio, r.sr))
+    url.catch(() => {}) // pieces made ahead and never reached (the voice was changed): not an error
+    ready.set(k, url)
   }
   const next = async (k: number) => {
     if (my !== runId) return
@@ -499,14 +550,14 @@ function playLocal(v: number, my: number, withHeading: boolean) {
     const tick = setInterval(() => {
       if (my !== runId) return clearInterval(tick)
       const sec = Math.round((Date.now() - t0) / 1000)
-      if (sec >= 2) set({ info: `${LOCAL_NAME} is getting verse ${items[k].verse} ready… ${sec} s`, ...(sec >= 25 && !state.slow ? { slow: true } : {}) })
+      if (sec >= 2 && !voiceLoading) set({ info: `${localName()} is getting verse ${items[k].verse} ready… ${sec} s`, ...(sec >= 25 && !state.slow ? { slow: true } : {}) })
     }, 1000)
     try {
       url = await ready.get(k)!
     } catch (e) {
       clearInterval(tick)
       if (my !== runId) return
-      playDevice(items[k].verse, my, false, `${LOCAL_NAME}'s voice could not be made on this device (${(e as Error).message}); using the phone's voice.`)
+      playDevice(items[k].verse, my, false, `${localName()}'s voice could not be made on this device (${(e as Error).message}); using the phone's voice.`)
       return
     } finally {
       clearInterval(tick)

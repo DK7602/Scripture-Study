@@ -35,7 +35,7 @@ jobs:
           cache: npm
       - if: env.CLOUDFLARE_API_TOKEN != ''
         run: npm ci
-      # Michael's on-device voice files, hosted on the site (scripts/fetch_voice_model.py)
+      # the on-device voice files (Ryan, Supertonic), hosted on the site (scripts/fetch_voice_model.py)
       - uses: actions/cache@v4
         if: env.CLOUDFLARE_API_TOKEN != ''
         with:
