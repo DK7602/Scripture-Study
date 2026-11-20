@@ -6,7 +6,7 @@ import { capsText, capsTokens } from '../lib/caps'
 import { formatRef } from '../lib/refs'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
-import { onShared, sharedVersions } from '../lib/shared'
+import { membersOnlyVersions, onShared, sharedVersions } from '../lib/shared'
 import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
 import type { Highlight, Label, Place } from '../lib/types'
@@ -27,6 +27,7 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
   const [hlOpen, setHlOpen] = useState(false)
   const audio = { open: useAudioField('open') }
   const scroll = useAutoScroll()
+  const shared = useSyncExternalStore(onShared, sharedVersions) // the owner's shared translations lose their "(key)"
   const b = book(loc.book)
   const label = labels.find((l) => l.id === hlLabel) ?? labels[0]
   const showNames = true
@@ -54,7 +55,7 @@ function ReaderToolbar({ onBooks }: { onBooks: () => void }) {
         {versions().map((v) => (
           <option key={v.id} value={v.id} title={v.name}>
             {v.id}
-            {v.licensed && !sharedVersions().includes(v.id) && !(v.licensed === 'apibible' && settings.apiBibleKey && settings.apiBibleIds[v.id]) && !(v.licensed === 'esv' && settings.esvKey) ? ' (key)' : ''}
+            {v.licensed && !shared.includes(v.id) && !(v.licensed === 'apibible' && settings.apiBibleKey && settings.apiBibleIds[v.id]) && !(v.licensed === 'esv' && settings.esvKey) ? ' (key)' : ''}
           </option>
         ))}
       </select>
@@ -650,20 +651,20 @@ function BibleReader() {
 
 function LicensedNotice({ version }: { version: string }) {
   const info = versionInfo(version)
+  const members = membersOnlyVersions().includes(version)
   return (
     <div className="notice">
-      <h4>{info?.name} needs your API key</h4>
-      <p>
-        The {version} is under copyright, so its text can’t be bundled with the app. You can read it here with a free personal key:
-        {info?.licensed === 'esv' ? (
-          <> get one at <a href="https://api.esv.org/" target="_blank" rel="noreferrer">api.esv.org</a> (non-commercial use).</>
-        ) : (
-          <> get one at <a href="https://scripture.api.bible/" target="_blank" rel="noreferrer">scripture.api.bible</a> and choose the version your licence includes.</>
-        )}
-      </p>
-      {info?.licensed === 'apibible' && (
-        <p className="small" style={{ marginTop: 0 }}>
-          <b>In a Scripture Study group?</b> Sign in under Settings → Sync across devices — if the owner shares the {version}, you can read it without a key.
+      <h4>{members ? `Sign in to read the ${version}` : `The ${version} isn’t available here yet`}</h4>
+      {members ? (
+        <p>
+          The person who runs this app shares the {info?.name} with the people they invite. Open the invitation link they sent you, then sign in
+          under Settings with your email (you’ll get a one-time code).
+        </p>
+      ) : (
+        <p>
+          The {version} is under copyright, so its text can’t come with the app. The person who runs this app can add it in Settings (with a free
+          key from {info?.licensed === 'esv' ? <a href="https://api.esv.org/" target="_blank" rel="noreferrer">api.esv.org</a> : <a href="https://scripture.api.bible/" target="_blank" rel="noreferrer">scripture.api.bible</a>}),
+          and then everyone can read it. You can also use your own free key in Settings.
         </p>
       )}
       <p className="small subtle">Licensed text is shown live and is never stored on your device.</p>

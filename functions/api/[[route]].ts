@@ -17,6 +17,11 @@
  *   GET  /api/licensed/chapter?v=CSB&book=JHN&ch=15   a chapter, via the owner's API.Bible key
  *   POST /api/licensed/key          owner: save/replace the API.Bible key (returns the Bibles it unlocks)
  *   POST /api/licensed/ids          owner: { ids: { CSB: "<bible id>", … } }
+ *   POST /api/licensed/public       owner: { on } share the licensed translations with everyone (default) or members only
+ *
+ * And, outside the sign-in (worker/index.ts sends /feed/licensed* here), unless the owner turned it off:
+ *   GET  /feed/licensed             which licensed Bibles anyone opening the app can read
+ *   GET  /feed/licensed/chapter?v=CSB&book=JHN&ch=15   a chapter, with the same caps (per connection instead of per person)
  */
 
 interface D1Result<T> {
@@ -278,7 +283,10 @@ async function licensed(route: string, request: Request, env: Env, owner: boolea
 
   if (route === 'licensed' && request.method === 'GET') {
     const esvKey = await cfg(db, 'esv_key')
-    const body: Record<string, unknown> = { versions: [...(key ? Object.keys(ids).filter((v) => ids[v]) : []), ...(esvKey ? ['ESV'] : [])] }
+    const body: Record<string, unknown> = {
+      versions: [...(key ? Object.keys(ids).filter((v) => ids[v]) : []), ...(esvKey ? ['ESV'] : [])],
+      public: (await cfg(db, 'lic_public')) !== '0',
+    }
     if (owner) {
       body.hasKey = !!key
       body.hasEsvKey = !!esvKey
@@ -327,6 +335,13 @@ async function licensed(route: string, request: Request, env: Env, owner: boolea
     } catch (e) {
       return json({ error: (e as Error).message }, 400)
     }
+  }
+
+  if (route === 'licensed/public' && request.method === 'POST') {
+    if (!owner) return json({ error: 'Only the owner can change who may read them.' }, 403)
+    const { on } = (await request.json().catch(() => ({}))) as { on?: boolean }
+    await setCfg(db, 'lic_public', on === false ? '0' : '1')
+    return json({ ok: true, public: on !== false })
   }
 
   if (route === 'licensed/ids' && request.method === 'POST') {
@@ -380,6 +395,28 @@ async function licensed(route: string, request: Request, env: Env, owner: boolea
   }
 
   return json({ error: 'Not found.' }, 404)
+}
+
+/**
+ * The licensed translations for everyone who opens the app, without signing in (the owner can turn this off).
+ * The key never leaves the server; the group's monthly allowance and the 25-day cache apply as for members, and
+ * the daily per-person limit counts per connection (a hash of the address, kept a day).
+ */
+export async function publicLicensed(request: Request, env: Env): Promise<Response> {
+  const route = new URL(request.url).pathname.replace(/^\/feed\//, '').replace(/\/$/, '')
+  if (request.method !== 'GET' || (route !== 'licensed' && route !== 'licensed/chapter')) return json({ error: 'Not found.' }, 404)
+  if (!env.DB) return json({ versions: [], public: false }, route === 'licensed' ? 200 : 404)
+  if ((await cfg(env.DB, 'lic_public')) === '0') {
+    if (route !== 'licensed') return json({ error: 'Shared with signed-in members only.', public: false }, 403)
+    // say which ones members can read, so the app can tell others to sign in for them
+    const listed = (await (await licensed('licensed', request, env, false, 'public')).json()) as { versions?: string[] }
+    return json({ versions: [], public: false, members: listed.versions ?? [] })
+  }
+  const ip = request.headers.get('cf-connecting-ip') || 'unknown'
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`scripture-study:${ip}`)))
+  const who = 'ip:' + [...digest.slice(0, 8)].map((b) => b.toString(16).padStart(2, '0')).join('')
+  if (await limited(env.DB, who)) return json({ error: 'Too many requests — please wait a minute.' }, 429, { 'retry-after': '60' })
+  return licensed(route, request, env, false, who)
 }
 
 // ---------------------------------------------------------------------------------------------

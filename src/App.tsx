@@ -20,6 +20,7 @@ import { MiniPlayer } from './components/AudioBar'
 import { Icon } from './components/Icon'
 import { locString } from './lib/refs'
 import { startSync } from './lib/sync'
+import { loadPublicShared } from './lib/shared'
 
 export function useWidth() {
   const [w, setW] = useState(() => window.innerWidth)
@@ -79,6 +80,7 @@ export function App() {
       .then(() => {
         setState({ ready: true })
         startSync()
+        void loadPublicShared() // the owner's licensed translations, for everyone (if shared that way)
       })
       .catch((e) => setError(String(e)))
   }, [])

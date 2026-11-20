@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
-import { newInvite, onSync, pendingInvite, refreshLicensed, saveEsvKey, saveLicensedIds, saveLicensedKey, signIn, signOut, syncInfo, syncNow, type LicensedInfo } from '../lib/sync'
+import { newInvite, onSync, pendingInvite, refreshLicensed, saveEsvKey, saveLicensedIds, saveLicensedKey, saveLicensedPublic, signIn, signOut, syncInfo, syncNow, type LicensedInfo } from '../lib/sync'
 import { onShared, sharedVersions } from '../lib/shared'
 import { Icon } from '../components/Icon'
 import { ui } from '../lib/ui'
@@ -109,7 +109,7 @@ function MemberTranslations() {
 
 const LICENSED = ['CSB', 'NKJV', 'NASB', 'NIV']
 
-/** Owner: paste the API.Bible key once; every signed-in member can then read those translations. */
+/** Owner: paste the API.Bible key once; everyone who opens the app (or, if chosen, signed-in members) can read them. */
 function SharedTranslations() {
   const [data, setData] = useState<LicensedInfo | null>(null)
   const [key, setKey] = useState('')
@@ -151,11 +151,34 @@ function SharedTranslations() {
   }
   return (
     <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--rule)' }}>
-      <div className="small" style={{ fontWeight: 600 }}>Share CSB, NIV, NKJV, NASB or ESV with your group</div>
+      <div className="small" style={{ fontWeight: 600 }}>Share CSB, NIV, NKJV, NASB or ESV</div>
       <div className="small subtle" style={{ marginBottom: 6 }}>
-        Paste your API.Bible key once. It stays on your Cloudflare server (never on members’ devices), and everyone you invited can read these
-        translations when signed in. Chapters are kept for 25 days so the group shares your free monthly allowance.
+        Paste your API.Bible key once. It stays on your Cloudflare server (never on anyone’s phone). Chapters are kept for 25 days, so everyone
+        shares your free monthly allowance, and a monthly cap keeps it inside the free plan.
       </div>
+      {(data?.hasKey || data?.hasEsvKey) && (
+        <button
+          className="toggle"
+          style={{ width: '100%', justifyContent: 'space-between', margin: '2px 0 8px' }}
+          aria-pressed={data?.public !== false}
+          onClick={async () => {
+            const on = data?.public === false
+            try {
+              await saveLicensedPublic(on)
+              setData(await refreshLicensed(true))
+              setMsg(on ? 'Everyone who opens the app can now read them, without signing in.' : 'Now only people you invited, signed in, can read them.')
+            } catch (e) {
+              setMsg((e as Error).message)
+            }
+          }}
+        >
+          <span className="small" style={{ textAlign: 'left' }}>
+            Everyone who opens the app can read them (no sign-in)
+            <span className="subtle" style={{ display: 'block' }}>Off: only people you invite, once signed in</span>
+          </span>
+          <span className="switch" data-on={data?.public !== false} />
+        </button>
+      )}
       {data?.hasKey && <div className="small" style={{ marginBottom: 6 }}>✓ Key saved{data.usedThisMonth !== undefined && ` · ${data.usedThisMonth} of ${data.monthLimit} live loads used this month`}</div>}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
         <input className="input" type="password" autoComplete="off" placeholder={data?.hasKey ? 'Replace API.Bible key' : 'API.Bible key'} value={key} onChange={(e) => setKey(e.target.value)} style={{ flex: '1 1 200px', fontSize: ui(15) }} />

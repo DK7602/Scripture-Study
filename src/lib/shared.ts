@@ -11,6 +11,12 @@ let shared: string[] = (() => {
 })()
 const listeners = new Set<() => void>()
 
+/** Translations the owner keeps for signed-in members (when not shared with everyone). */
+let membersOnly: string[] = []
+export function membersOnlyVersions(): string[] {
+  return membersOnly
+}
+
 export function sharedVersions(): string[] {
   return shared
 }
@@ -18,6 +24,23 @@ export function onShared(l: () => void) {
   listeners.add(l)
   return () => listeners.delete(l)
 }
+/**
+ * The translations the owner shares with everyone who opens the app (no sign-in), unless the owner keeps them for
+ * signed-in members; a member's own list (sync.ts) is left alone when they are members-only.
+ */
+export async function loadPublicShared() {
+  try {
+    const r = await fetch(`${import.meta.env.BASE_URL}feed/licensed`, { cache: 'no-store' })
+    if (!r.ok || !(r.headers.get('content-type') ?? '').includes('json')) return
+    const d = (await r.json()) as { versions?: string[]; public?: boolean; members?: string[] }
+    membersOnly = d.public ? [] : d.members ?? []
+    if (d.public && Array.isArray(d.versions)) setSharedVersions(d.versions)
+    else listeners.forEach((l) => l())
+  } catch {
+    /* offline: keep what was known */
+  }
+}
+
 export function setSharedVersions(v: string[]) {
   shared = v
   try {

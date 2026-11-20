@@ -93,13 +93,16 @@ async function apiBible(bibleId: string, bookId: string, chapter: number, key: s
   return { verses: splitNumbered(d.data?.content ?? '', b.v[chapter - 1]), copyright: d.data?.copyright }
 }
 
-/** A licensed chapter through the group's shared key (members only; cached up to 25 days on the server). */
+/**
+ * A licensed chapter through the owner's shared key (cached up to 25 days on the server): open to everyone who
+ * opens the app, or, if the owner keeps it for the group, to signed-in members.
+ */
 async function sharedChapter(version: string, bookId: string, chapter: number): Promise<ChapterResult> {
   const b = book(bookId)
-  const r = await fetch(`${import.meta.env.BASE_URL}api/licensed/chapter?v=${version}&book=${bookId}&ch=${chapter}`, {
-    redirect: 'manual',
-    credentials: 'same-origin',
-  })
+  const q = `v=${version}&book=${bookId}&ch=${chapter}`
+  let r = await fetch(`${import.meta.env.BASE_URL}feed/licensed/chapter?${q}`, { cache: 'no-store' })
+  if (r.status === 403 || r.status === 404 || !(r.headers.get('content-type') ?? '').includes('json'))
+    r = await fetch(`${import.meta.env.BASE_URL}api/licensed/chapter?${q}`, { redirect: 'manual', credentials: 'same-origin' })
   if (r.type === 'opaqueredirect' || r.status === 401) return { verses: [], error: 'needs-signin' }
   const d = await r.json().catch(() => ({}))
   if (!r.ok) return { verses: [], error: d.error || `Error ${r.status}` }

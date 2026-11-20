@@ -258,6 +258,7 @@ export interface LicensedInfo {
   ids?: Record<string, string>
   usedThisMonth?: number
   monthLimit?: number
+  public?: boolean // shared with everyone who opens the app (else signed-in members only)
   bibles?: { id: string; abbreviation: string; name: string }[]
   error?: string
 }
@@ -289,6 +290,10 @@ export async function saveLicensedKey(key: string): Promise<LicensedInfo> {
 export async function saveEsvKey(key: string): Promise<void> {
   await licApi('licensed/esv', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ key }) })
   await refreshLicensed()
+}
+
+export async function saveLicensedPublic(on: boolean): Promise<void> {
+  await licApi('licensed/public', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ on }) })
 }
 
 export async function saveLicensedIds(ids: Record<string, string>): Promise<void> {

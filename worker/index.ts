@@ -7,7 +7,7 @@
  * Audio goes through here because the static-asset server ignores Range requests, and Safari (iPhone,
  * iPad, Mac) will only play media from a server that answers them with 206 Partial Content.
  */
-import { onRequest } from '../functions/api/[[route]]'
+import { onRequest, publicLicensed } from '../functions/api/[[route]]'
 import { serveAudio } from './audio'
 import { serveSermonFeed } from './sermons'
 
@@ -28,6 +28,7 @@ export default {
     }
     if (url.pathname.startsWith('/audio/')) return serveAudio(request, env)
     if (url.pathname === '/feed/sermons') return serveSermonFeed(request)
+    if (url.pathname.startsWith('/feed/licensed')) return publicLicensed(request, env as never)
     return env.ASSETS.fetch(request)
   },
 }
