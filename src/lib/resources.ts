@@ -60,6 +60,8 @@ export function shortDate(date: string): string {
 }
 
 export const WEEKLY_ID = 'weekly'
+/** Answered prayers added with "Add answered prayer" (and weekly prayers marked answered): one record, id 'answered'. */
+export const ANSWERED_ID = 'answered'
 export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
 /** 0 Sunday … 6 Saturday */
@@ -103,8 +105,12 @@ export function sermonText(n: SermonNote): string {
   return `${head}\n\n${body}\n`
 }
 
-export function prayerText(d: PrayerDay, verseTexts: Record<string, string> = {}, weekly: PrayerItem[] = []): string {
-  const items = [...weekly.map((it) => `• ${it.text} (weekly)`), ...d.items.map((it) => `• ${it.text}${it.answered ? ' (answered)' : ''}`)].join('\n')
+export function prayerText(d: PrayerDay, verseTexts: Record<string, string> = {}, weekly: PrayerItem[] = [], answered: PrayerItem[] = []): string {
+  const items = [
+    ...weekly.map((it) => `• ${it.text} (weekly)`),
+    ...d.items.map((it) => `• ${it.text}${it.answered ? ' (answered)' : ''}`),
+    ...answered.map((it) => `✓ ${it.text} (answered)`),
+  ].join('\n')
   const verses = d.verses.map((r) => `${formatRef(r)}${verseTexts[r] ? ` — ${verseTexts[r]}` : ''}`).join('\n')
   return [`Prayer list — ${longDate(d.date)}`, items, verses && `Encouraging verses:\n${verses}`].filter(Boolean).join('\n\n') + '\n'
 }

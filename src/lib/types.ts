@@ -97,7 +97,8 @@ export type Tab = 'bible' | 'study' | 'maps' | 'notes' | 'journal' | 'search' | 
 
 /**
  * One day of the prayer list. id = 'day-YYYY-MM-DD', so each day is one record on every device.
- * The weekly prayers are one more record in the same list, id 'weekly' (date ''), whose items have days.
+ * The weekly prayers are one more record in the same list, id 'weekly' (date ''), whose items have days; the answered
+ * prayers added on their own (or weekly prayers marked answered) another, id 'answered', shown on their days.
  */
 export interface PrayerDay {
   id: string
@@ -115,7 +116,7 @@ export interface PrayerItem {
   answered?: boolean
   answeredOn?: string // YYYY-MM-DD, the day it was ticked as answered
   note?: string // how it was answered
-  days?: number[] // weekly prayers: the weekdays it comes back on (0 Sunday … 6 Saturday)
+  days?: number[] // weekly prayers: the weekdays it comes back on (0 Sunday … 6 Saturday); answered prayers: the weekdays it shows on
 }
 
 /** Sermon notes: titled sections (the reader's template), each with its own text colour. */

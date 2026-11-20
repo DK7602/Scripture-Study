@@ -10,6 +10,7 @@ import {
   DAY_NAMES,
   DEFAULT_SERMON_TEMPLATE,
   WEEKLY_ID,
+  ANSWERED_ID,
   daysLabel,
   weekday,
   ENCOURAGING,
@@ -132,6 +133,7 @@ function PrayerList() {
   const [shared, setShared] = useState('')
   const [repeat, setRepeat] = useState(false)
   const [weeklyOpen, setWeeklyOpen] = useState(false)
+  const [adding, setAdding] = useState(false) // the "Add answered prayer" form
   const [note, setNote] = useState('') // "Saved as a weekly prayer…"
   useEffect(() => {
     if (!note) return
@@ -147,12 +149,24 @@ function PrayerList() {
   const save = (patch: Partial<PrayerDay>) => void saveItem('prayers', { ...day, ...patch, updated: Date.now() })
   const saveWeekly = (items: PrayerItem[]) => void saveItem('prayers', { ...weekly, items, updated: Date.now() })
   const prayed = new Set(day.prayed ?? [])
-  // a weekly prayer God has answered: it leaves the weekly list and joins today's, ticked as answered
+  const answered: PrayerDay = prayers.find((p) => p.id === ANSWERED_ID) ?? { ...emptyDay(''), id: ANSWERED_ID }
+  const saveAnswered = (items: PrayerItem[]) => void saveItem('prayers', { ...answered, items, updated: Date.now() })
+  // answered prayers shown on this day: those for this weekday (from the day they were answered on), and that day's own
+  const answeredHere = answered.items.filter((i) => i.answeredOn === date || (!!i.days?.includes(wd) && (i.answeredOn ?? '') <= date))
+  // a weekly prayer God has answered: it stops repeating and is kept with the answered prayers, shown on its days
   const answerWeekly = (it: PrayerItem) => {
-    const t = today()
-    const rec = prayers.find((p) => p.id === `day-${t}`) ?? emptyDay(t)
-    void saveItem('prayers', { ...rec, items: [...rec.items, { id: newId(), text: it.text, answered: true, answeredOn: t }], updated: Date.now() })
+    saveAnswered([...answered.items, { id: newId(), text: it.text, answered: true, answeredOn: today(), days: it.days }])
     saveWeekly(weekly.items.filter((x) => x.id !== it.id))
+    setNote(`✓ Kept under Answered prayers${it.days?.length ? `; it shows as answered on ${daysLabel(it.days)}` : ''}.`)
+  }
+  const addAnswered = (text: string, days: number[]) => {
+    saveAnswered([...answered.items, { id: newId(), text, answered: true, answeredOn: date, ...(days.length ? { days } : {}) }])
+    setAdding(false)
+    setNote(`✓ Saved under Answered prayers${days.length ? `. It shows with your prayers on ${daysLabel(days)}` : ''}.`)
+  }
+  const openAdder = () => {
+    setAdding(true)
+    setTimeout(() => document.querySelector('.answered-adder')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50)
   }
 
   const add = () => {
@@ -195,7 +209,7 @@ function PrayerList() {
       const p = await loadPassage(r, 8).catch(() => null)
       if (p) texts[r] = p.verses.map(passagePlain).join(' ')
     }
-    const how = await shareText('Prayer list', prayerText(day, texts, todays))
+    const how = await shareText('Prayer list', prayerText(day, texts, todays, answeredHere))
     setShared(how === 'copied' ? 'Copied — paste it into a message.' : how === 'failed' ? 'Could not share from this browser.' : '')
   }
 
@@ -222,7 +236,7 @@ function PrayerList() {
 
       <h3 className="res-h">Prayer focuses</h3>
       {(day.items.length > 0 || todays.length > 0) && (
-        <p className="faint small res-hint">Tick weekly prayers (↻) as you pray them, and other prayers when they are answered. Tap a prayer to change it.</p>
+        <p className="faint small res-hint">Tick weekly prayers (↻) as you pray them. When GOD answers a prayer, tap “Add answered prayer”. Tap a prayer to change it.</p>
       )}
       {todays.map((it) => (
         <PrayerRow
@@ -250,6 +264,28 @@ function PrayerList() {
           repeatLabel={`Pray this every ${DAY_NAMES[wd]}`}
         />
       ))}
+      {answeredHere.length > 0 && (
+        <div className="answered-here">
+          <p className="answered-here-h">
+            <Icon name="check" size={14} stroke={2.6} /> Answered{answeredHere.some((i) => i.days?.includes(wd)) ? ` · ${DAY_NAMES[wd]}s` : ''}
+          </p>
+          {answeredHere.map((it) => (
+            <div key={it.id} className="answered-card compact">
+              <div className="answered-top">
+                <span className="answered-mark" aria-hidden="true">
+                  <Icon name="check" size={14} stroke={2.6} />
+                </span>
+                <div className="answered-text">{it.text}</div>
+              </div>
+              {it.note?.trim() && <div className="answered-note static">{it.note}</div>}
+              <div className="faint small answered-meta">
+                Answered {shortDate(it.answeredOn ?? date)}
+                {it.days?.length ? ` · ↻ shows on ${daysLabel(it.days)}` : ''}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {!day.items.length && !todays.length && <p className="faint">{isToday ? 'What would you like to pray about today?' : 'Nothing was written for this day.'}</p>}
       {earlier && !day.items.length && (
         <button className="btn small" onClick={carry} style={{ marginBottom: 10 }}>
@@ -281,6 +317,7 @@ function PrayerList() {
           {note}
         </p>
       )}
+      <AnsweredAdder open={adding} setOpen={setAdding} prefer={todays.length ? [wd] : []} wd={wd} onAdd={addAnswered} />
       <WeeklyPrayers items={weekly.items} onSave={saveWeekly} prefer={wd} onAnswered={answerWeekly} open={weeklyOpen} setOpen={setWeeklyOpen} />
 
       <h3 className="res-h">Encouraging verses</h3>
@@ -298,7 +335,7 @@ function PrayerList() {
         </div>
       )}
 
-      <AnsweredPrayers days={days} onOpenDay={setDate} />
+      <AnsweredPrayers days={days} answered={answered} onOpenDay={setDate} onAdd={openAdder} />
 
       {recent.length > 0 && (
         <>
@@ -378,13 +415,57 @@ function PrayerRow({
   )
 }
 
-/** Every prayer ticked as answered, newest first: a record of God's faithfulness. */
-function AnsweredPrayers({ days, onOpenDay }: { days: PrayerDay[]; onOpenDay: (date: string) => void }) {
+/** "Add answered prayer": what GOD answered, and the weekdays it shows on (that day's, if it is a weekly prayer day). */
+function AnsweredAdder({ open, setOpen, prefer, wd, onAdd }: { open: boolean; setOpen: (o: boolean) => void; prefer: number[]; wd: number; onAdd: (text: string, days: number[]) => void }) {
+  const [text, setText] = useState('')
+  const [days, setDays] = useState<number[]>(prefer)
+  useEffect(() => {
+    if (open) setDays(prefer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, wd])
+  if (!open)
+    return (
+      <button className="btn small answer-btn add-answered" onClick={() => setOpen(true)}>
+        <Icon name="check" size={15} /> Add answered prayer
+      </button>
+    )
+  const save = () => {
+    const t = text.trim()
+    if (!t) return
+    onAdd(t, days)
+    setText('')
+  }
+  return (
+    <div className="card answered-adder">
+      <b className="answered-adder-h">
+        <Icon name="check" size={15} stroke={2.6} /> Add answered prayer
+      </b>
+      <DictationArea className="input" rows={2} autoGrow value={text} onChange={setText} placeholder="What did GOD answer? (type or speak)" aria-label="Answered prayer" autoFocus />
+      <span className="faint small">Show it with my prayers every:</span>
+      <DayChips value={days} onChange={setDays} allowNone />
+      <span className="faint small">
+        {days.length ? `It shows as answered on ${daysLabel(days)}, and under Answered prayers.` : 'No day chosen: it is kept under Answered prayers.'}
+      </span>
+      <div className="answered-adder-btns">
+        <button className="btn primary small" onClick={save} disabled={!text.trim()}>
+          <Icon name="check" size={15} /> Save answered prayer
+        </button>
+        <button className="btn small" onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/** Every answered prayer, newest first: a record of God's faithfulness. */
+function AnsweredPrayers({ days, answered, onOpenDay, onAdd }: { days: PrayerDay[]; answered: PrayerDay; onOpenDay: (date: string) => void; onAdd: () => void }) {
   const [all, setAll] = useState(false)
   const [editing, setEditing] = useState<string | null>(null)
+  const [daysFor, setDaysFor] = useState<string | null>(null)
   const list = useMemo(() => {
     const seen = new Map<string, { it: PrayerItem; day: PrayerDay; on: string }>()
-    for (const d of days)
+    for (const d of [...days, answered])
       for (const it of d.items)
         if (it.answered) {
           const on = it.answeredOn || d.date
@@ -394,16 +475,23 @@ function AnsweredPrayers({ days, onOpenDay }: { days: PrayerDay[]; onOpenDay: (d
           if (!had || had.on < on || (had.on === on && !had.it.note && it.note)) seen.set(key, { it, day: d, on })
         }
     return [...seen.values()].sort((a, b) => (a.on < b.on ? 1 : a.on > b.on ? -1 : 0))
-  }, [days])
-  const saveNote = (day: PrayerDay, id: string, note: string) =>
-    void saveItem('prayers', { ...day, items: day.items.map((x) => (x.id === id ? { ...x, note } : x)), updated: Date.now() })
+  }, [days, answered])
+  const change = (day: PrayerDay, id: string, patch: Partial<PrayerItem>) =>
+    void saveItem('prayers', { ...day, items: day.items.map((x) => (x.id === id ? { ...x, ...patch } : x)), updated: Date.now() })
+  const saveNote = (day: PrayerDay, id: string, note: string) => change(day, id, { note })
+  const remove = (day: PrayerDay, it: PrayerItem) =>
+    window.confirm(`Remove “${it.text.slice(0, 60)}” from your answered prayers?`) &&
+    void saveItem('prayers', { ...day, items: day.items.filter((x) => x.id !== it.id), updated: Date.now() })
   const shown = all ? list : list.slice(0, 5)
   return (
     <div className="answered-list">
       <h3 className="res-h">
         Answered prayers {list.length > 0 && <span className="faint">({list.length})</span>}
       </h3>
-      {!list.length && <p className="faint small">When you tick a prayer as answered, it is kept here: a record of GOD’s faithfulness.</p>}
+      {!list.length && <p className="faint small">When GOD answers a prayer, add it here: a record of His faithfulness.</p>}
+      <button className="btn small answer-btn" onClick={onAdd} style={{ marginBottom: 8 }}>
+        <Icon name="plus" size={15} /> Add answered prayer
+      </button>
       {shown.map(({ it, day, on }) => (
         <div key={it.id} className="answered-card">
           <div className="answered-top">
@@ -411,14 +499,38 @@ function AnsweredPrayers({ days, onOpenDay }: { days: PrayerDay[]; onOpenDay: (d
               <Icon name="check" size={16} stroke={2.6} />
             </span>
             <div className="answered-text">{it.text}</div>
+            {day.id === ANSWERED_ID && (
+              <button className="icon-btn answered-remove" onClick={() => remove(day, it)} aria-label="Remove from answered prayers">
+                <Icon name="trash" size={16} />
+              </button>
+            )}
           </div>
           <div className="faint small answered-meta">
             Answered {shortDate(on)}
-            {day.date !== on ? ` · on your list ${shortDate(day.date)}` : ''} ·{' '}
-            <button className="ref-link" onClick={() => onOpenDay(day.date)}>
-              open that day
-            </button>
+            {day.id === ANSWERED_ID ? (
+              <>
+                {' · '}
+                <button className="ref-link" onClick={() => setDaysFor(daysFor === it.id ? null : it.id)}>
+                  {it.days?.length ? `↻ shows on ${daysLabel(it.days)}` : 'show it on a weekday'}
+                </button>
+              </>
+            ) : (
+              <>
+                {day.date !== on ? ` · on your list ${shortDate(day.date)}` : ''} ·{' '}
+                <button className="ref-link" onClick={() => onOpenDay(day.date)}>
+                  open that day
+                </button>
+              </>
+            )}
           </div>
+          {daysFor === it.id && (
+            <div className="answered-days">
+              <DayChips value={it.days ?? []} onChange={(d) => change(day, it.id, { days: d })} allowNone />
+              <button className="btn small" onClick={() => setDaysFor(null)}>
+                Done
+              </button>
+            </div>
+          )}
           {editing === it.id ? (
             <div className="answered-note-edit">
               <DictationArea className="input" rows={2} autoGrow value={it.note ?? ''} onChange={(v) => saveNote(day, it.id, v)} placeholder="How did GOD answer? (type or speak)" aria-label="How it was answered" autoFocus />
@@ -495,7 +607,7 @@ function WeeklyPrayers({
                 </button>
               </div>
               <DayChips value={it.days ?? []} onChange={(d) => onSave(items.map((x) => (x.id === it.id ? { ...x, days: d } : x)))} />
-              <button className="btn small answer-btn" onClick={() => window.confirm(`Mark “${it.text.slice(0, 60)}” as answered? It moves to your answered prayers and stops repeating.`) && onAnswered(it)}>
+              <button className="btn small answer-btn" onClick={() => window.confirm(`Mark “${it.text.slice(0, 60)}” as answered? It stops repeating and is kept under Answered prayers, shown as answered on ${daysLabel(it.days)}.`) && onAnswered(it)}>
                 <Icon name="check" size={15} /> Answered
               </button>
             </div>
@@ -522,11 +634,11 @@ function GrowArea({ value, onChange, onBlur, label }: { value: string; onChange:
 }
 
 /** S M T W T F S toggles, plus every day. At least one day stays chosen. */
-function DayChips({ value, onChange }: { value: number[]; onChange: (d: number[]) => void }) {
+function DayChips({ value, onChange, allowNone }: { value: number[]; onChange: (d: number[]) => void; allowNone?: boolean }) {
   const set = new Set(value)
   const toggle = (d: number) => {
     if (set.has(d)) {
-      if (set.size > 1) set.delete(d)
+      if (set.size > 1 || allowNone) set.delete(d) // a weekly prayer keeps at least one day
     } else set.add(d)
     onChange([...set].sort())
   }
@@ -537,7 +649,7 @@ function DayChips({ value, onChange }: { value: number[]; onChange: (d: number[]
           {n.slice(0, n === 'Thursday' || n === 'Tuesday' || n === 'Saturday' || n === 'Sunday' ? 2 : 1)}
         </button>
       ))}
-      <button className="day-btn all" aria-pressed={set.size === 7} onClick={() => onChange(set.size === 7 ? [value[0] ?? 0] : [0, 1, 2, 3, 4, 5, 6])}>
+      <button className="day-btn all" aria-pressed={set.size === 7} onClick={() => onChange(set.size === 7 ? (allowNone ? [] : [value[0] ?? 0]) : [0, 1, 2, 3, 4, 5, 6])}>
         Every day
       </button>
     </div>

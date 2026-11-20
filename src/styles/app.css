@@ -1095,6 +1095,19 @@ textarea.sn-name { resize: none; overflow: hidden; display: block; line-height: 
 .answered-note-edit { display: grid; gap: 6px; }
 .answered-note-edit .btn { justify-self: start; }
 .answer-btn { margin-top: 8px; color: #2e8b57; }
+.add-answered { margin: 8px 8px 0 0; }
+.answered-adder { display: grid; gap: 8px; margin-top: 10px; border-left: 4px solid #2e8b57; }
+.answered-adder-h { display: flex; align-items: center; gap: 6px; color: #2e8b57; }
+.answered-adder-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.answered-here { margin: 4px 0 10px; }
+.answered-here-h { display: flex; align-items: center; gap: 5px; margin: 6px 0 6px; font-size: calc(12px * var(--ui)); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #2e8b57; }
+.answered-card.compact { padding: 8px 10px; }
+.answered-card.compact .answered-text { font-size: calc(16.5px * var(--ui)); }
+.answered-note.static { margin: 4px 0 0 32px; }
+.answered-top .answered-text { flex: 1; min-width: 0; }
+.answered-remove { width: 32px; height: 32px; flex: none; color: var(--ink-faint); margin: -4px -6px 0 0; }
+.answered-days { display: grid; gap: 6px; margin: 4px 0 4px 32px; }
+.answered-days .btn { justify-self: start; }
 .prayer-body textarea { flex: none; }
 
 /* text boxes that grow with their text (see src/lib/autosize.ts) */
