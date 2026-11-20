@@ -546,11 +546,12 @@ function playLocal(v: number, my: number, withHeading: boolean) {
     for (let j = k; j < items.length; j++) make(j)
     let url: string
     // while a piece is being made, say so and count the seconds; a very slow device gets the offer at once
-    const t0 = Date.now()
+    let t0 = Date.now()
     const tick = setInterval(() => {
       if (my !== runId) return clearInterval(tick)
+      if (voiceLoading) return void (t0 = Date.now()) // the first download is not the device being slow
       const sec = Math.round((Date.now() - t0) / 1000)
-      if (sec >= 2 && !voiceLoading) set({ info: `${localName()} is getting verse ${items[k].verse} ready… ${sec} s`, ...(sec >= 25 && !state.slow ? { slow: true } : {}) })
+      if (sec >= 2) set({ info: `${localName()} is getting verse ${items[k].verse} ready… ${sec} s`, ...(sec >= 25 && !state.slow ? { slow: true } : {}) })
     }, 1000)
     try {
       url = await ready.get(k)!
