@@ -6,6 +6,7 @@ import type { CommentaryChapter, CommentaryInfo } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { useCapsHtml } from '../lib/caps'
 import { FathersPanel } from './History'
+import { SpurgeonSermons } from './SpurgeonSermons'
 import { ui } from '../lib/ui'
 
 interface Chip {
@@ -21,8 +22,12 @@ export const CHIPS: Chip[] = [
   { id: 'poole', label: 'Poole' },
   { id: 'gill', label: 'Gill' },
   { id: 'jfb', label: 'JFB' },
+  { id: 'burkitt', label: 'Burkitt (NT)' },
+  { id: 'kd', label: 'Keil & Delitzsch (OT)' },
+  { id: 'lightfoot', label: 'Lightfoot (Gospels)' },
   { id: 'geneva', label: 'Geneva 1599' },
   { id: 'spurgeon', label: 'Spurgeon (Psalms)' },
+  { id: 'sermons', label: 'Spurgeon sermons' },
   { id: 'fathers', label: 'Church Fathers' },
 ]
 
@@ -75,7 +80,14 @@ export function StudyPanel() {
     crossRefs(view.book).then(setXref)
   }, [view.book])
 
-  const current = useMemo(() => data?.e?.findIndex(([a, z]) => view.verse >= a && view.verse <= z) ?? -1, [data, view.verse])
+  // the note on this verse: the closest-fitting one where an overview of a passage is followed by notes on its verses
+  const current = useMemo(() => {
+    let best = -1
+    data?.e?.forEach(([a, z], i) => {
+      if (view.verse >= a && view.verse <= z && (best < 0 || z - a < data.e![best][1] - data.e![best][0])) best = i
+    })
+    return best
+  }, [data, view.verse])
   useEffect(() => {
     const el = bodyRef.current?.querySelector('.comm-entry.current') as HTMLElement | null
     el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
@@ -117,7 +129,7 @@ export function StudyPanel() {
       </div>
       <div className="pills" role="tablist" aria-label="Commentaries">
         {CHIPS.map((c) => (
-          <button key={c.id} className="pill" aria-pressed={cid === c.id} onClick={() => setCid(c.id)} title={index.find((x) => x.id === c.id)?.name ?? 'Church Fathers'}>
+          <button key={c.id} className="pill" aria-pressed={cid === c.id} onClick={() => setCid(c.id)} title={index.find((x) => x.id === c.id)?.name ?? (c.id === 'sermons' ? 'Spurgeon’s sermons, by their texts' : 'Church Fathers')}>
             {c.label}
           </button>
         ))}
@@ -159,6 +171,18 @@ export function StudyPanel() {
 
       {cid === 'fathers' ? (
         <FathersPanel bookId={view.book} chapter={view.chapter} verse={view.verse} onVerse={(v) => setView({ ...view, verse: v })} />
+      ) : cid === 'sermons' ? (
+        <SpurgeonSermons
+          bookId={view.book}
+          chapter={view.chapter}
+          verse={view.verse}
+          onGo={(chapter, verse) => {
+            setFollow(false)
+            setView({ ...view, chapter, verse })
+          }}
+          onRefClick={onClick}
+          show={show}
+        />
       ) : (
         <div className="commentary" ref={bodyRef} onClick={onClick}>
           <h3>{info?.name ?? ''}</h3>
@@ -187,7 +211,7 @@ export function StudyPanel() {
             </div>
           )}
           {data?.e?.map(([a, z, html], i) => (
-            <div key={a} className={`comm-entry${i === current ? ' current' : ''}`} onClick={() => setView({ ...view, verse: a })}>
+            <div key={`${a}-${i}`} className={`comm-entry${i === current ? ' current' : ''}`} onClick={() => setView({ ...view, verse: a })}>
               <div className="range">
                 {a === z ? `Verse ${a}` : `Verses ${a}–${z}`}
               </div>

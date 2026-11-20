@@ -280,6 +280,7 @@ function Offline() {
     if (g === 'core') return 'Study helps, maps, topics & cross references'
     if (g === 'strongs') return 'Strong’s concordance'
     if (g.startsWith('bible:')) return `${g.slice(6)} Bible`
+    if (g === 'sermons') return 'Spurgeon’s sermons'
     const id = g.slice(5)
     return CHIPS.find((c) => c.id === id)?.label + ' commentary'
   }
@@ -376,9 +377,10 @@ function About() {
           Standard Version (1901) — public domain, from eBible.org.
         </p>
         <p>
-          <b>Commentaries:</b> Matthew Henry’s Complete Commentary, Calvin’s Commentaries, Jamieson-Fausset-Brown and the 1599 Geneva Bible notes (CrossWire
-          Bible Society); Barnes’ Notes on the Bible, Matthew Poole’s English Annotations, John Gill’s Exposition of the Entire Bible and Spurgeon’s
-          Treasury of David (MySword modules) — all public domain.
+          <b>Commentaries:</b> Matthew Henry’s Complete Commentary, Calvin’s Commentaries, Jamieson-Fausset-Brown, the 1599 Geneva Bible notes, Burkitt’s
+          Expository Notes, Keil & Delitzsch and Lightfoot’s Commentary from the Talmud and Hebraica (CrossWire Bible Society); Barnes’ Notes on the Bible, Matthew Poole’s English Annotations, John Gill’s Exposition of the Entire Bible and Spurgeon’s
+          Treasury of David (MySword modules) — all public domain. Spurgeon’s sermons: the New Park Street and Metropolitan Tabernacle Pulpit
+          (public domain), from the Christian Classics Ethereal Library.
         </p>
         <p>
           <b>Concordance & topics:</b> Strong’s Hebrew and Greek dictionaries (Open Scriptures, CC BY-SA), Nave’s Topical Bible, Torrey’s New Topical

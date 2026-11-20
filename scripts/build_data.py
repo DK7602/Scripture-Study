@@ -13,7 +13,8 @@ Sources (all public domain unless noted):
   * Open Scriptures Strong's Greek & Hebrew dictionaries (CC-BY-SA, from public-domain Strong's)
   * OpenBible.info cross references (CC-BY) and Bible Geocoding data (CC-BY)
   * CrossWire SWORD modules: Matthew Henry Complete, Barnes' Notes, Calvin's Commentaries,
-    Jamieson-Fausset-Brown, Geneva Bible notes (1599), Nave's Topical Bible,
+    Jamieson-Fausset-Brown, Geneva Bible notes (1599), Burkitt's Expository Notes, Keil & Delitzsch,
+    Lightfoot's Talmud and Hebraica, Nave's Topical Bible,
     Torrey's New Topical Textbook, Easton's Bible Dictionary
   * Natural Earth (public domain) for modern borders, coastlines, lakes and rivers
 """
@@ -502,6 +503,9 @@ COMMENTARIES = [
     ("calvin", "CalvinCommentaries", "modules/comments/zcom/calvincommentaries", False, "Calvin's Commentaries", "John Calvin", "1540–1564"),
     ("jfb", "JFB", "modules/comments/zcom/jfb", True, "Jamieson, Fausset & Brown Commentary", "Robert Jamieson, A. R. Fausset, David Brown", "1871"),
     ("geneva", "Geneva", "modules/comments/zcom/geneva", False, "Geneva Bible Notes (1599)", "Reformation translators", "1599"),
+    ("burkitt", "Burkitt", "modules/comments/zcom/burkitt", False, "Burkitt's Expository Notes on the New Testament", "William Burkitt", "1700–1703"),
+    ("kd", "KD", "modules/comments/zcom4/kd", True, "Keil & Delitzsch Commentary on the Old Testament", "C. F. Keil & Franz Delitzsch", "1861–1875"),
+    ("lightfoot", "Lightfoot", "modules/comments/zcom/lightfoot", False, "A Commentary on the New Testament from the Talmud and Hebraica", "John Lightfoot", "1658–1674"),
 ]
 
 REF_PATTERN = re.compile(
@@ -627,12 +631,40 @@ def _linkify_text(t):
     return REF_RUN.sub(rep, t)
 
 
+HEADED = re.compile(r'\s*(?:<p>)?\s*<a data-r="([A-Z0-9]+)\.(\d+)\.(\d+)(?:-(?:[A-Z0-9]+\.\d+\.)?(\d+))?">')
+
+
+def headed_ranges(entries, code, ch, nverses):
+    """Keil & Delitzsch heads each note with the verses it covers ("Psa 23:1-3"), but the module sometimes files
+    it under the last of them, or under the first only. Each note is given the verses of its heading; a note with
+    no heading at verse 1, ahead of one that starts there, is the chapter's introduction (a psalm's, say)."""
+    out = []
+    for a, z, h in entries:
+        m = HEADED.match(h)
+        if m and m.group(1) == code and int(m.group(2)) == ch:
+            ra, rz = int(m.group(3)), int(m.group(4) or m.group(3))
+            if 1 <= ra <= rz <= nverses:
+                a, z = min(a, ra), max(z, rz)
+        out.append([a, z, h])
+    out.sort(key=lambda e: e[0])
+    intro = None
+    if len(out) > 1 and out[0][0] == 1 and not HEADED.match(out[0][2]) and out[1][0] == 1:
+        intro = out.pop(0)[2]
+    return intro, out
+
+
 def stage_commentaries():
     log("== Commentaries")
     books = load_books()
     chapters = {b["id"]: b["v"] for b in books}
-    meta = []
+    # the index also lists the MySword commentaries: keep those (and, with COMM_ONLY=a,b, the others not rebuilt)
+    only = [x for x in os.environ.get("COMM_ONLY", "").split(",") if x]
+    idx_path = os.path.join(OUT, "comm/index.json")
+    meta = json.load(open(idx_path, encoding="utf-8")) if os.path.exists(idx_path) else []
     for cid, mod, dpath, four, name, author, year in COMMENTARIES:
+        if only and cid not in only:
+            continue
+        meta = [m for m in meta if m["id"] != cid]
         zp = fetch(f"https://www.crosswire.org/ftpmirror/pub/sword/packages/rawzip/{mod}.zip")
         d = unzip(zp, os.path.join(CACHE, "sword", mod))
         zv = ZVerse(os.path.join(d, dpath), four=four)
@@ -674,6 +706,10 @@ def stage_commentaries():
                         entries.append([v, v, h])
                     else:
                         last_key = None
+                if cid == "kd" and entries:
+                    intro_h, entries = headed_ranges(entries, code, ci, nverses)
+                    if intro_h and "i" not in cobj:
+                        cobj["i"] = intro_h
                 if entries:
                     cobj["e"] = entries
                 if cobj:
@@ -888,6 +924,8 @@ def stage_manifest():
                 g = "comm:" + parts[1]
             elif parts[0] in ("strongs", "conc"):
                 g = "strongs"
+            elif parts[0] == "sermons":
+                g = "sermons"
             else:
                 g = "core"
             groups[g].append(rel)
@@ -1006,7 +1044,10 @@ def stage_mysword():
     vcount = {b["id"]: b["v"] for b in books}
     idx_path = os.path.join(OUT, "comm/index.json")
     meta = json.load(open(idx_path, encoding="utf-8")) if os.path.exists(idx_path) else []
+    only = [x for x in os.environ.get("COMM_ONLY", "").split(",") if x]
     for cid, mod, name, author, year in MYSWORD:
+        if only and cid not in only:
+            continue
         gz = fetch(f"https://mysword-bible.info/download/getfile.php?file={mod}.cmt.mybible.gz", f"{mod}.cmt.mybible.gz")
         db = gz[:-3]
         if not os.path.exists(db):
