@@ -15,7 +15,8 @@ interface Sermon {
 
 const BUNDLE = 10 // sermons per text file (scripts/build_sermons.py)
 
-function sermonsOn(bookId: string) {
+/** The sermons on texts in a book, by chapter. */
+export function sermonsOn(bookId: string) {
   return tryJSON<Record<string, Entry[]>>(`sermons/books/${bookId}.json`).then((x) => x ?? {})
 }
 

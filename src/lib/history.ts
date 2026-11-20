@@ -66,6 +66,11 @@ export function fathersForBook(book: string): Promise<Record<string, FatherComme
   return tryJSON<Record<string, FatherComment[]>>(`history/fathers/${book}.json`).then((x) => x ?? {})
 }
 
+/** The chapters of each book the Fathers comment on (a small file: the comments themselves are large). */
+export function fathersChapters(): Promise<Record<string, number[]>> {
+  return tryJSON<Record<string, number[]>>('history/fathers/chapters.json').then((x) => x ?? {})
+}
+
 export function fatherRefs(id: string): Promise<string[]> {
   return tryJSON<string[]>(`history/fathers/authors/${id}.json`).then((x) => x ?? [])
 }

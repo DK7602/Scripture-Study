@@ -34,6 +34,7 @@ Output (public/data/history/)
   docs/<id>.json                  one creed / council / confession / catechism with its sections
   fathers/<BOOK>.json             {"15:4": [{"f", "t", "s", "v2"?, "c2"?}], ...}
   fathers/authors/<id>.json       ["JHN.15.4", "JHN.15.5-7", ...]
+  fathers/chapters.json           {"JHN": [1, 2, ...], ...}  the chapters each book has comments on
 """
 import html
 import json
@@ -1514,6 +1515,8 @@ def build_fathers(docs_bytes):
     for code in CODES:
         if code in by_book:
             sizes["fathers/<BOOK>.json"] += write_json(f"fathers/{code}.json", by_book[code])
+    # the chapters each book has comments on, so the app can offer the Fathers only where they speak
+    write_json("fathers/chapters.json", {code: sorted({int(cv.split(":")[0]) for cv in by_book[code]}) for code in CODES if code in by_book})
     for fid, refs in author_refs.items():
         sizes["fathers/authors/*.json"] += write_json(f"fathers/authors/{fid}.json",
                                                       sorted(dedupe(refs), key=ref_sort_key))

@@ -6,7 +6,8 @@ import type { CommentaryChapter, CommentaryInfo } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { useCapsHtml } from '../lib/caps'
 import { FathersPanel } from './History'
-import { SpurgeonSermons } from './SpurgeonSermons'
+import { SpurgeonSermons, sermonsOn } from './SpurgeonSermons'
+import { fathersChapters } from '../lib/history'
 import { ui } from '../lib/ui'
 
 interface Chip {
@@ -50,6 +51,10 @@ export function StudyPanel() {
   const [intro, setIntro] = useState<string | null>(null)
   const [xref, setXref] = useState<Record<string, string[]>>({})
   const bodyRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [menu, setMenu] = useState(false) // the round commentary button's menu
+  const [fatherChs, setFatherChs] = useState<Record<string, number[]>>({})
+  const [sermonChs, setSermonChs] = useState<number[]>([])
   const capsHtml = useCapsHtml()
   const show = (html: string) => ({ __html: capsHtml(clean(html)) })
 
@@ -79,6 +84,38 @@ export function StudyPanel() {
   useEffect(() => {
     crossRefs(view.book).then(setXref)
   }, [view.book])
+  useEffect(() => {
+    fathersChapters().then(setFatherChs)
+  }, [])
+  useEffect(() => {
+    let live = true
+    setSermonChs([])
+    sermonsOn(view.book).then((x) => live && setSermonChs(Object.keys(x).map(Number)))
+    return () => {
+      live = false
+    }
+  }, [view.book])
+  useEffect(() => {
+    if (!menu) return
+    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false)
+    window.addEventListener('keydown', esc)
+    return () => window.removeEventListener('keydown', esc)
+  }, [menu])
+
+  // the commentaries with something on the chapter in view, for the round button's menu
+  const offered = CHIPS.filter((c) =>
+    c.id === 'fathers'
+      ? !!fatherChs[view.book]?.includes(view.chapter)
+      : c.id === 'sermons'
+        ? sermonChs.includes(view.chapter)
+        : !!index.find((x) => x.id === c.id)?.books[view.book]?.includes(view.chapter),
+  )
+  const pick = (id: string) => {
+    setMenu(false)
+    setCid(id)
+    // to the top of the commentary (then to the note on this verse once it is loaded)
+    contentRef.current?.scrollIntoView({ block: 'start' })
+  }
 
   // the note on this verse: the closest-fitting one where an overview of a passage is followed by notes on its verses
   const current = useMemo(() => {
@@ -169,6 +206,7 @@ export function StudyPanel() {
         )}
       </div>
 
+      <div ref={contentRef} className="comm-anchor" />
       {cid === 'fathers' ? (
         <FathersPanel bookId={view.book} chapter={view.chapter} verse={view.verse} onVerse={(v) => setView({ ...view, verse: v })} />
       ) : cid === 'sermons' ? (
@@ -245,6 +283,26 @@ export function StudyPanel() {
         <p className="faint">No cross references for this verse.</p>
       )}
       <p className="faint small" style={{ marginTop: 10 }}>Cross references: OpenBible.info (CC BY), ranked by reader votes.</p>
+
+      {/* a round button, bottom right: switch commentaries without scrolling back up */}
+      <div className={`comm-fab${menu ? ' open' : ''}`}>
+        {menu && <div className="comm-fab-backdrop" onClick={() => setMenu(false)} />}
+        {menu && (
+          <div className="comm-fab-menu" role="menu" aria-label={`Commentaries on ${locString(view.book, view.chapter)}`}>
+            <div className="comm-fab-head">On {locString(view.book, view.chapter)}</div>
+            {offered.map((c) => (
+              <button key={c.id} role="menuitemradio" aria-checked={cid === c.id} onClick={() => pick(c.id)}>
+                {cid === c.id && <Icon name="check" size={15} stroke={2.6} />}
+                {c.label}
+              </button>
+            ))}
+            {!offered.length && <div className="comm-fab-head">No commentary on this chapter</div>}
+          </div>
+        )}
+        <button className="comm-fab-btn" onClick={() => setMenu(!menu)} aria-expanded={menu} aria-label={menu ? 'Close the commentary menu' : 'Choose a commentary'} title="Commentaries">
+          <Icon name={menu ? 'close' : 'book'} size={24} />
+        </button>
+      </div>
     </div>
   )
 }

@@ -445,6 +445,34 @@ hr.rule { border: 0; border-top: 1px solid var(--rule); margin: 16px 0; }
 .comm-entry.current { background: color-mix(in srgb, var(--accent-soft) 55%, transparent); border-left-color: var(--accent); }
 .comm-entry .range { font-family: var(--sans); font-size: calc(12.5px * var(--ui)); font-weight: 700; color: var(--accent); letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 4px; }
 .comm-entry .fx { font-style: italic; }
+/* the Study panel's round commentary button (bottom right) and its menu, above the phone's bottom bar and the
+   minimized players */
+.comm-anchor { scroll-margin-top: 8px; }
+.comm-fab { position: fixed; right: 22px; bottom: 22px; z-index: 44; }
+@media (max-width: 899px) { .comm-fab { right: 14px; bottom: calc(68px + env(safe-area-inset-bottom)); } }
+.app:has(.mini-player) .comm-fab { bottom: 84px; }
+@media (max-width: 899px) { .app:has(.mini-player) .comm-fab { bottom: calc(126px + env(safe-area-inset-bottom)); } }
+.comm-fab-btn {
+  position: relative; width: 56px; height: 56px; border-radius: 50%; border: 0; display: grid; place-items: center; cursor: pointer;
+  background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(30, 20, 5, 0.38);
+}
+.comm-fab.open .comm-fab-btn { background: var(--ink); }
+.comm-fab-backdrop { position: fixed; inset: 0; background: rgba(20, 14, 4, 0.22); }
+.comm-fab-menu {
+  position: absolute; right: 0; bottom: 66px; display: flex; flex-direction: column; align-items: flex-end; gap: 7px;
+  max-height: calc(100vh - 230px); max-height: calc(100dvh - 230px); overflow-y: auto; padding: 4px 2px; width: max-content; max-width: calc(100vw - 28px);
+}
+.comm-fab-menu button {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid #b99a5e; border-radius: 999px; padding: 9px 16px; cursor: pointer;
+  font-family: var(--serif); font-size: calc(16.5px * var(--ui)); font-weight: 600; color: var(--ink); white-space: nowrap;
+  background: url(/textures/paper.webp), #f6ecd2; background-blend-mode: multiply; box-shadow: 0 4px 12px rgba(40, 26, 6, 0.28);
+}
+.comm-fab-menu button[aria-checked='true'] { background: var(--accent); color: #fff; border-color: var(--accent); }
+:root[data-mode='dark'] .comm-fab-menu button:not([aria-checked='true']) { background: var(--panel-2); }
+.comm-fab-head { font-family: var(--sans); font-size: calc(12px * var(--ui)); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; background: rgba(30, 22, 8, 0.85); border-radius: 999px; padding: 4px 10px; }
+/* the page's end clears the button */
+.panel-body:has(.comm-fab) { padding-bottom: 96px; }
+
 /* Spurgeon's sermons */
 .sermon-item { display: grid; gap: 2px; width: 100%; text-align: left; border: 1px solid var(--rule); border-left: 3px solid var(--rule); background: var(--panel); border-radius: 8px; padding: 9px 12px; margin-bottom: 8px; cursor: pointer; color: var(--ink); font: inherit; }
 .sermon-item.current { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent-soft) 55%, var(--panel)); }
