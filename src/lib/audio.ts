@@ -491,6 +491,18 @@ function speakLocal(text: string, speed: number, run: number) {
   })
 }
 
+/** Shorter verses than this are made together with their neighbours by Supertonic (see playLocal). */
+const SHORT_PIECE = 60
+
+/** Several pieces made as one by the voice engine and cut apart again: a promise for each. */
+function speakLocalGroup(texts: string[], speed: number, run: number) {
+  const w = voiceWorker()
+  const ids = texts.map(() => ++reqId)
+  const made = ids.map((id) => new Promise<{ audio: Float32Array; sr: number }>((res, rej) => waiting.set(id, { res, rej })))
+  w.postMessage({ type: 'speak', id: ids[0], ids, texts, text: texts.join(' '), run, speed, voice: localVoice().id.replace(/^st:/, '') })
+  return made
+}
+
 /** 16-bit PCM WAV, so an ordinary audio element can play it (lock screen, speed). */
 function wavUrl(x: Float32Array, sr: number, track = true): string {
   const buf = new ArrayBuffer(44 + x.length * 2)
@@ -542,11 +554,32 @@ function playLocal(v: number, my: number, withHeading: boolean) {
     for (const piece of pieces(t)) items.push({ verse: i, text: piece })
   }
   const ready = new Map<number, Promise<string>>()
+  // Supertonic drops words from a very short text ("Jesus wept." came out "Wept."): a short verse is made together
+  // with the next one or two and cut apart again at the pauses; a short last verse with the one before it, for
+  // its sound only
+  const grouped = localVoice().engine === 'supertonic'
+  const group = (k: number): number[] => {
+    const len = (i: number) => items[i].text.length
+    if (!grouped || len(k) >= SHORT_PIECE) return [k]
+    const g = [k]
+    let total = len(k)
+    for (let j = k + 1; j < items.length && g.length < 3 && total < 120 && total + len(j) < 280; j++) {
+      g.push(j)
+      total += len(j) + 1
+    }
+    if (g.length === 1 && k > 0 && len(k - 1) + len(k) < 280) return [k - 1, k]
+    return g
+  }
   const make = (k: number) => {
     if (k >= items.length || ready.has(k)) return
-    const url = speakLocal(items[k].text, speed, my).then((r) => wavUrl(r.audio, r.sr))
-    url.catch(() => {}) // pieces made ahead and never reached (the voice was changed): not an error
-    ready.set(k, url)
+    const g = group(k)
+    const made = g.length > 1 ? speakLocalGroup(g.map((i) => items[i].text), speed, my) : [speakLocal(items[k].text, speed, my)]
+    g.forEach((i, n) => {
+      if (i < k || ready.has(i)) return void made[n].catch(() => {}) // the verse before, there for the sound only
+      const url = made[n].then((r) => wavUrl(r.audio, r.sr))
+      url.catch(() => {}) // pieces made ahead and never reached (the voice was changed): not an error
+      ready.set(i, url)
+    })
   }
   const next = async (k: number) => {
     if (my !== runId) return
