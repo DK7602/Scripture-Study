@@ -17,7 +17,9 @@ import * as ort from 'onnxruntime-web-wasm'
 
 const SITE = new URL(`${import.meta.env.BASE_URL}voice-model/supertonic/`, self.location.origin).href
 const CACHE = 'supertonic-voice-v1'
-const STEPS = 5 // denoising steps: Supertone's examples use 5 to 8; 5 is clear and quickest
+// denoising steps: Supertone's default. With 5 (a quarter quicker) a word or two went missing in about one verse in
+// six ("by his Son. God has appointed" heard as "by Han, has appointed"); with 8, none in the same tests
+const STEPS = 8
 
 ort.env.wasm.wasmPaths = {
   wasm: new URL('../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm', import.meta.url).href,
@@ -265,26 +267,31 @@ function dropOld() {
 async function pump() {
   if (busy) return
   busy = true
-  while (pending.length) {
-    await new Promise((r) => setTimeout(r, 0))
-    const m = pending.shift()!
-    if (m.type === 'speak' && m.run !== latestRun) {
-      postMessage({ type: 'dropped', id: m.id })
-      continue
-    }
-    try {
-      if (m.type === 'load') await load()
-      else if (m.type === 'speak') {
-        await load() // the time to make speech is counted without the first download
-        const t0 = performance.now()
-        const { audio, sr } = await speak(m.text ?? '', m.speed ?? 1, m.voice ?? 'M1')
-        postMessage({ type: 'audio', id: m.id, audio, sr, ms: performance.now() - t0 }, [audio.buffer])
+  try {
+    while (pending.length) {
+      await new Promise((r) => setTimeout(r, 0))
+      // a cancel (a pause, a skip) can arrive during that step back and empty the queue
+      const m = pending.shift()
+      if (!m) continue
+      if (m.type === 'speak' && m.run !== latestRun) {
+        postMessage({ type: 'dropped', id: m.id })
+        continue
       }
-    } catch (err) {
-      postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
+      try {
+        if (m.type === 'load') await load()
+        else if (m.type === 'speak') {
+          await load() // the time to make speech is counted without the first download
+          const t0 = performance.now()
+          const { audio, sr } = await speak(m.text ?? '', m.speed ?? 1, m.voice ?? 'M1')
+          postMessage({ type: 'audio', id: m.id, audio, sr, ms: performance.now() - t0 }, [audio.buffer])
+        }
+      } catch (err) {
+        postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
+      }
     }
+  } finally {
+    busy = false // never left busy: it would then ignore every later request
   }
-  busy = false
 }
 
 onmessage = (e: MessageEvent) => {

@@ -174,27 +174,32 @@ function dropOld() {
 async function pump() {
   if (busy) return
   busy = true
-  while (pending.length) {
-    await new Promise((r) => setTimeout(r, 0)) // let a newer run (a skip, a pause) arrive first
-    const m = pending.shift()!
-    if (m.type === 'speak' && m.run !== latestRun) {
-      postMessage({ type: 'dropped', id: m.id })
-      continue
-    }
-    try {
-      if (m.type === 'load') {
-        await load()
-        postMessage({ type: 'ready' })
-      } else if (m.type === 'speak') {
-        const t0 = performance.now()
-        const { audio, sr } = await speak(m.text ?? '', m.speed ?? 1)
-        postMessage({ type: 'audio', id: m.id, audio, sr, ms: performance.now() - t0 }, [audio.buffer])
+  try {
+    while (pending.length) {
+      await new Promise((r) => setTimeout(r, 0)) // let a newer run (a skip, a pause) arrive first
+      // a cancel (a pause, a skip) can arrive during that step back and empty the queue
+      const m = pending.shift()
+      if (!m) continue
+      if (m.type === 'speak' && m.run !== latestRun) {
+        postMessage({ type: 'dropped', id: m.id })
+        continue
       }
-    } catch (err) {
-      postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
+      try {
+        if (m.type === 'load') {
+          await load()
+          postMessage({ type: 'ready' })
+        } else if (m.type === 'speak') {
+          const t0 = performance.now()
+          const { audio, sr } = await speak(m.text ?? '', m.speed ?? 1)
+          postMessage({ type: 'audio', id: m.id, audio, sr, ms: performance.now() - t0 }, [audio.buffer])
+        }
+      } catch (err) {
+        postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
+      }
     }
+  } finally {
+    busy = false // never left busy: it would then ignore every later request
   }
-  busy = false
 }
 
 onmessage = (e: MessageEvent) => {

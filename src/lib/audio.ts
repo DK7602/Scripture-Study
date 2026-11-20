@@ -405,6 +405,16 @@ export function useLocalVoice(id: string) {
 }
 let worker: Worker | null = null
 let workerEngine: LocalVoice['engine'] | null = null
+let lastRestart = 0
+
+/** Let the voice engine go (it is started again, its model from the browser's cache, for the next piece). */
+function restartVoice() {
+  worker?.terminate()
+  worker = null
+  workerEngine = null
+  voiceLoading = false
+  waiting.clear()
+}
 let voiceLoading = false // the voice is downloading or starting: its progress is shown, not the wait for a verse
 let reqId = 0
 const waiting = new Map<number, { res: (r: { audio: Float32Array; sr: number }) => void; rej: (e: Error) => void }>()
@@ -551,6 +561,17 @@ function playLocal(v: number, my: number, withHeading: boolean) {
       if (my !== runId) return clearInterval(tick)
       if (voiceLoading) return void (t0 = Date.now()) // the first download is not the device being slow
       const sec = Math.round((Date.now() - t0) / 1000)
+      if (sec >= 60) {
+        // the voice engine has stopped answering: start it afresh from this verse once; if it stops again soon
+        // after, read on with the phone's own voice rather than wait for ever
+        clearInterval(tick)
+        restartVoice()
+        if (Date.now() - lastRestart > 180_000) {
+          lastRestart = Date.now()
+          void play(items[k].verse)
+        } else playDevice(items[k].verse, my, false, `${localName()}'s voice stopped responding on this device; using the phone's voice.`)
+        return
+      }
       if (sec >= 2) set({ info: `${localName()} is getting verse ${items[k].verse} ready… ${sec} s`, ...(sec >= 25 && !state.slow ? { slow: true } : {}) })
     }, 1000)
     try {
