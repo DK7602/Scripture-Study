@@ -131,6 +131,13 @@ function PrayerList() {
   const [draft, setDraft] = useState('')
   const [shared, setShared] = useState('')
   const [repeat, setRepeat] = useState(false)
+  const [weeklyOpen, setWeeklyOpen] = useState(false)
+  const [note, setNote] = useState('') // "Saved as a weekly prayer…"
+  useEffect(() => {
+    if (!note) return
+    const t = setTimeout(() => setNote(''), 8000)
+    return () => clearTimeout(t)
+  }, [note])
   const day: PrayerDay = prayers.find((p) => p.id === `day-${date}`) ?? emptyDay(date)
   const days = useMemo(() => prayers.filter((p) => p.id.startsWith('day-')), [prayers])
   const weekly: PrayerDay = prayers.find((p) => p.id === WEEKLY_ID) ?? { ...emptyDay(''), id: WEEKLY_ID }
@@ -151,10 +158,22 @@ function PrayerList() {
   const add = () => {
     const text = draft.trim()
     if (!text) return
-    if (repeat) saveWeekly([...weekly.items, { id: newId(), text, days: [wd] }])
-    else save({ items: [...day.items, { id: newId(), text }] })
+    if (repeat) {
+      saveWeekly([...weekly.items, { id: newId(), text, days: [wd] }])
+      setNote(`✓ Saved as a weekly prayer: it comes back every ${DAY_NAMES[wd]}. Tap its ↻ label to choose other days.`)
+    } else save({ items: [...day.items, { id: newId(), text }] })
     setDraft('')
     setRepeat(false)
+  }
+  // a prayer from today's list made weekly (the ↻ button on it)
+  const makeWeekly = (it: PrayerItem) => {
+    saveWeekly([...weekly.items, { id: newId(), text: it.text, days: [wd] }])
+    save({ items: day.items.filter((x) => x.id !== it.id) })
+    setNote(`✓ “${it.text.split('\n')[0].slice(0, 40)}” now comes back every ${DAY_NAMES[wd]}. Tap its ↻ label to choose other days.`)
+  }
+  const editDays = () => {
+    setWeeklyOpen(true)
+    setTimeout(() => document.querySelector('.weekly-card')?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 50)
   }
   // the most recent earlier day with focuses still waiting for an answer
   const earlier = useMemo(
@@ -212,6 +231,7 @@ function PrayerList() {
           answered={prayed.has(it.id)}
           doneLabel="Prayed"
           tag={`↻ ${daysLabel(it.days)}`}
+          onTag={editDays}
           confirmRemove={`Stop praying “${it.text.slice(0, 60)}” every week?`}
           onText={(text) => saveWeekly(weekly.items.map((x) => (x.id === it.id ? { ...x, text } : x)))}
           onAnswered={(on) => save({ prayed: on ? [...prayed, it.id] : [...prayed].filter((x) => x !== it.id) })}
@@ -226,6 +246,8 @@ function PrayerList() {
           onText={(text) => save({ items: day.items.map((x) => (x.id === it.id ? { ...x, text } : x)) })}
           onAnswered={(answered) => save({ items: day.items.map((x) => (x.id === it.id ? { ...x, answered, answeredOn: answered ? today() : undefined } : x)) })}
           onRemove={() => save({ items: day.items.filter((x) => x.id !== it.id) })}
+          onRepeat={it.answered ? undefined : () => makeWeekly(it)}
+          repeatLabel={`Pray this every ${DAY_NAMES[wd]}`}
         />
       ))}
       {!day.items.length && !todays.length && <p className="faint">{isToday ? 'What would you like to pray about today?' : 'Nothing was written for this day.'}</p>}
@@ -251,10 +273,15 @@ function PrayerList() {
       <label className="repeat-toggle">
         <input type="checkbox" checked={repeat} onChange={(e) => setRepeat(e.target.checked)} />
         <span>
-          Repeat every {DAY_NAMES[wd]} <span className="faint">(you can choose more days below)</span>
+          Make the prayer I’m adding a weekly prayer (every {DAY_NAMES[wd]})
         </span>
       </label>
-      <WeeklyPrayers items={weekly.items} onSave={saveWeekly} prefer={wd} onAnswered={answerWeekly} />
+      {note && (
+        <p className="res-note" role="status">
+          {note}
+        </p>
+      )}
+      <WeeklyPrayers items={weekly.items} onSave={saveWeekly} prefer={wd} onAnswered={answerWeekly} open={weeklyOpen} setOpen={setWeeklyOpen} />
 
       <h3 className="res-h">Encouraging verses</h3>
       {day.verses.map((r) => (
@@ -301,6 +328,9 @@ function PrayerRow({
   onRemove,
   doneLabel = 'Answered',
   tag,
+  onTag,
+  onRepeat,
+  repeatLabel,
   confirmRemove = 'Remove this prayer focus?',
 }: {
   text: string
@@ -310,6 +340,9 @@ function PrayerRow({
   onRemove: () => void
   doneLabel?: string
   tag?: string
+  onTag?: () => void
+  onRepeat?: () => void
+  repeatLabel?: string
   confirmRemove?: string
 }) {
   const ref = useRef<HTMLTextAreaElement>(null)
@@ -321,12 +354,26 @@ function PrayerRow({
         <span>{answered ? doneLabel : ''}</span>
       </label>
       <div className="prayer-body">
-        {tag && <span className="weekly-tag">{tag}</span>}
+        {tag &&
+          (onTag ? (
+            <button className="weekly-tag" onClick={onTag} title="Choose the days">
+              {tag} <span className="faint">· change days</span>
+            </button>
+          ) : (
+            <span className="weekly-tag">{tag}</span>
+          ))}
         <textarea ref={ref} rows={1} className="autogrow" value={text} onChange={(e) => onText(e.target.value)} onBlur={() => !text.trim() && onRemove()} aria-label="Prayer focus" />
       </div>
-      <button className="icon-btn" onClick={() => (!text.trim() || window.confirm(confirmRemove)) && onRemove()} aria-label="Remove">
-        <Icon name="trash" size={17} />
-      </button>
+      <div className="prayer-actions">
+        {onRepeat && (
+          <button className="icon-btn repeat-btn" onClick={onRepeat} aria-label={repeatLabel} title={repeatLabel}>
+            ↻
+          </button>
+        )}
+        <button className="icon-btn" onClick={() => (!text.trim() || window.confirm(confirmRemove)) && onRemove()} aria-label="Remove">
+          <Icon name="trash" size={17} />
+        </button>
+      </div>
     </div>
   )
 }
@@ -400,8 +447,21 @@ function AnsweredPrayers({ days, onOpenDay }: { days: PrayerDay[]; onOpenDay: (d
 }
 
 /** The prayers that come back every week, on the days chosen for each. */
-function WeeklyPrayers({ items, onSave, prefer, onAnswered }: { items: PrayerItem[]; onSave: (items: PrayerItem[]) => void; prefer: number; onAnswered: (it: PrayerItem) => void }) {
-  const [open, setOpen] = useState(false)
+function WeeklyPrayers({
+  items,
+  onSave,
+  prefer,
+  onAnswered,
+  open,
+  setOpen,
+}: {
+  items: PrayerItem[]
+  onSave: (items: PrayerItem[]) => void
+  prefer: number
+  onAnswered: (it: PrayerItem) => void
+  open: boolean
+  setOpen: (o: boolean) => void
+}) {
   const [text, setText] = useState('')
   const [days, setDays] = useState<number[]>([prefer])
   const add = () => {
@@ -414,7 +474,7 @@ function WeeklyPrayers({ items, onSave, prefer, onAnswered }: { items: PrayerIte
   return (
     <div className="weekly">
       <button className="btn small" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <Icon name="calendar" size={15} /> Weekly prayers{items.length ? ` (${items.length})` : ''} <Icon name={open ? 'up' : 'down'} size={14} />
+        <Icon name="calendar" size={15} /> {open ? 'Hide weekly prayers' : `See or change weekly prayers${items.length ? ` (${items.length})` : ''}`} <Icon name={open ? 'up' : 'down'} size={14} />
       </button>
       {open && (
         <div className="card weekly-card">

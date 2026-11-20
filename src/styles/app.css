@@ -1123,3 +1123,8 @@ textarea.autogrow { field-sizing: content; overflow: hidden; resize: none; }
 .tut-player-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .tut-player-head b { font-family: var(--serif); font-size: calc(17px * var(--ui)); }
 .tut-player video { display: block; width: 100%; max-width: 380px; max-height: 72vh; margin: 6px auto 0; border-radius: 10px; background: #000; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); }
+
+.prayer-actions { display: flex; flex-direction: column; align-items: center; flex: none; }
+.repeat-btn { font-size: calc(19px * var(--ui)); font-weight: 700; color: var(--accent); }
+button.weekly-tag { border: 0; background: none; padding: 0; text-align: left; cursor: pointer; }
+.res-note { background: color-mix(in srgb, var(--accent) 12%, transparent); border-radius: 8px; padding: 8px 10px; margin: 6px 0; font-size: calc(14.5px * var(--ui)); }
