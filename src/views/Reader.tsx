@@ -211,6 +211,7 @@ function BibleReader() {
   const selection = useStore((s) => s.selection)
   const focusTick = useStore((s) => s.focusTick)
   const [data, setData] = useState<ChapterResult | null>(null)
+  const [dataFor, setDataFor] = useState('') // which chapter (version/book/chapter) data holds
   const shared = useSyncExternalStore(onShared, sharedVersions)
   const [xref, setXref] = useState<Record<string, string[]>>({})
   const [helps, setHelps] = useState<Map<number, VerseHelp[]>>(new Map())
@@ -233,7 +234,12 @@ function BibleReader() {
   useEffect(() => {
     let live = true
     setData(null)
-    chapterText(settings.version, loc.book, loc.chapter).then((d) => live && setData(d))
+    const key = `${settings.version}/${loc.book}/${loc.chapter}`
+    chapterText(settings.version, loc.book, loc.chapter).then((d) => {
+      if (!live) return
+      setData(d)
+      setDataFor(key)
+    })
     crossRefs(loc.book).then((x) => live && setXref(x))
     helpsForChapter(loc.book, loc.chapter).then((h) => live && setHelps(h))
     if (settings.placeChips) placesForChapter(loc.book, loc.chapter).then((p) => live && setPlaceMap(p))
@@ -243,10 +249,11 @@ function BibleReader() {
     }
   }, [loc.book, loc.chapter, settings.version, settings.placeChips, shared])
 
-  // the audio Bible reads the chapter on screen
+  // the audio Bible reads the chapter on screen: only once its text has arrived (on a page turn the previous
+  // chapter's text is still here for a moment, and was once read again as the next chapter)
   useEffect(() => {
-    if (data && !data.error) setChapterText(settings.version, loc.book, loc.chapter, data.verses)
-  }, [data, settings.version, loc.book, loc.chapter])
+    if (data && !data.error && dataFor === `${settings.version}/${loc.book}/${loc.chapter}`) setChapterText(settings.version, loc.book, loc.chapter, data.verses)
+  }, [data, dataFor, settings.version, loc.book, loc.chapter])
 
   // highlight the verse being read and keep it in view (unless the reader is scrolling by hand)
   const audio = { open: useAudioField('open'), playing: useAudioField('playing'), verse: useAudioField('verse') }

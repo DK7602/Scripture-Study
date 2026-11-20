@@ -20,6 +20,7 @@ const SITE = new URL(`${import.meta.env.BASE_URL}voice-model/piper/`, self.locat
 const HF = 'https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/ryan/medium/'
 const VOICE = 'en_US-ryan-medium'
 const CACHE = 'piper-voice-v1'
+const PACE = 0.85
 
 ort.env.wasm.wasmPaths = {
   wasm: new URL('../../node_modules/onnxruntime-web/dist/ort-wasm-simd-threaded.wasm', import.meta.url).href,
@@ -128,7 +129,8 @@ async function speak(text: string, speed: number): Promise<{ audio: Float32Array
   const { session, config } = await load()
   const sr = config.audio.sample_rate
   const inf = config.inference
-  const scales = new Float32Array([inf.noise_scale, inf.length_scale / Math.max(0.5, Math.min(2, speed || 1)), inf.noise_w])
+  // Ryan's own pace is quick for Scripture: 1x is his 0.85x
+  const scales = new Float32Array([inf.noise_scale, inf.length_scale / (Math.max(0.5, Math.min(2, speed || 1)) * PACE), inf.noise_w])
   const gap = new Float32Array(Math.round(sr * 0.12)) // between sentences
   const tail = new Float32Array(Math.round(sr * 0.2)) // after the piece: a verse ends, the next begins
   const parts: Float32Array[] = []
@@ -152,28 +154,56 @@ async function speak(text: string, speed: number): Promise<{ audio: Float32Array
   return { audio, sr }
 }
 
-// one piece at a time, in the order asked: the piece needed next is never slowed by the ones after it
-let queue: Promise<void> = Promise.resolve()
-// which reading is current: pieces of earlier readings (the listener skipped or paused) are dropped, not made
+// One piece at a time, in the order asked, and only for the current reading: when the listener skips, pauses or
+// the chapter changes, a newer run arrives and the pieces queued for older runs are dropped unmade. The engine's
+// work does not let messages in while it runs, so the loop steps back to the event loop between pieces.
 let latestRun = 0
+const pending: { type: string; id?: number; run?: number; text?: string; speed?: number }[] = []
+let busy = false
 
-onmessage = (e: MessageEvent) => {
-  const m = e.data
-  if (typeof m.run === 'number' && m.run > latestRun) latestRun = m.run // before queuing: the queue may run at once
-  queue = queue.then(async () => {
+function dropOld() {
+  for (let i = pending.length - 1; i >= 0; i--) {
+    const m = pending[i]
+    if (m.type === 'speak' && m.run !== latestRun) {
+      pending.splice(i, 1)
+      postMessage({ type: 'dropped', id: m.id })
+    }
+  }
+}
+
+async function pump() {
+  if (busy) return
+  busy = true
+  while (pending.length) {
+    await new Promise((r) => setTimeout(r, 0)) // let a newer run (a skip, a pause) arrive first
+    const m = pending.shift()!
+    if (m.type === 'speak' && m.run !== latestRun) {
+      postMessage({ type: 'dropped', id: m.id })
+      continue
+    }
     try {
-      if (m.type === 'cancel') return
       if (m.type === 'load') {
         await load()
         postMessage({ type: 'ready' })
       } else if (m.type === 'speak') {
-        if (m.run !== latestRun) return // an earlier reading the listener has moved on from
         const t0 = performance.now()
-        const { audio, sr } = await speak(m.text, m.speed)
+        const { audio, sr } = await speak(m.text ?? '', m.speed ?? 1)
         postMessage({ type: 'audio', id: m.id, audio, sr, ms: performance.now() - t0 }, [audio.buffer])
       }
     } catch (err) {
       postMessage({ type: 'error', id: m.id, error: String((err as Error)?.message ?? err) })
     }
-  })
+  }
+  busy = false
+}
+
+onmessage = (e: MessageEvent) => {
+  const m = e.data
+  if (typeof m.run === 'number' && m.run > latestRun) {
+    latestRun = m.run
+    dropOld()
+  }
+  if (m.type === 'cancel') return
+  pending.push(m)
+  void pump()
 }

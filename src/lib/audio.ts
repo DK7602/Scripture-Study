@@ -77,8 +77,13 @@ let pendingStart = false
 
 export function setChapterText(version: string, book: string, ch: number, verses: string[]) {
   const changed = !chapter || chapter.version !== version || chapter.book !== book || chapter.chapter !== ch
+  const sameWords = !changed && chapter!.verses.length === verses.length && chapter!.verses[0] === verses[0] && chapter!.verses[verses.length - 1] === verses[verses.length - 1]
   chapter = { version, book, chapter: ch, verses }
-  if (!changed) return
+  if (!changed) {
+    // the right words arrived after the reading began with others: read on from here with these
+    if (!sameWords && state.playing && (state.engine === 'local' || state.engine === 'device')) void play(Math.min(state.verse || 1, verses.length))
+    return
+  }
   if (pendingStart) {
     pendingStart = false
     void play(1)
@@ -193,6 +198,7 @@ let runId = 0
 
 function stopEngines() {
   runId++
+  worker?.postMessage({ type: 'cancel', run: runId }) // the voice engine drops what it was making for the old reading
   cancelAnimationFrame(raf)
   if (audioEl) {
     audioEl.pause()
@@ -403,6 +409,8 @@ function voiceWorker(): Worker {
         if (++piecesMade > 3 && madeSec / spentSec < 0.85 && !state.slow) set({ slow: true })
         waiting.get(m.id)?.res({ audio: m.audio, sr: m.sr })
         waiting.delete(m.id)
+      } else if (m.type === 'dropped') {
+        waiting.delete(m.id) // a piece for a reading the listener has left
       } else if (m.type === 'error') {
         set({ info: '' })
         waiting.get(m.id)?.rej(new Error(m.error))
