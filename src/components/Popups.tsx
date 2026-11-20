@@ -443,6 +443,8 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
         // a prophecy, a name of GOD or a Revelation reference: shown here with its passages
         hd && /^(prophecy|revot|name):\d+$/.test(h.id) ? (
           <HelpInline key={i} id={h.id} label={h.title} data={hd} onMore={() => open(h.id)} />
+        ) : hd && h.id === 'help:book' && hd.backgrounds[p.book] ? (
+          <BookInline key={i} bookId={p.book} chapter={p.chapter} bg={hd.backgrounds[p.book]} onMore={() => open(h.id)} />
         ) : (
         <button key={i} className="help-card" onClick={() => open(h.id)}>
           <span className="thumb">
@@ -526,6 +528,81 @@ function HelpInline({ id, label, data, onMore }: { id: string; label: string; da
       ))}
       <button className="ref-link help-inline-more" onClick={onMore}>
         {caps(more)} ›
+      </button>
+    </div>
+  )
+}
+
+/** A book's background and outline in full in the chapter's "?" pop-up: the section this chapter is in marked, each
+ * section a way to its first verse; "Full background ›" opens the whole page (with the summary). */
+function BookInline({ bookId, chapter, bg, onMore }: { bookId: string; chapter: number; bg: BookBackground; onMore: () => void }) {
+  const caps = useCaps()
+  const name = book(bookId)?.name ?? ''
+  return (
+    <div className="help-inline">
+      <div className="help-inline-label">
+        <Icon name="book" size={15} /> Book background & outline
+      </div>
+      <div className="help-inline-title">{name}</div>
+      {bg.theme && <div className="help-inline-note">{caps(bg.theme)}</div>}
+      <div className="help-inline-row">
+        <span className="k">Author</span>
+        <span>{caps(bg.author.charAt(0).toUpperCase() + bg.author.slice(1))}</span>
+      </div>
+      <div className="help-inline-row">
+        <span className="k">Written</span>
+        <span>{bg.date}</span>
+      </div>
+      {bg.audience && (
+        <div className="help-inline-row">
+          <span className="k">To</span>
+          <span>{caps(bg.audience.charAt(0).toUpperCase() + bg.audience.slice(1))}</span>
+        </div>
+      )}
+      {bg.keyVerses.length > 0 && (
+        <div className="help-inline-row">
+          <span className="k">Key verses</span>
+          <span>
+            <RefLinks refs={bg.keyVerses} stack />
+          </span>
+        </div>
+      )}
+      {bg.christ && (
+        <div className="help-inline-christ">
+          <b>CHRIST in {name}:</b> {caps(bg.christ)}
+        </div>
+      )}
+      {bg.outline.length > 0 && (
+        <>
+          <div className="help-inline-label" style={{ marginTop: 10 }}>
+            Outline
+          </div>
+          <ol className="help-outline">
+            {bg.outline.map((o) => {
+              const r = parseRef(o.ref)
+              const here = !!r && r.book === bookId && chapter >= r.c1 && chapter <= (r.c2 ?? r.c1)
+              return (
+                <li key={o.ref} className={here ? 'here' : undefined}>
+                  <button
+                    className="ref-link"
+                    onClick={() => {
+                      if (!r) return
+                      closeAllPopups()
+                      go({ book: r.book, chapter: r.c1, verse: r.v1 ?? 1 })
+                    }}
+                  >
+                    {caps(o.title)}
+                  </button>{' '}
+                  <span className="faint small">{formatRef(o.ref, true)}</span>
+                  {here && <span className="help-outline-here"> · you are here</span>}
+                </li>
+              )
+            })}
+          </ol>
+        </>
+      )}
+      <button className="ref-link help-inline-more" onClick={onMore}>
+        Full background ›
       </button>
     </div>
   )

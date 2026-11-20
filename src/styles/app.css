@@ -575,8 +575,16 @@ textarea.input { min-height: 96px; resize: vertical; line-height: 1.45; }
 .help-inline-label { display: flex; align-items: center; gap: 6px; font-family: var(--sans); font-size: calc(12px * var(--ui)); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--accent); margin-bottom: 4px; }
 .help-inline-title { font-family: var(--serif); font-weight: 600; font-size: calc(18.5px * var(--ui)); line-height: 1.3; margin-bottom: 6px; }
 .help-inline-note { font-family: var(--serif); font-style: italic; font-size: calc(16px * var(--ui)); color: var(--ink-soft); margin: -2px 0 6px; }
-.help-inline-row { display: grid; grid-template-columns: 7.8em minmax(0, 1fr); gap: 10px; align-items: baseline; font-family: var(--serif); font-size: calc(16.5px * var(--ui)); padding: 3px 0; }
+.help-inline-row { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 10px; align-items: baseline; font-family: var(--serif); font-size: calc(16.5px * var(--ui)); padding: 3px 0; }
 .help-inline-row .k { color: var(--ink-soft); font-weight: 600; }
+.help-inline-christ { font-family: var(--serif); font-size: calc(16px * var(--ui)); line-height: 1.45; margin: 8px 0 2px; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
+.help-outline { margin: 2px 0 0; padding-left: 1.4em; font-family: var(--serif); font-size: calc(16.5px * var(--ui)); line-height: 1.4; }
+.help-outline li { padding: 3px 0; }
+.help-outline .ref-link { display: block; width: 100%; text-align: left; padding: 0; line-height: 1.35; }
+.help-outline li > .faint { font-family: var(--sans); }
+.help-outline li.here { font-weight: 600; }
+.help-outline li.here::marker { color: var(--accent); }
+.help-outline-here { font-family: var(--sans); font-size: calc(12px * var(--ui)); font-weight: 700; color: var(--accent); }
 .help-inline-more { display: inline-block; margin-top: 6px; font-family: var(--sans); font-size: calc(13.5px * var(--ui)); }
 .help-card .thumb { width: 44px; height: 44px; border-radius: 8px; background: var(--accent-soft); display: grid; place-items: center; color: var(--accent); flex: none; }
 .diagram { width: 100%; height: auto; display: block; border: 1px solid var(--rule); border-radius: 10px; background: #f8f1df; }
