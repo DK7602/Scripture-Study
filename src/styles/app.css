@@ -25,7 +25,7 @@
   --chrome-ink: #f3e6c3;
   --red: #8c1a11;
   --shadow: 0 10px 30px rgba(40, 26, 6, 0.28);
-  --strongs-line: rgba(110, 88, 58, 0.45);
+  --strongs-line: rgba(110, 88, 58, 0.78);
   --name: #6b3f08;
   --chip-bg: #fbf3df;
   --hl-alpha: 1;
@@ -72,7 +72,7 @@
   --panel-2: #292d2a;
   --red: #f07a6a;
   --name: #e4b866;
-  --strongs-line: rgba(220, 210, 190, 0.35);
+  --strongs-line: rgba(226, 214, 190, 0.72);
   --accent-soft: #2c3a31;
   --chip-bg: #2a2e2b;
   --shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
@@ -368,8 +368,11 @@ a { color: var(--accent); }
 .vtext { margin: 0 0 0.32em; }
 .vtext .w { border-radius: 2px; }
 .vtext .s { cursor: pointer; }
-.underline .vtext .s:not(.fw) { text-decoration: underline dotted var(--strongs-line); text-decoration-thickness: 1px; text-underline-offset: 0.24em; }
-.underline .vtext .red.s:not(.fw) { text-decoration-color: rgba(168, 32, 26, 0.32); }
+.underline .vtext .s:not(.fw) { text-decoration: underline dotted var(--strongs-line); text-decoration-thickness: 2px; text-underline-offset: 0.22em; }
+.underline .vtext .red.s:not(.fw) { text-decoration-color: rgba(168, 32, 26, 0.6); }
+:root[data-mode='dark'] .underline .vtext .red.s:not(.fw) { text-decoration-color: rgba(240, 122, 106, 0.7); }
+/* on a highlight's bright colour (dark text in every theme) the dots are dark too */
+.underline .vtext .hl .s:not(.fw), :root[data-mode='dark'] .underline .vtext .hl .red.s:not(.fw) { text-decoration-color: rgba(0, 0, 0, 0.55); }
 .vtext .s:hover { color: var(--accent); }
 .vtext .red { color: var(--red); }
 .vtext .it { font-style: italic; }
