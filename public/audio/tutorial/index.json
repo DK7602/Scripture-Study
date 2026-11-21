@@ -3,42 +3,42 @@
   {
    "id": "1-reading",
    "title": "Reading the Bible",
-   "seconds": 53,
-   "video": "1-reading.mp4?v=c824aa10",
-   "poster": "1-reading.jpg?v=c206c54d",
-   "captions": "1-reading.vtt?v=b6e8beef"
+   "seconds": 59,
+   "video": "1-reading.mp4?v=ada63687",
+   "poster": "1-reading.jpg?v=d307ee45",
+   "captions": "1-reading.vtt?v=1d2ee72d"
   },
   {
    "id": "2-study",
    "title": "Study tools",
-   "seconds": 47,
-   "video": "2-study.mp4?v=400665d7",
-   "poster": "2-study.jpg?v=972b70af",
-   "captions": "2-study.vtt?v=f668af4c"
+   "seconds": 76,
+   "video": "2-study.mp4?v=e186b33f",
+   "poster": "2-study.jpg?v=503e3ad2",
+   "captions": "2-study.vtt?v=48457947"
   },
   {
    "id": "3-listening",
    "title": "Listening",
-   "seconds": 41,
-   "video": "3-listening.mp4?v=df6fd87f",
-   "poster": "3-listening.jpg?v=ecc1e4a2",
-   "captions": "3-listening.vtt?v=e3edfc30"
+   "seconds": 56,
+   "video": "3-listening.mp4?v=804b1cf6",
+   "poster": "3-listening.jpg?v=e54d2d26",
+   "captions": "3-listening.vtt?v=f673f035"
   },
   {
    "id": "4-prayer",
    "title": "Your prayer list",
-   "seconds": 42,
-   "video": "4-prayer.mp4?v=27ef335b",
-   "poster": "4-prayer.jpg?v=8aaefd0b",
-   "captions": "4-prayer.vtt?v=340784f8"
+   "seconds": 49,
+   "video": "4-prayer.mp4?v=ca99e5a0",
+   "poster": "4-prayer.jpg?v=032586c7",
+   "captions": "4-prayer.vtt?v=45998f36"
   },
   {
    "id": "5-sermons",
    "title": "Sermons and sermon notes",
    "seconds": 51,
-   "video": "5-sermons.mp4?v=8a6e5eed",
-   "poster": "5-sermons.jpg?v=0d59b7a6",
-   "captions": "5-sermons.vtt?v=4f41f868"
+   "video": "5-sermons.mp4?v=043c2b55",
+   "poster": "5-sermons.jpg?v=f9bb4b5c",
+   "captions": "5-sermons.vtt?v=c4c24016"
   }
  ]
 }

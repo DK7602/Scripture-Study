@@ -9,8 +9,9 @@
         { "id": "welcome", "say": "Welcome to Scripture Study. In a few short videos, I'll show you how to read, study, and listen to the Bible, and how to keep your prayers and sermon notes in one place. Let's begin with reading." },
         { "id": "books", "say": "To choose a book, tap the menu button in the top corner. Pick a book, and then tap the chapter you'd like to read." },
         { "id": "swipe", "say": "To turn the page, simply swipe left or right. The arrows at the bottom of the screen work too." },
-        { "id": "version", "say": "Change the translation from the toolbar. The King James, World English, American Standard, and Berean Standard Bibles are built in, and you can unlock others, like the Christian Standard Bible, in Settings." },
-        { "id": "textsize", "say": "Tap the letters button at the bottom to make the text larger or smaller, to choose a light or dark page, or to read in paragraphs instead of verses." }
+        { "id": "version", "say": "Change the translation from the toolbar. The King James, World English, American Standard, and Berean Standard Bibles are built in, and others, like the Christian Standard Bible, are in the list when they're available." },
+        { "id": "textsize", "say": "Tap the letters button at the bottom to make the text larger or smaller, to choose a light or dark page, or to read in paragraphs instead of verses." },
+        { "id": "place", "say": "And when you switch to another tab and come back, the Bible opens right where you left off." }
       ]
     },
     {
@@ -18,9 +19,10 @@
       "title": "Study tools",
       "scenes": [
         { "id": "strongs", "say": "Words with a faint dotted underline can be tapped. You'll see the original Hebrew or Greek word, what it means, and where else it appears in Scripture." },
-        { "id": "highlight", "say": "To mark a passage, tap a verse number. Tap more numbers to select several verses together, and then choose a highlight color." },
+        { "id": "highlight", "say": "To mark a passage, tap a verse number. Tap more numbers to select several verses together, and then choose a highlight color. You can copy the verses from here too." },
         { "id": "note", "say": "From the same bar, you can write a note, or start a journal entry about those verses. Type it, or tap the microphone and speak." },
-        { "id": "studytab", "say": "The Study tab gathers commentaries, cross references, and background for the chapter you're reading." },
+        { "id": "studytab", "say": "The Study tab opens at the verse you're reading, with commentaries from Matthew Henry, Calvin, Gill, Spurgeon's sermons, and more. Swipe left or right for the next commentary, or tap the round button in the corner to choose one." },
+        { "id": "helps", "say": "Back in the Bible, a small question mark under a verse number means there's more to see: a prophecy of Christ with its passages, or the places named, with a photo and a map. The one by each chapter title shows where that chapter fits in the book's outline." },
         { "id": "maps", "say": "Maps and Helps has maps for every chapter, the journeys of Jesus and of Paul, and much more. Tap the corner button to see a map full screen, and tap it again to come back." }
       ]
     },
@@ -29,7 +31,8 @@
       "title": "Listening",
       "scenes": [
         { "id": "listen", "say": "Tap Listen, and Michael reads the chapter aloud, highlighting each verse as he goes.", "michael": { "version": "KJV", "book": "ROM", "chapter": 8, "toVerse": 2 } },
-        { "id": "minimize", "say": "Tap the down arrow to tuck the player away. Michael keeps reading while you use the rest of the app, and even when your screen is locked." },
+        { "id": "voices", "say": "For translations without a recording, like the Christian Standard Bible, choose a natural voice that's made right on your phone, Ryan or one of the Supertonic voices, from this voice menu." },
+        { "id": "minimize", "say": "Tap the down arrow to tuck the player away. Michael keeps reading while you use the rest of the app, even when your screen is locked, and the Study tab follows along with him." },
         { "id": "scroll", "say": "If you'd rather read at your own pace, tap Scroll, and the page moves gently by itself. Use the plus and minus buttons to change the speed." }
       ]
     },
@@ -39,9 +42,9 @@
       "scenes": [
         { "id": "resources", "say": "The Resources tab holds your prayer list, your church's sermons, and your sermon notes. Let's start with prayer." },
         { "id": "add", "say": "Write down what's on your heart today. Type it, or tap the microphone and simply speak. Press enter to start a new line, and tap Add when you're done." },
-        { "id": "weekly", "say": "For the people you pray for every week, tick Repeat. You can choose the days, and those prayers come back on their own." },
+        { "id": "weekly", "say": "For the people you pray for every week, tick the weekly box before you tap Add, or tap the circle arrow beside any prayer. Choose the days, and those prayers come back on their own." },
         { "id": "verse", "say": "Add an encouraging verse by typing its reference, or let the app suggest one for you." },
-        { "id": "answered", "say": "When God answers a prayer, tick it. It's kept in your answered prayers, a record of His faithfulness, with room to write down how He answered." }
+        { "id": "answered", "say": "When God answers a prayer, tap Add answered prayer and write what He did. It's kept with your answered prayers, a record of His faithfulness, and it comes back on that day each week." }
       ]
     },
     {

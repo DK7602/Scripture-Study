@@ -197,6 +197,13 @@ const TAPS = () => {
           await tap('.pop button:text-is("A−")', 700)
           await tap('.pop [aria-label="Close"]', 400)
         })
+        await scene('place', async () => {
+          await scroller('.vrow')
+          await scrollBy(640, 1300)
+          await wait(500)
+          await tap('.tabs .tab >> text=Study', 1500)
+          await tap('.tabs .tab >> text=Bible', 1300)
+        })
       }
 
       if (ch.id === '2-study') {
@@ -213,6 +220,8 @@ const TAPS = () => {
           await wait(1000)
           await tap('[aria-label="Select verse 1"]', 900)
           await tap('[aria-label="Select verse 2"]', 900)
+          await ringOn('.selbar button:has-text("Copy")')
+          await wait(900)
           await tap('.selbar .swatch >> nth=0', 900)
         })
         await scene('note', async () => {
@@ -226,11 +235,33 @@ const TAPS = () => {
           await tap('button:has-text("Save note")', 600)
         })
         await scene('studytab', async () => {
-          await wait(600)
-          await tap('.tabs .tab >> text=Study', 1200)
-          await scroller('.single .view > *')
-          await scrollBy(420, 1400)
-          await scrollBy(420, 1400)
+          await wait(400)
+          await tap('.tabs .tab >> text=Study', 1900) // at Romans 8:28, the verse just noted
+          await swipe(330, 60, 640)
+          await wait(400)
+          await swipe(330, 60, 640)
+          await wait(300)
+          await tap('.comm-fab-btn', 1400)
+          await tap('.comm-fab-menu button >> text=Spurgeon sermons', 1600)
+        })
+        await scene('helps', async () => {
+          await tap('.tabs .tab >> text=Bible', 800)
+          await tap('[aria-label="Books of the Bible"]', 900)
+          await tap('.drawer .book-btn:text-is("Matthew")', 900)
+          await tap('.drawer .chap-grid button:text-is("2")', 1100)
+          await scroller('.vrow')
+          await scrollTo('[data-vrow="16"]', 'center', 900)
+          await tap('[data-vrow="16"] .chip.h', 1900)
+          await scroller('.pop .pop-map')
+          await scrollBy(330, 1500)
+          await scrollBy(330, 1700)
+          await tap('.pop [aria-label="Close"]', 500)
+          await scroller('.vrow')
+          await scrollTo('.chapter-title', 'center', 900)
+          await tap('.chip.h[title="Maps & helps for this chapter"]', 1700)
+          await scroller('.pop .help-outline')
+          await scrollBy(320, 1500)
+          await tap('.pop [aria-label="Close"]', 400)
         })
         await scene('maps', async () => {
           await tap('.tabs .tab >> text=Maps / Helps', 1000)
@@ -253,10 +284,20 @@ const TAPS = () => {
           log.extra.push({ kind: 'michael', ...m, tapped, playAt: at() })
           await wait(16000)
         })
+        await scene('voices', async () => {
+          await wait(900)
+          await ringOn('.ab-voice')
+          await wait(2600)
+          await ringOn('.ab-voice')
+        })
         await scene('minimize', async () => {
-          await wait(1200)
-          await tap('[aria-label="Minimize the player (it keeps playing)"]', 1500)
-          await tap('.tabs .tab >> text=Notes', 1500)
+          await wait(800)
+          await tap('[aria-label="Minimize the player (it keeps playing)"]', 1300)
+          await tap('.tabs .tab >> text=Notes', 1200)
+          await tap('.tabs .tab >> text=Study', 1200)
+          // Barnes, a note to each verse: the note being read moves on with Michael
+          await tap('.comm-fab-btn', 900)
+          await tap('.comm-fab-menu button >> text=Barnes', 2600)
         })
         await scene('scroll', async () => {
           await tap('.mini-player [aria-label="Stop and close the player"]', 600)
@@ -283,6 +324,8 @@ const TAPS = () => {
           await tap('.add-row .btn.primary', 600)
         })
         await scene('weekly', async () => {
+          await ringOn('.prayer-row .repeat-btn')
+          await wait(700)
           await tap('.repeat-toggle input', 500)
           await type('[aria-label="New prayer focus"]', 'Our pastors and church staff', 38)
           await tap('.add-row .btn.primary', 700)
@@ -298,12 +341,12 @@ const TAPS = () => {
           await tap('.suggest .verse-card .btn.primary', 1000)
         })
         await scene('answered', async () => {
-          await scrollTo('.prayer-row:not(.weekly)', 'center', 700)
-          await tap('.prayer-row:not(.weekly) input[type=checkbox]', 1200)
-          await scrollTo('.answered-list', 'start', 1000)
-          await tap('.answered-card .ref-link:has-text("How was it answered")', 500)
-          await type('[aria-label="How it was answered"]', 'Surgery went well. Praise GOD!', 40)
-          await tap('.answered-note-edit .btn', 500)
+          await scrollTo('.add-answered', 'center', 800)
+          await tap('.add-answered', 900)
+          await type('[aria-label="Answered prayer"]', 'Mom came through surgery well. Praise God!', 38)
+          await tap('.answered-adder .btn.primary', 1000)
+          await scrollTo('.answered-here', 'center', 1600)
+          await scrollTo('.answered-list', 'start', 1200)
         })
       }
 
