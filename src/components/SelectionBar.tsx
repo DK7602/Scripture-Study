@@ -129,6 +129,10 @@ export function SelectionBar() {
         <button className="swatch clear" onClick={clear} title="Remove highlights here">
           <Icon name="close" size={13} /> Clear
         </button>
+        {/* beside Clear rather than on a line of its own: the pop-up is a line shorter */}
+        <button className="swatch clear" onClick={copy} title="Copy the verses">
+          <Icon name={copied ? 'check' : 'copy'} size={14} /> {copied ? 'Copied' : 'Copy'}
+        </button>
       </div>
       <div className="row">
         <button className="btn small" onClick={note}>
@@ -139,9 +143,6 @@ export function SelectionBar() {
         </button>
         <button className="btn small" onClick={bookmark}>
           <Icon name="bookmark" size={15} /> Bookmark
-        </button>
-        <button className="btn small" onClick={copy}>
-          <Icon name={copied ? 'check' : 'copy'} size={15} /> {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
     </div>
