@@ -926,26 +926,32 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
         setVerse(p.v)
       }}
     >
-      <div className="margin" onClick={(e) => e.stopPropagation()}>
-        {p.helpCount > 0 && (
-          <button className="chip h" title="Maps & helps" onClick={(e) => openPopup({ kind: 'helps', book: p.book, chapter: p.chapter, verse: p.v, ...chipPos(e) })}>
-            ?
-          </button>
-        )}
-        {p.noteCount > 0 && (
-          <button className="chip n" title="Notes" onClick={(e) => openPopup({ kind: 'notes', book: p.book, chapter: p.chapter, verse: p.v, ...chipPos(e) })}>
-            N
-          </button>
-        )}
-        {p.journalCount > 0 && (
-          <button className="chip j" title="Journal" onClick={(e) => openPopup({ kind: 'journal', book: p.book, chapter: p.chapter, verse: p.v, ...chipPos(e) })}>
-            J
-          </button>
+      {/* the lane at the left is the highlights' (their coloured bands and labels); the chips sit under the number */}
+      <div className="margin" onClick={(e) => e.stopPropagation()} />
+      <div className="vnum-col">
+        <button className="vnum" onClick={toggleSelect} aria-label={`Select verse ${p.v}`} aria-pressed={p.selected}>
+          {p.v}
+        </button>
+        {(p.helpCount > 0 || p.noteCount > 0 || p.journalCount > 0) && (
+          <div className="vchips" onClick={(e) => e.stopPropagation()}>
+            {p.helpCount > 0 && (
+              <button className="chip h" title="Maps & helps" onClick={(e) => openPopup({ kind: 'helps', book: p.book, chapter: p.chapter, verse: p.v, ...chipPos(e) })}>
+                ?
+              </button>
+            )}
+            {p.noteCount > 0 && (
+              <button className="chip n" title="Notes" onClick={(e) => openPopup({ kind: 'notes', book: p.book, chapter: p.chapter, verse: p.v, ...chipPos(e) })}>
+                N
+              </button>
+            )}
+            {p.journalCount > 0 && (
+              <button className="chip j" title="Journal" onClick={(e) => openPopup({ kind: 'journal', book: p.book, chapter: p.chapter, verse: p.v, ...chipPos(e) })}>
+                J
+              </button>
+            )}
+          </div>
         )}
       </div>
-      <button className="vnum" onClick={toggleSelect} aria-label={`Select verse ${p.v}`} aria-pressed={p.selected}>
-        {p.v}
-      </button>
       <p className="vtext">
         {p.compound && <span className="compound-name">{p.caps ? capsText(p.compound) : p.compound}</span>}
         {p.pilcrow && <span className="pilcrow">¶ </span>}

@@ -346,14 +346,20 @@ a { color: var(--accent); }
 .layout-paragraph .vrow { display: inline; background: none; }
 .layout-paragraph .vrow.focus .vtext, .layout-paragraph .vrow.selected .vtext { background: color-mix(in srgb, var(--gold-soft) 45%, transparent); }
 .layout-paragraph .vrow.para::before { content: ''; display: block; height: 0.55em; }
-.layout-paragraph .margin { display: inline-flex; flex-direction: row; vertical-align: 0.1em; padding: 0; min-height: 0; }
-.layout-paragraph .margin:empty { display: none; }
+.layout-paragraph .margin { display: none; }
+.layout-paragraph .vnum-col { display: inline; }
+.layout-paragraph .vnum-col .vnum { width: auto; }
+.layout-paragraph .vchips { display: inline-flex; flex-direction: row; gap: 2px; vertical-align: 0.1em; margin-right: 3px; }
 .layout-paragraph .vnum { line-height: 1; font-size: 0.62em; vertical-align: super; padding: 0 3px 0 6px; font-weight: 600; }
 .layout-paragraph .vtext { display: inline; margin: 0; }
 .layout-paragraph { padding-left: 34px; text-align: justify; hyphens: auto; }
 .layout-paragraph .hl-label { left: 2px; }
 .pilcrow { color: var(--ink-faint); }
-.margin { display: flex; flex-direction: column; align-items: center; gap: 3px; padding-top: 0.2em; min-height: 1em; }
+.margin { min-height: 1em; } /* the highlights' lane: their bands and labels (.hl-label) */
+/* the verse number, and under it its chips (? helps, N notes, J journal) */
+.vnum-col { display: flex; flex-direction: column; align-items: stretch; min-width: 0; }
+.vnum-col .vnum { width: 100%; }
+.vchips { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; padding-right: 5px; margin: -2px 0 6px; }
 .vnum {
   border: 0; background: none; padding: 0; text-align: right; padding-right: 9px;
   font-family: var(--serif); font-size: 0.78em; color: var(--ink-soft); line-height: 1.95; user-select: none;
@@ -692,7 +698,7 @@ table.chart th { font-family: var(--serif); font-size: calc(15.5px * var(--ui));
 @keyframes spin { to { transform: rotate(360deg); } }
 
 @media print {
-  .topbar, .sidebar, .panel, .reader-toolbar, .bottombar, .margin, .chapter-nav { display: none !important; }
+  .topbar, .sidebar, .panel, .reader-toolbar, .bottombar, .margin, .vchips, .chapter-nav { display: none !important; }
   .page { box-shadow: none; margin: 0; }
 }
 
