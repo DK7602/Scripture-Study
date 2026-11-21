@@ -75,6 +75,11 @@ export function audioState(): AudioState {
 let chapter: { version: string; book: string; chapter: number; verses: string[] } | null = null
 let pendingStart = false
 
+/** The chapter the audio Bible is reading (or last read), if any. */
+export function audioChapter(): { book: string; chapter: number } | null {
+  return chapter ? { book: chapter.book, chapter: chapter.chapter } : null
+}
+
 export function setChapterText(version: string, book: string, ch: number, verses: string[]) {
   const changed = !chapter || chapter.version !== version || chapter.book !== book || chapter.chapter !== ch
   const sameWords = !changed && chapter!.verses.length === verses.length && chapter!.verses[0] === verses[0] && chapter!.verses[verses.length - 1] === verses[verses.length - 1]

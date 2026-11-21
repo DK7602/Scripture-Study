@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { book, books, commentaryChapter, commentaryIndex, crossRefs } from '../lib/data'
 import { formatRef, locString } from '../lib/refs'
 import { getState, go, openPopup, updateSettings, useStore } from '../lib/store'
+import { audioChapter, useAudioField } from '../lib/audio'
 import type { CommentaryChapter, CommentaryInfo } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { useCapsHtml } from '../lib/caps'
@@ -47,7 +48,14 @@ export function StudyPanel() {
   const [index, setIndex] = useState<CommentaryInfo[]>([])
   const [follow, setFollow] = useState(true)
   // opening the Study page: the verse being read on the Bible page (scrolled to, or tapped), not only one gone to
+  const audioVerse = useAudioField('verse')
+  const audioPlaying = useAudioField('playing')
+  const audioHere = () => {
+    const c = audioChapter()
+    return audioPlaying && audioVerse > 0 && !!c && c.book === loc.book && c.chapter === loc.chapter
+  }
   const readingVerse = () => {
+    if (audioHere()) return audioVerse // the audio Bible reading: the verse it is reading
     const r = getState().reading
     return r && r.book === loc.book && r.chapter === loc.chapter ? r.verse : loc.verse
   }
@@ -74,6 +82,12 @@ export function StudyPanel() {
     if (follow) setView({ book: loc.book, chapter: loc.chapter, verse: first ? readingVerse() : loc.verse })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loc.book, loc.chapter, loc.verse, follow])
+  // while the audio Bible reads this chapter, the commentary keeps to the verse it is reading
+  useEffect(() => {
+    if (!follow || !audioHere()) return
+    setView((v) => (v.book === loc.book && v.chapter === loc.chapter && v.verse === audioVerse ? v : { book: loc.book, chapter: loc.chapter, verse: audioVerse }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [audioVerse, audioPlaying, follow, loc.book, loc.chapter])
 
   // what each commentary has on the chapter in view: true, false, or undefined while that is still loading
   const avail = (id: string): boolean | undefined =>
