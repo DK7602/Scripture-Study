@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { book, books, commentaryChapter, commentaryIndex, crossRefs } from '../lib/data'
 import { formatRef, locString } from '../lib/refs'
-import { go, openPopup, updateSettings, useStore } from '../lib/store'
+import { getState, go, openPopup, updateSettings, useStore } from '../lib/store'
 import type { CommentaryChapter, CommentaryInfo } from '../lib/types'
 import { Icon } from '../components/Icon'
 import { useCapsHtml } from '../lib/caps'
@@ -46,7 +46,13 @@ export function StudyPanel() {
   const [cid, setCid] = useState(primary)
   const [index, setIndex] = useState<CommentaryInfo[]>([])
   const [follow, setFollow] = useState(true)
-  const [view, setView] = useState({ book: loc.book, chapter: loc.chapter, verse: loc.verse })
+  // opening the Study page: the verse being read on the Bible page (scrolled to, or tapped), not only one gone to
+  const readingVerse = () => {
+    const r = getState().reading
+    return r && r.book === loc.book && r.chapter === loc.chapter ? r.verse : loc.verse
+  }
+  const [view, setView] = useState(() => ({ book: loc.book, chapter: loc.chapter, verse: readingVerse() }))
+  const opened = useRef(false)
   const [data, setData] = useState<CommentaryChapter | null | undefined>(undefined)
   const [intro, setIntro] = useState<string | null>(null)
   const [xref, setXref] = useState<Record<string, string[]>>({})
@@ -63,7 +69,10 @@ export function StudyPanel() {
   }, [])
   useEffect(() => setCid(primary), [primary])
   useEffect(() => {
-    if (follow) setView({ book: loc.book, chapter: loc.chapter, verse: loc.verse })
+    const first = !opened.current
+    opened.current = true
+    if (follow) setView({ book: loc.book, chapter: loc.chapter, verse: first ? readingVerse() : loc.verse })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loc.book, loc.chapter, loc.verse, follow])
 
   // what each commentary has on the chapter in view: true, false, or undefined while that is still loading

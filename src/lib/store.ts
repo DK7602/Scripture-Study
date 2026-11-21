@@ -39,6 +39,7 @@ export interface State {
   focusTick: number // bumps when navigation should scroll to loc.verse
   helpItem: string | null // selected item in Maps / Helps
   helpOverlay: string | null // on a phone: a map or help shown full screen over the Bible (from the "?" chip)
+  reading: { book: string; chapter: number; verse: number } | null // the verse being read on the Bible page (see Reader)
   highlightLabel: string // label used by the highlighter button
 }
 
@@ -121,6 +122,7 @@ let state: State = {
   focusTick: 0,
   helpItem: null,
   helpOverlay: null,
+  reading: null,
   highlightLabel: 'promise',
 }
 

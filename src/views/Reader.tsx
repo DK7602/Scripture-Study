@@ -461,24 +461,38 @@ function BibleReader() {
     let frame = 0
     const save = () => {
       frame = 0
-      const top = box.getBoundingClientRect().top
-      for (const row of versesRef.current?.querySelectorAll<HTMLElement>('[data-vrow]') ?? []) {
+      if (!dataFor.endsWith(`/${loc.book}/${loc.chapter}`)) return // still the last chapter's page (a page turn)
+      const b = box.getBoundingClientRect()
+      const rows = [...(versesRef.current?.querySelectorAll<HTMLElement>('[data-vrow]') ?? [])]
+      let first = true
+      let reading = 0
+      for (const row of rows) {
         const r = row.getBoundingClientRect()
-        if (r.bottom > top + 1) {
-          readingPlace = { key: `${loc.book}.${loc.chapter}`, tick: focusTick, verse: row.dataset.vrow!, offset: r.top - top, atTop: box.scrollTop < 2 }
-          return
+        if (first && r.bottom > b.top + 1) {
+          readingPlace = { key: `${loc.book}.${loc.chapter}`, tick: focusTick, verse: row.dataset.vrow!, offset: r.top - b.top, atTop: box.scrollTop < 2 }
+          first = false
         }
+        // the verse being read: the first one more than a line into the page (not one whose last line peeks out)
+        if (!reading && r.bottom > b.top + 60) reading = +row.dataset.vrow!
+        if (!first && reading) break
       }
+      // a verse tapped (or gone to) that is still on the page is the one being read
+      const tapped = rows.find((row) => +row.dataset.vrow! === getState().loc.verse)?.getBoundingClientRect()
+      if (tapped && tapped.bottom > b.top + 20 && tapped.top < b.bottom - 20) reading = getState().loc.verse
+      const was = getState().reading
+      if (reading && (was?.verse !== reading || was.book !== loc.book || was.chapter !== loc.chapter))
+        setState({ reading: { book: loc.book, chapter: loc.chapter, verse: reading } })
     }
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(save)
     }
     box.addEventListener('scroll', onScroll, { passive: true })
+    onScroll() // a verse tapped, or the page just opened
     return () => {
       box.removeEventListener('scroll', onScroll)
       cancelAnimationFrame(frame)
     }
-  }, [loc.book, loc.chapter, focusTick])
+  }, [loc.book, loc.chapter, loc.verse, focusTick, dataFor])
 
   // scroll to the focused verse after navigation (or, coming back from another tab, to where the reading was)
   useEffect(() => {
