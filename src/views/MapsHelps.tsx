@@ -89,7 +89,7 @@ export function MapsHelps() {
   useEffect(() => {
     helpsForChapter(loc.book, loc.chapter).then((m) => {
       const seen = new Map<string, string>()
-      for (const list of m.values()) for (const h of list) if (!seen.has(h.id)) seen.set(h.id, h.title)
+      for (const list of m.values()) for (const h of list) if (!seen.has(h.id) && h.id !== 'help:book') seen.set(h.id, h.title) // the background has its own card
       setForChapter([...seen].map(([id, title]) => ({ id, title })))
     })
     placesForChapter(loc.book, loc.chapter).then((m) => setPlaceCount(new Set([...m.values()].flat().map((p) => p.n)).size))

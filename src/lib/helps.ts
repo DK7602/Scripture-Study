@@ -205,7 +205,8 @@ export async function helpsForChapter(book: string, chapter: number): Promise<Ma
     const r = parseRef(n.ref)
     if (r && r.book === book && r.c1 === chapter) add(r.v1 ?? 0, { id: `name:${i}`, title: `Name of God: ${n.name}`, detail: n.meaning })
   })
-  if (d.backgrounds[book] && chapter === 1) add(0, { id: 'help:book', title: 'Book background & outline' })
+  // every chapter: where it falls in the book's outline (the first chapter: the book's background too)
+  if (d.backgrounds[book]) add(0, { id: 'help:book', title: chapter === 1 ? 'Book background & outline' : 'Book outline' })
   return out
 }
 

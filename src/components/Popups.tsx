@@ -533,18 +533,22 @@ function HelpInline({ id, label, data, onMore }: { id: string; label: string; da
   )
 }
 
-/** A book's background and outline in full in the chapter's "?" pop-up: the section this chapter is in marked, each
- * section a way to its first verse; "Full background ›" opens the whole page (with the summary). */
+/** A book's background and outline in the chapter's "?" pop-up: the section this chapter is in marked, each section a
+ * way to its first verse; "Full background ›" opens the whole page (with the summary). The first chapter shows the
+ * background in full; the others lead with the outline. */
 function BookInline({ bookId, chapter, bg, onMore }: { bookId: string; chapter: number; bg: BookBackground; onMore: () => void }) {
   const caps = useCaps()
   const name = book(bookId)?.name ?? ''
+  const first = chapter === 1
   return (
     <div className="help-inline">
       <div className="help-inline-label">
-        <Icon name="book" size={15} /> Book background & outline
+        <Icon name="book" size={15} /> {first ? 'Book background & outline' : 'Book outline'}
       </div>
       <div className="help-inline-title">{name}</div>
       {bg.theme && <div className="help-inline-note">{caps(bg.theme)}</div>}
+      {first && (
+        <>
       <div className="help-inline-row">
         <span className="k">Author</span>
         <span>{caps(bg.author.charAt(0).toUpperCase() + bg.author.slice(1))}</span>
@@ -572,11 +576,15 @@ function BookInline({ bookId, chapter, bg, onMore }: { bookId: string; chapter: 
           <b>CHRIST in {name}:</b> {caps(bg.christ)}
         </div>
       )}
+        </>
+      )}
       {bg.outline.length > 0 && (
         <>
-          <div className="help-inline-label" style={{ marginTop: 10 }}>
-            Outline
-          </div>
+          {first && (
+            <div className="help-inline-label" style={{ marginTop: 10 }}>
+              Outline
+            </div>
+          )}
           <ol className="help-outline">
             {bg.outline.map((o) => {
               const r = parseRef(o.ref)
@@ -602,7 +610,7 @@ function BookInline({ bookId, chapter, bg, onMore }: { bookId: string; chapter: 
         </>
       )}
       <button className="ref-link help-inline-more" onClick={onMore}>
-        Full background ›
+        {first ? 'Full background ›' : `About ${name}: author, date, background ›`}
       </button>
     </div>
   )
