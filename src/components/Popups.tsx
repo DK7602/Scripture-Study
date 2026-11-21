@@ -12,6 +12,8 @@ import { PlacePhoto } from '../views/PlacePhoto'
 import { chapterAlign } from '../lib/align'
 import { JournalCard, NoteCard } from './Cards'
 import { RefLinks } from '../views/RefLinks'
+import { MapView, type Marker } from '../views/MapView'
+import { layerForChapter } from '../views/MapsHelps'
 
 export function Popups() {
   const popup = useStore((s) => s.popup)
@@ -462,9 +464,11 @@ function HelpsPopup(p: { book: string; chapter: number; verse: number; x: number
           <div className="section-title small" style={{ marginTop: 8 }}>
             <Icon name="pin" size={18} /> Places in this verse
           </div>
+          {pl.length > 1 && <PlacesMap places={pl} book={p.book} chapter={p.chapter} />}
           {pl.map((x) => (
             <div key={x.n}>
             {pl.length <= 2 && <PlacePhoto place={x} width={420} />}
+            {pl.length === 1 && <PlacesMap places={pl} book={p.book} chapter={p.chapter} />}
             <button className="help-card" onClick={() => open('map:chapter', x.n)}>
               <span className="thumb">
                 <Icon name="pin" />
@@ -612,6 +616,30 @@ function BookInline({ bookId, chapter, bg, onMore }: { bookId: string; chapter: 
       <button className="ref-link help-inline-more" onClick={onMore}>
         {first ? 'Full background ›' : `About ${name}: author, date, background ›`}
       </button>
+    </div>
+  )
+}
+
+/** A small atlas map of a verse's places (Then / Now, borders of the time, full screen), centred on them with their
+ * surroundings; none for places beyond the atlas (India, Ethiopia). */
+const ATLAS = [9, 22, 56, 43] // the basemap's bounds: lon0, lat0, lon1, lat1
+function PlacesMap({ places, book: bookId, chapter }: { places: Place[]; book: string; chapter: number }) {
+  const inside = places.filter((x) => x.lon >= ATLAS[0] && x.lon <= ATLAS[2] && x.lat >= ATLAS[1] && x.lat <= ATLAS[3])
+  const markers: Marker[] = inside.map((x) => ({ name: x.n.replace(/ \d+$/, ''), lon: x.lon, lat: x.lat, modern: x.m, focus: true }))
+  const bounds = useMemo((): [number, number, number, number] | undefined => {
+    if (!inside.length) return undefined
+    const lons = inside.map((x) => x.lon)
+    const lats = inside.map((x) => x.lat)
+    const [a, b, c, d] = [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)]
+    const px = Math.max(3, (c - a) * 0.3) // enough around it to see where it lies
+    const py = Math.max(2, (d - b) * 0.3)
+    return [Math.max(ATLAS[0], a - px), Math.max(ATLAS[1], b - py), Math.min(ATLAS[2], c + px), Math.min(ATLAS[3], d + py)]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [places])
+  if (!inside.length) return null
+  return (
+    <div className="pop-map">
+      <MapView markers={markers} bounds={bounds} height={250} layer={layerForChapter(bookId, chapter)} compact />
     </div>
   )
 }

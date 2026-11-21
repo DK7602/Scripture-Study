@@ -100,7 +100,8 @@ const overlaps = (a: Box, b: Box) => a.x < b.x + b.w && b.x < a.x + a.w && a.y <
  * Pan & zoom atlas of the Bible lands: shaded relief, seas and rivers, regions, mountains and cities,
  * with a "Then" (biblical names) / "Now" (modern borders and names) switch.
  */
-export function MapView({ markers, route, bounds, height, layer }: { markers: Marker[]; route?: boolean; bounds?: [number, number, number, number]; height?: number; layer?: string }) {
+/** `compact`: a small map (in a pop-up) shows only Then / Now and full screen; the rest of the controls come with full screen. */
+export function MapView({ markers, route, bounds, height, layer, compact }: { markers: Marker[]; route?: boolean; bounds?: [number, number, number, number]; height?: number; layer?: string; compact?: boolean }) {
   const [base, setBase] = useState<Basemap | null>(null)
   const [relief, setRelief] = useState<Relief | null>(null)
   const [terr, setTerr] = useState<Territories | null>(null)
@@ -537,7 +538,7 @@ export function MapView({ markers, route, bounds, height, layer }: { markers: Ma
   const [hx1, hy1] = hl ? proj(hl.bbox[2], hl.bbox[1]) : [0, 0]
 
   return (
-    <div ref={wrapRef} className={`map-wrap atlas${full ? ' full' : ''}`}>
+    <div ref={wrapRef} className={`map-wrap atlas${full ? ' full' : ''}${compact && !full ? ' compact' : ''}`}>
       <svg
         ref={svgRef}
         viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
