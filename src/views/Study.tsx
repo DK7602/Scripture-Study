@@ -121,10 +121,103 @@ export function StudyPanel() {
 
   const pick = (id: string) => {
     setMenu(false)
+    if (id !== shown) jump.current = true
     setCid(id)
     // to the top of the commentary (then to the note on this verse once it is loaded)
     contentRef.current?.scrollIntoView({ block: 'start' })
   }
+
+  // swipe left or right across the commentary: the next (or previous) one with notes on this chapter, at this verse
+  const rootRef = useRef<HTMLDivElement>(null)
+  const swipeRef = useRef<HTMLDivElement>(null)
+  const [flash, setFlash] = useState<{ label: string; n: number; of: number; key: number } | null>(null)
+  const swipeTo = useRef<(dir: 1 | -1) => void>(() => {})
+  swipeTo.current = (dir) => {
+    if (offered.length < 2) return
+    const at = offered.findIndex((c) => c.id === shown)
+    const i = (at + dir + offered.length) % offered.length
+    const next = offered[i]
+    pick(next.id)
+    setFlash({ label: next.label, n: i + 1, of: offered.length, key: Date.now() })
+    swipeRef.current?.animate(
+      [
+        { transform: `translateX(${dir * 48}px)`, opacity: 0.25 },
+        { transform: 'none', opacity: 1 },
+      ],
+      { duration: 240, easing: 'ease-out' },
+    )
+  }
+  useEffect(() => {
+    if (!flash) return
+    const t = setTimeout(() => setFlash(null), 1300)
+    return () => clearTimeout(t)
+  }, [flash])
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    let on = false
+    let sideways = false
+    let x0 = 0
+    let y0 = 0
+    const area = () => swipeRef.current
+    const reset = () => {
+      const a = area()
+      if (a) {
+        a.style.transition = 'transform 0.18s ease-out, opacity 0.18s ease-out'
+        a.style.transform = ''
+        a.style.opacity = ''
+      }
+    }
+    const start = (e: TouchEvent) => {
+      on = false
+      if (e.touches.length !== 1) return
+      // not from the controls, a map or a table that scrolls sideways
+      if ((e.target as HTMLElement).closest('input, textarea, select, button.pill, .map-wrap, .comm-fab, .chart, table, .pop')) return
+      on = true
+      sideways = false
+      x0 = e.touches[0].clientX
+      y0 = e.touches[0].clientY
+    }
+    const move = (e: TouchEvent) => {
+      if (!on) return
+      const dx = e.touches[0].clientX - x0
+      const dy = e.touches[0].clientY - y0
+      if (!sideways && Math.abs(dy) > 14 && Math.abs(dy) > Math.abs(dx)) {
+        on = false // scrolling up or down
+        return
+      }
+      if (!sideways && Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy) * 1.3) sideways = true
+      const a = area()
+      if (sideways && a) {
+        a.style.transition = 'none'
+        a.style.transform = `translateX(${dx * 0.35}px)`
+        a.style.opacity = String(Math.max(0.45, 1 - Math.abs(dx) / 600))
+      }
+    }
+    const end = (e: TouchEvent) => {
+      if (!on) return
+      on = false
+      const dx = e.changedTouches[0].clientX - x0
+      const dy = e.changedTouches[0].clientY - y0
+      reset()
+      if (sideways && Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) swipeTo.current(dx < 0 ? 1 : -1)
+    }
+    const cancel = () => {
+      on = false
+      reset()
+    }
+    el.addEventListener('touchstart', start, { passive: true })
+    el.addEventListener('touchmove', move, { passive: true })
+    el.addEventListener('touchend', end)
+    el.addEventListener('touchcancel', cancel)
+    return () => {
+      el.removeEventListener('touchstart', start)
+      el.removeEventListener('touchmove', move)
+      el.removeEventListener('touchend', end)
+      el.removeEventListener('touchcancel', cancel)
+    }
+  }, [])
+  const touch = typeof window !== 'undefined' && window.matchMedia?.('(pointer: coarse)').matches
 
   // the note on this verse: the closest-fitting one where an overview of a passage is followed by notes on its verses
   const current = useMemo(() => {
@@ -134,9 +227,13 @@ export function StudyPanel() {
     })
     return best
   }, [data, view.verse])
+  // to the note on this verse: at once after changing commentary, smoothly when stepping verse by verse
+  const jump = useRef(false)
   useEffect(() => {
     const el = bodyRef.current?.querySelector('.comm-entry.current') as HTMLElement | null
-    el?.scrollIntoView({ block: 'start', behavior: 'smooth' })
+    if (!el) return
+    el.scrollIntoView({ block: 'start', behavior: jump.current ? ('instant' as ScrollBehavior) : 'smooth' })
+    jump.current = false
   }, [current, data])
 
   const onClick = (e: React.MouseEvent) => {
@@ -169,7 +266,7 @@ export function StudyPanel() {
   const refs = xref[`${view.chapter}:${view.verse}`] ?? []
 
   return (
-    <div>
+    <div ref={rootRef}>
       <div className="section-title">
         <Icon name="book" /> Commentaries
       </div>
@@ -180,6 +277,7 @@ export function StudyPanel() {
           </button>
         ))}
       </div>
+      {touch && offered.length > 1 && <p className="faint small swipe-hint">Swipe left or right across a commentary for the next one, at the same verse.</p>}
 
       <div className="refnav">
         <button className="icon-btn" onClick={() => stepVerse(-1)} aria-label="Previous verse">
@@ -216,6 +314,14 @@ export function StudyPanel() {
       </div>
 
       <div ref={contentRef} className="comm-anchor" />
+      {flash && (
+        <div key={flash.key} className="swipe-flash" role="status">
+          {flash.label} <span>
+            {flash.n} of {flash.of}
+          </span>
+        </div>
+      )}
+      <div ref={swipeRef} className="swipe-area">
       {shown === 'fathers' ? (
         <FathersPanel bookId={view.book} chapter={view.chapter} verse={view.verse} onVerse={(v) => setView({ ...view, verse: v })} />
       ) : shown === 'sermons' ? (
@@ -268,6 +374,7 @@ export function StudyPanel() {
           {info && <p className="faint small">{info.author} ({info.year}). Public domain.</p>}
         </div>
       )}
+      </div>
 
       <hr className="rule" />
       <div className="section-title">
