@@ -6,6 +6,7 @@ import type { Highlight } from '../lib/types'
 import { chapterText } from '../lib/providers'
 import { plainText } from '../lib/markup'
 import { Icon } from './Icon'
+import { chapterHighlights, toggleLabel, verseLabels } from '../lib/highlights'
 import { ui } from '../lib/ui'
 
 /** Appears when verse numbers are tapped or text is selected: highlight, note, journal, copy, bookmark. */
@@ -13,6 +14,7 @@ export function SelectionBar() {
   const sel = useStore((s) => s.selection)
   const labels = useStore((s) => s.labels)
   const loc = useStore((s) => s.loc)
+  const highlights = useStore((s) => s.highlights)
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ left: 0, top: 0 })
   const [copied, setCopied] = useState(false)
@@ -59,7 +61,8 @@ export function SelectionBar() {
       const h: Highlight = { id: newId(), label: labelId, book: loc.book, chapter: loc.chapter, v1: sel.words.v1, v2: sel.words.v2, w1: sel.words.w1, w2: sel.words.w2, version, created: now }
       await saveItem('highlights', h)
     } else {
-      for (const [a, z] of runs) await saveItem('highlights', { id: newId(), label: labelId, book: loc.book, chapter: loc.chapter, v1: a, v2: z, created: now })
+      // up to three colours on a verse: one it has already is taken off, a new one is added
+      await toggleLabel(loc.book, loc.chapter, labelId, verses)
     }
     setState({ highlightLabel: labelId })
     done()
@@ -103,6 +106,9 @@ export function SelectionBar() {
   }
 
   const licensed = !!versionInfo(getState().settings.version)?.licensed
+  // the colours every selected verse has (ticked: tapping one takes it off)
+  const hs = chapterHighlights(highlights, loc.book, loc.chapter)
+  const onAll = (labelId: string) => !sel.words && verses.every((v) => verseLabels(hs, v).includes(labelId))
 
   return (
     <div ref={ref} className="selbar" style={{ left: pos.left, top: pos.top }} role="toolbar" aria-label="Selection actions" onMouseDown={(e) => e.preventDefault()}>
@@ -117,12 +123,13 @@ export function SelectionBar() {
       </div>
       {!sel.words && (
         <div className="selhint">
-          Tap other verses to add or remove them{window.matchMedia?.('(pointer: fine)').matches ? ' (shift-click a verse number for a range)' : ''}.
+          Tap other verses to add or remove them{window.matchMedia?.('(pointer: fine)').matches ? ' (shift-click a verse number for a range)' : ''}. Up to three colours on a verse; tap a ticked colour to take it off.
         </div>
       )}
       <div className="row">
         {labels.map((l) => (
-          <button key={l.id} className="swatch" style={{ background: l.color }} onClick={() => highlight(l.id)} title={`Highlight as “${l.name}”`} disabled={licensed && !!sel.words}>
+          <button key={l.id} className="swatch" style={{ background: l.color }} onClick={() => highlight(l.id)} title={onAll(l.id) ? `Take off “${l.name}”` : `Highlight as “${l.name}”`} aria-pressed={onAll(l.id)} disabled={licensed && !!sel.words}>
+            {onAll(l.id) && <Icon name="check" size={13} stroke={2.8} />}
             {l.name}
           </button>
         ))}

@@ -6,6 +6,7 @@ import { capsText, capsTokens } from '../lib/caps'
 import { formatRef } from '../lib/refs'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
+import { hlBackground, MAX_COLOURS, verseLabels } from '../lib/highlights'
 import { membersOnlyVersions, onShared, sharedVersions } from '../lib/shared'
 import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
@@ -183,11 +184,20 @@ export function ReaderColumn({ onBooks }: { onBooks: () => void }) {
   )
 }
 
+/** A margin band's place and size: one alone is 22px wide; two or three side by side are narrower. */
+function laneStyle(r: { lane: number; lanes: number }): React.CSSProperties {
+  if (r.lanes <= 1) return {}
+  const w = r.lanes === 2 ? 13 : 12
+  return { left: 2 + r.lane * (w + 2), width: w }
+}
+
 interface HlRun {
   id: string
   label: Label
   v1: number
   v2: number
+  lane: number // side by side in the margin where a verse has two or three colours
+  lanes: number
 }
 
 function titleParts(title: string, name: string): [string, string] {
@@ -517,20 +527,56 @@ function BibleReader() {
   )
   const labelMap = useMemo(() => Object.fromEntries(labels.map((l) => [l.id, l])), [labels])
 
-  // contiguous runs of the same label for the vertical margin titles
+  // contiguous runs of each label for the vertical margin titles; where a verse has two or three colours their bands
+  // stand side by side (lanes), narrower
   const runs = useMemo(() => {
-    const byVerse = new Map<number, string>()
-    for (const h of chapterHl) for (let v = h.v1; v <= h.v2; v++) byVerse.set(v, h.label)
+    const byVerse = new Map<number, string[]>()
+    const verses = new Set<number>()
+    for (const h of chapterHl) for (let v = h.v1; v <= h.v2; v++) verses.add(v)
+    for (const v of verses) byVerse.set(v, verseLabels(chapterHl, v))
+    const order = [...new Set(chapterHl.map((h) => h.label))]
     const out: HlRun[] = []
-    const verses = [...byVerse.keys()].sort((a, b) => a - b)
-    for (const v of verses) {
-      const lab = byVerse.get(v)!
-      const last = out[out.length - 1]
-      if (last && last.label.id === lab && last.v2 === v - 1) last.v2 = v
-      else if (labelMap[lab]) out.push({ id: `${lab}-${v}`, label: labelMap[lab], v1: v, v2: v })
+    for (const lab of order) {
+      if (!labelMap[lab]) continue
+      for (const v of [...verses].sort((a, b) => a - b)) {
+        if (!byVerse.get(v)!.includes(lab)) continue
+        let last: HlRun | undefined
+        for (let i = out.length - 1; i >= 0 && !last; i--) if (out[i].label.id === lab) last = out[i]
+        if (last && last.v2 === v - 1) last.v2 = v
+        else out.push({ id: `${lab}-${v}`, label: labelMap[lab], v1: v, v2: v, lane: 0, lanes: 1 })
+      }
     }
+    out.sort((a, b) => a.v1 - b.v1 || order.indexOf(a.label.id) - order.indexOf(b.label.id))
+    const laneEnd: number[] = []
+    let cluster: HlRun[] = []
+    let clusterEnd = 0
+    const close = () => {
+      const n = Math.max(1, ...cluster.map((r) => r.lane + 1))
+      for (const r of cluster) r.lanes = n
+    }
+    for (const r of out) {
+      if (r.v1 > clusterEnd) {
+        close()
+        cluster = []
+        laneEnd.length = 0
+      }
+      let lane = laneEnd.findIndex((e) => e < r.v1)
+      if (lane < 0) lane = laneEnd.length
+      laneEnd[lane] = r.v2
+      r.lane = lane
+      cluster.push(r)
+      clusterEnd = Math.max(clusterEnd, r.v2)
+    }
+    close()
     return out
   }, [chapterHl, labelMap])
+  const threeLanes = runs.some((r) => r.lanes >= 3)
+  // each verse's colours in the order of their bands, left to right: the stripes, top to bottom, match them
+  const laneOrder = useMemo(() => {
+    const m = new Map<number, string[]>()
+    for (const r of [...runs].sort((a, b) => a.lane - b.lane)) for (let v = r.v1; v <= r.v2; v++) m.set(v, [...(m.get(v) ?? []), r.label.id])
+    return m
+  }, [runs])
 
   useLayoutEffect(() => {
     const measure = () => {
@@ -583,12 +629,12 @@ function BibleReader() {
   else if (data.error) content = <div className="notice">Could not load {settings.version}: {data.error}</div>
   else
     content = (
-      <div ref={versesRef} className={`verses layout-${settings.layout}`} onMouseUp={onTextSelect} onTouchEnd={() => setTimeout(onTextSelect, 30)}>
+      <div ref={versesRef} className={`verses layout-${settings.layout}${threeLanes ? ' lanes-3' : ''}`} onMouseUp={onTextSelect} onTouchEnd={() => setTimeout(onTextSelect, 30)}>
         {runsPos.map(({ run, top, height }) => (
           <div
             key={run.id}
-            className="hl-label"
-            style={{ top, height, background: run.label.color }}
+            className={`hl-label${run.lanes > 1 ? ' narrow' : ''}`}
+            style={{ top, height, background: run.label.color, ...laneStyle(run) }}
             title={run.label.name}
             onClick={() => setState({ tab: 'notes', panel: true })}
           >
@@ -609,6 +655,7 @@ function BibleReader() {
               focus={loc.verse === v && !selected.size}
               selected={selected.has(v)}
               highlights={chapterHl.filter((h) => h.v1 <= v && h.v2 >= v)}
+              laneOrder={laneOrder.get(v)}
               labelMap={labelMap}
               version={settings.version}
               names={settings.namesOfGod && (!!vinfo?.strongs || !!align)}
@@ -786,6 +833,7 @@ interface VerseProps {
   focus: boolean
   selected: boolean
   highlights: Highlight[]
+  laneOrder?: string[] // the verse's labels in the order of their margin bands
   labelMap: Record<string, Label>
   version: string
   names: boolean
@@ -822,27 +870,29 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
     return p.caps ? capsTokens(t, ref) : t
   }, [p.text, p.names, p.caps, ref, p.align, p.redFromKjv])
 
-  // highlight color for each token
-  const colorOf = (tok: Tok): string | undefined => {
-    let c: string | undefined
+  // the highlight colours on each token (up to three, oldest first: the line is split into bands)
+  const colorsOf = (tok: Tok): string[] => {
+    const labs: string[] = []
     for (const h of p.highlights) {
-      const lab = p.labelMap[h.label]
-      if (!lab) continue
-      if (h.w1 === undefined || h.version !== p.version) {
-        c = lab.color
-        continue
+      if (!p.labelMap[h.label] || labs.includes(h.label)) continue
+      if (h.w1 !== undefined && h.version === p.version) {
+        const after = p.v > h.v1 || tok.i >= h.w1
+        const before = p.v < h.v2 || tok.i <= (h.w2 ?? 9999)
+        if (!(after && before)) continue
       }
-      const after = p.v > h.v1 || tok.i >= h.w1
-      const before = p.v < h.v2 || tok.i <= (h.w2 ?? 9999)
-      if (after && before) c = lab.color
+      labs.push(h.label)
     }
-    return c
+    const shown = labs.slice(Math.max(0, labs.length - MAX_COLOURS))
+    const at = (l: string) => p.laneOrder?.indexOf(l) ?? -1
+    if (p.laneOrder) shown.sort((a, b) => (at(a) < 0 ? 9 : at(a)) - (at(b) < 0 ? 9 : at(b)))
+    return shown.map((l) => p.labelMap[l].color)
   }
 
   // group consecutive tokens with the same highlight so the background is continuous
   const groups: { color?: string; toks: Tok[] }[] = []
   for (const t of toks) {
-    const c = colorOf(t)
+    const cs = colorsOf(t)
+    const c = cs.length ? hlBackground(cs) : undefined
     const last = groups[groups.length - 1]
     if (last && last.color === c) last.toks.push(t)
     else groups.push({ color: c, toks: [t] })

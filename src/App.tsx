@@ -7,6 +7,7 @@ import { BookSidebar } from './components/BookSidebar'
 import { ReaderColumn } from './views/Reader'
 import { StudyPanel } from './views/Study'
 import { HelpOverlay } from './components/HelpOverlay'
+import { trimCoveredHighlights } from './lib/highlights'
 import { MapsHelps } from './views/MapsHelps'
 import { NotesView } from './views/Notes'
 import { JournalView } from './views/Journal'
@@ -80,6 +81,7 @@ export function App() {
     Promise.all([loadBooks(), loadVersions(), initUserData()])
       .then(() => {
         setState({ ready: true })
+        void trimCoveredHighlights() // once: older highlights trimmed to the one colour each verse showed
         startSync()
         void loadPublicShared() // the owner's licensed translations, for everyone (if shared that way)
       })
