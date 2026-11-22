@@ -35,6 +35,8 @@ export function Popups() {
       return <HelpsPopup {...popup} onBack={back} />
     case 'info':
       return <InfoPopup {...popup} onBack={back} />
+    case 'xrefs':
+      return <XrefsPopup {...popup} onBack={back} />
   }
 }
 
@@ -641,6 +643,46 @@ function PlacesMap({ places, book: bookId, chapter }: { places: Place[]; book: s
     <div className="pop-map">
       <MapView markers={markers} bounds={bounds} height={250} layer={layerForChapter(bookId, chapter)} compact />
     </div>
+  )
+}
+
+/** A verse's cross references (the book chip after the verse): each with the start of its text; tap to read it. */
+function XrefsPopup(p: { book: string; chapter: number; verse: number; refs: string[]; x: number; y: number; onBack?: () => void }) {
+  const caps = useCaps()
+  const [texts, setTexts] = useState<Record<string, string>>({})
+  useEffect(() => {
+    let live = true
+    for (const r of p.refs)
+      loadPassage(r, 3)
+        .then((res) => {
+          const t = res.verses.map((v) => passagePlain(v)).join(' ')
+          if (live) setTexts((m) => ({ ...m, [r]: caps(t.length > 170 ? `${t.slice(0, 165).replace(/\s+\S*$/, '')}…` : t, r) }))
+        })
+        .catch(() => {})
+    return () => {
+      live = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.refs])
+  return (
+    <Popover x={p.x} y={p.y} width={430} title={`Cross references — ${locString(p.book, p.chapter, p.verse)}`} onClose={closeAllPopups} onBack={p.onBack}>
+      {p.refs.map((r) => (
+        <button
+          key={r}
+          className="xref-item"
+          onClick={(e) => {
+            const rr = (e.currentTarget as HTMLElement).getBoundingClientRect()
+            openPopup({ kind: 'ref', ref: r, x: rr.left, y: rr.bottom + 6 }, true) // ‹ back returns to this list
+          }}
+        >
+          <b>{formatRef(r, true)}</b>
+          <span className={texts[r] ? '' : 'faint'}>{texts[r] ?? '…'}</span>
+        </button>
+      ))}
+      <p className="faint small" style={{ margin: '8px 0 0' }}>
+        From OpenBible.info (CC BY), most helpful first, as ranked by readers.
+      </p>
+    </Popover>
   )
 }
 

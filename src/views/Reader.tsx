@@ -3,7 +3,6 @@ import { book, books, crossRefs, versionInfo, versions } from '../lib/data'
 import { chapterText, type ChapterResult } from '../lib/providers'
 import { applyDivineNames, COMPOUND_NAMES, FUNCTION_WORDS, tokenize, type Tok } from '../lib/markup'
 import { capsText, capsTokens } from '../lib/caps'
-import { formatRef } from '../lib/refs'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
 import { hlBackground, MAX_COLOURS, verseLabels } from '../lib/highlights'
@@ -613,7 +612,6 @@ function BibleReader() {
 
   const [pre, name] = titleParts(b.title, b.name)
   const selected = new Set(selection?.verses ?? [])
-  const focusRefs = xref[`${loc.chapter}:${loc.verse}`] ?? []
   const chapterHelps = helps.get(0) ?? []
   const chips = settings.marginChips
 
@@ -667,6 +665,7 @@ function BibleReader() {
               noteCount={chips ? noteVerses.get(v) ?? 0 : 0}
               journalCount={chips ? journalVerses.get(v) ?? 0 : 0}
               helpCount={chips ? vh : 0}
+              xrefs={chips ? xref[`${loc.chapter}:${v}`] : undefined}
               book={loc.book}
               chapter={loc.chapter}
               align={align}
@@ -726,20 +725,6 @@ function BibleReader() {
           {data?.title && <div className="psalm-title">{data.title}</div>}
         </header>
         {content}
-        {data && !data.error && focusRefs.length > 0 && (
-          <div className="xref-line">
-            <Icon name="book" size={18} />
-            <span>Cross References (v. {loc.verse}):</span>
-            {focusRefs.slice(0, 8).map((r, i) => (
-              <Fragment key={r}>
-                <button className="ref-link" onClick={(e) => openPopup({ kind: 'ref', ref: r, ...popAt(e) })}>
-                  {formatRef(r, true)}
-                </button>
-                {i < Math.min(focusRefs.length, 8) - 1 && ';'}
-              </Fragment>
-            ))}
-          </div>
-        )}
         {data?.copyright && <p className="faint small" style={{ marginLeft: 64 }}>{data.copyright}</p>}
         <nav className="chapter-nav">
           <button className="btn" onClick={() => turnPage(-1)}>
@@ -844,6 +829,7 @@ interface VerseProps {
   noteCount: number
   journalCount: number
   helpCount: number
+  xrefs?: string[] // the verse's cross references: a book chip after its text opens them
   book: string
   chapter: number
   align?: ChapterAlign | null
@@ -1027,6 +1013,20 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
             †
           </button>
         ))}
+        {p.xrefs && p.xrefs.length > 0 && (
+          <button
+            className="xref-chip"
+            title="Cross references"
+            aria-label={`Cross references for verse ${p.v}`}
+            onClick={(e) => {
+              e.stopPropagation()
+              setVerse(p.v)
+              openPopup({ kind: 'xrefs', book: p.book, chapter: p.chapter, verse: p.v, refs: p.xrefs!, ...chipPos(e) })
+            }}
+          >
+            <Icon name="book" size={14} />
+          </button>
+        )}
       </p>
     </div>
   )

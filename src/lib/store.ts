@@ -10,6 +10,7 @@ export type Popup =
   | { kind: 'journal'; book: string; chapter: number; verse?: number; x: number; y: number }
   | { kind: 'helps'; book: string; chapter: number; verse: number; x: number; y: number }
   | { kind: 'info'; title: string; text: string; x: number; y: number }
+  | { kind: 'xrefs'; book: string; chapter: number; verse: number; refs: string[]; x: number; y: number }
 
 export interface Selection {
   verses: number[] // selected verse numbers (tap on verse number)

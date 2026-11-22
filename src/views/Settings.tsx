@@ -87,7 +87,7 @@ export function SettingsView() {
       <Toggle on={s.capsNames} onChange={(v) => set({ capsNames: v })} label="GOD, JESUS CHRIST & HOLY SPIRIT in capitals" desc="Throughout the Bible, commentaries, helps, search, notes and journal" />
       <Toggle on={s.redLetters} onChange={(v) => set({ redLetters: v })} label="Words of CHRIST in red" />
       <Toggle on={s.strongsUnderline} onChange={(v) => set({ strongsUnderline: v })} label="Underline Strong’s words" desc="A faint dotted line under words you can tap for the concordance" />
-      <Toggle on={s.marginChips} onChange={(v) => set({ marginChips: v })} label="Margin chips" desc="? helps · N notes · J journal next to verses" />
+      <Toggle on={s.marginChips} onChange={(v) => set({ marginChips: v })} label="Margin chips" desc="? helps · N notes · J journal next to verses, and a book after each verse for its cross references" />
       <Toggle on={s.placeChips} onChange={(v) => set({ placeChips: v })} label="Mark verses that name a place" desc="Adds the place to the ? chip with a then & now map" />
       <div className="setting-row">
         Verse layout

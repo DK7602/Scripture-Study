@@ -395,6 +395,17 @@ a { color: var(--accent); }
 .chip.n { color: #3b5b8f; border-color: #a9bbd9; }
 .chip.j { color: #2c6c8a; border-color: #9cc5d6; }
 .chip.h { color: #8b6a1d; border-color: #d8c48e; }
+/* after a verse: its cross references */
+.xref-chip {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: -0.12em; margin-left: 0.3em;
+  width: 1.35em; height: 1.15em; padding: 0; border-radius: 5px; border: 1px solid var(--rule); background: var(--chip-bg);
+  color: var(--ink-soft); cursor: pointer; box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+.xref-chip svg { width: 0.72em; height: 0.72em; }
+.xref-chip:hover { color: var(--accent); border-color: var(--accent); }
+.xref-item { display: grid; gap: 1px; width: 100%; text-align: left; border: 0; border-bottom: 1px solid var(--rule); background: none; padding: 8px 2px; cursor: pointer; font-family: var(--serif); font-size: calc(16px * var(--ui)); line-height: 1.4; color: var(--ink); }
+.xref-item b { color: var(--accent); font-family: var(--sans); font-size: calc(13.5px * var(--ui)); }
+.xref-item:hover { background: color-mix(in srgb, var(--accent-soft) 40%, transparent); }
 .chip:hover { background: var(--accent-soft); }
 
 .hl-label {
