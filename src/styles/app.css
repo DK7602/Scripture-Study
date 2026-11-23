@@ -376,6 +376,9 @@ a { color: var(--accent); }
 .vtext .s:hover { color: var(--accent); }
 .vtext .red { color: var(--red); }
 .vtext .it { font-style: italic; }
+/* Old Testament quotations in the New Testament: in italics (the KJV's supplied words, italic elsewhere, upright here) */
+.vtext .otq { font-style: italic; }
+.vtext .otq.it { font-style: normal; }
 .vtext .sc { font-variant: small-caps; letter-spacing: 0.03em; }
 .vtext .dn { color: var(--name); font-weight: 600; font-style: normal; }
 .vtext .fn { font-size: 0.6em; vertical-align: super; color: var(--accent); cursor: pointer; border: 0; background: none; padding: 0 1px; }

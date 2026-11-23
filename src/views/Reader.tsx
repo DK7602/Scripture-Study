@@ -6,6 +6,7 @@ import { capsText, capsTokens } from '../lib/caps'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
 import { hlBackground, MAX_COLOURS, verseLabels } from '../lib/highlights'
+import { otQuotes, quoteTokens, type OtQuote } from '../lib/otquotes'
 import { membersOnlyVersions, onShared, sharedVersions } from '../lib/shared'
 import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
@@ -228,6 +229,7 @@ function BibleReader() {
   const [xref, setXref] = useState<Record<string, string[]>>({})
   const [helps, setHelps] = useState<Map<number, VerseHelp[]>>(new Map())
   const [placeMap, setPlaceMap] = useState<Map<number, Place[]>>(new Map())
+  const [quotes, setQuotes] = useState<Record<string, OtQuote>>({}) // Old Testament quotations (the New Testament)
   const scrollRef = useRef<HTMLDivElement>(null)
   const versesRef = useRef<HTMLDivElement>(null)
   const [runsPos, setRunsPos] = useState<{ run: HlRun; top: number; height: number }[]>([])
@@ -253,6 +255,7 @@ function BibleReader() {
       setDataFor(key)
     })
     crossRefs(loc.book).then((x) => live && setXref(x))
+    otQuotes(loc.book).then((x) => live && setQuotes(x))
     helpsForChapter(loc.book, loc.chapter).then((h) => live && setHelps(h))
     if (settings.placeChips) placesForChapter(loc.book, loc.chapter).then((p) => live && setPlaceMap(p))
     else setPlaceMap(new Map())
@@ -666,6 +669,7 @@ function BibleReader() {
               journalCount={chips ? journalVerses.get(v) ?? 0 : 0}
               helpCount={chips ? vh : 0}
               xrefs={chips ? xref[`${loc.chapter}:${v}`] : undefined}
+              quote={quotes[`${loc.chapter}:${v}`]}
               book={loc.book}
               chapter={loc.chapter}
               align={align}
@@ -830,6 +834,7 @@ interface VerseProps {
   journalCount: number
   helpCount: number
   xrefs?: string[] // the verse's cross references: a book chip after its text opens them
+  quote?: OtQuote // an Old Testament quotation in it: its words in italics
   book: string
   chapter: number
   align?: ChapterAlign | null
@@ -855,6 +860,9 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
     t = t.map((x) => ({ ...x, o: x.t }))
     return p.caps ? capsTokens(t, ref) : t
   }, [p.text, p.names, p.caps, ref, p.align, p.redFromKjv])
+
+  // an Old Testament quotation: its words in italics
+  const quoted = useMemo(() => (p.quote ? quoteTokens(toks, p.quote) : null), [toks, p.quote])
 
   // the highlight colours on each token (up to three, oldest first: the line is split into bands)
   const colorsOf = (tok: Tok): string[] => {
@@ -906,6 +914,7 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
 
   const renderTok = (t: Tok) => {
     const cls = ['w']
+    if (quoted?.has(t.i)) cls.push('otq')
     if (t.s) {
       cls.push('s')
       if (t.s.every((n) => FUNCTION_WORDS.has(n))) cls.push('fw')
