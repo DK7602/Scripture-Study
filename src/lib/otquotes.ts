@@ -10,10 +10,15 @@
 import { tryJSON } from './data'
 import type { Tok } from './markup'
 
+export interface OtCitation {
+  t: string // as printed after the quotation: "Isa 28:16", "Ps 14:1–3; 53:1–3; Eccl 7:20"
+  r: string[] // the passages, to open: ["ISA.28.16"]
+}
+
 export interface OtQuote {
   q: string[] // Strong's numbers inside the quotation
   n: string[] // the verse's others
-  src: string[] // what is quoted, e.g. "HOS.11.1"
+  e?: OtCitation[] // the passages quoted, where a quotation ends in this verse (in order)
 }
 
 const byBook = new Map<string, Promise<Record<string, OtQuote>>>()
@@ -129,4 +134,27 @@ export function quoteTokens(toks: Tok[], quote: OtQuote): Set<number> {
   }
   for (const [a, b] of chosen) for (let k = a; k <= b; k++) out.add(words[k].i)
   return out
+}
+
+/**
+ * Where the passages quoted are printed: after the last word of each quotation (the runs of italics, in order, when
+ * there are as many as passages: "…open graves; their tongues practice deceit.” Ps 5:9 “The venom of vipers is on
+ * their lips.” Ps 140:3); otherwise all together after the last (or, with none found, at the end of the verse).
+ * Returns the token (`i`) each is printed after.
+ */
+export function citationsAfter(toks: Tok[], quoted: Set<number>, count: number): Map<number, number[]> {
+  const at = new Map<number, number[]>()
+  const words = toks.filter((t) => !t.sp)
+  if (!count || !words.length) return at
+  const ends: number[] = []
+  words.forEach((t, k) => {
+    if (!quoted.has(t.i)) return
+    const next = words[k + 1]
+    // the end of a run, or of one quotation where the next begins at once (“…deceit.” “The venom…”)
+    if (!next || !quoted.has(next.i) || (/[”’"]$/.test(t.t) && /^[“‘"]/.test(next.t))) ends.push(t.i)
+  })
+  const all = Array.from({ length: count }, (_, k) => k)
+  if (ends.length === count) ends.forEach((i, k) => at.set(i, [k]))
+  else at.set(ends.length ? ends[ends.length - 1] : words[words.length - 1].i, all)
+  return at
 }

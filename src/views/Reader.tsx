@@ -6,7 +6,7 @@ import { capsText, capsTokens } from '../lib/caps'
 import { go, openPopup, setState, setVerse, updateSettings, useStore, type Selection } from '../lib/store'
 import { helpsForChapter, placesForChapter, type VerseHelp } from '../lib/helps'
 import { hlBackground, MAX_COLOURS, verseLabels } from '../lib/highlights'
-import { otQuotes, quoteTokens, type OtQuote } from '../lib/otquotes'
+import { citationsAfter, otQuotes, quoteTokens, type OtQuote } from '../lib/otquotes'
 import { membersOnlyVersions, onShared, sharedVersions } from '../lib/shared'
 import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
@@ -863,6 +863,26 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
 
   // an Old Testament quotation: its words in italics
   const quoted = useMemo(() => (p.quote ? quoteTokens(toks, p.quote) : null), [toks, p.quote])
+  // ... and after it, the passage it is from ("Isa 28:16"): tap to read it
+  const cites = useMemo(() => citationsAfter(toks, quoted ?? new Set(), p.quote?.e?.length ?? 0), [toks, quoted, p.quote])
+  const citation = (k: number) => {
+    const c = p.quote!.e![k]
+    return (
+      <button
+        key={`c${k}`}
+        className="otq-ref"
+        title={`Quoted from ${c.t}`}
+        onClick={(e) => {
+          e.stopPropagation()
+          setVerse(p.v)
+          if (c.r.length === 1) openPopup({ kind: 'ref', ref: c.r[0], ...chipPos(e) })
+          else openPopup({ kind: 'xrefs', book: p.book, chapter: p.chapter, verse: p.v, refs: c.r, title: 'Quoted from', ...chipPos(e) })
+        }}
+      >
+        {c.t}
+      </button>
+    )
+  }
 
   // the highlight colours on each token (up to three, oldest first: the line is split into bands)
   const colorsOf = (tok: Tok): string[] => {
@@ -931,10 +951,18 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
       const shown = t.t.split(/\b(LORD|GOD)\b/)
       text = parts.map((part, k) => (k % 2 ? <span key={k} className="sc">{part.charAt(0) + part.slice(1).toLowerCase()}</span> : shown[k] ?? part))
     }
-    return (
+    const word = (
       <span key={t.i} data-t={t.i} className={cls.join(' ')} onClick={t.s || p.align ? (e) => onWord(e, t) : undefined} title={t.name ? t.nameInfo : undefined}>
         {text}
       </span>
+    )
+    const after = cites.get(t.i)
+    if (!after) return word
+    return (
+      <Fragment key={t.i}>
+        {word}
+        {after.map(citation)}
+      </Fragment>
     )
   }
 

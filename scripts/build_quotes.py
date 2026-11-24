@@ -5,10 +5,11 @@ The World English Bible's USFM (eBible.org, public domain, cached in .cache/eng-
 cross-reference note right after each Old Testament quotation in the New Testament ("Out of Egypt I called my
 son."\\x Hosea 11:1). The quotation is the innermost quoted passage ending there (and any joined to it by "and" or
 "again"). Its words carry the Greek Strong's numbers, so for each verse this writes the numbers inside the quotation
-(q) and the verse's others (n), and the source (src); the reader (src/lib/otquotes.ts) finds those words in whatever
+(q) and the verse's others (n), and, in the verse where it ends, the passage quoted (e); the reader (src/lib/otquotes.ts) finds those words in whatever
 translation is shown and sets them in italics.
 
-Writes public/data/quotes/<BOOK>.json: {"chapter:verse": {"q": [...], "n": [...], "src": ["HOS.11.1"]}}.
+Writes public/data/quotes/<BOOK>.json:
+  {"chapter:verse": {"q": [...], "n": [...], "e": [{"t": "Hos 11:1", "r": ["HOS.11.1"]}]}}
 Run: python3 scripts/build_quotes.py
 """
 import re, glob, os, json, sys
@@ -151,6 +152,47 @@ def target_words(target):
     return words
 
 
+BOOKS = json.load(open(os.path.join(ROOT, 'public', 'data', 'books.json'), encoding='utf-8'))
+BY_NAME = {b['name']: b for b in BOOKS}
+
+
+def citation(target):
+    """A note's passages, abbreviated as printed after the quotation, and as references to open:
+    "Isaiah 61:2; 66:10,13" -> ("Isa 61:2; 66:10, 13", ["ISA.61.2", "ISA.66.10", "ISA.66.13"])."""
+    label = []
+    refs = []
+    bk = None
+    for part in target.split(';'):
+        part = re.sub(r'^See\s+', '', part.strip())
+        lxx = part.endswith(' LXX')
+        part = re.sub(r'\s+LXX$', '', part)
+        m = re.match(r'^((?:[1-3] )?[A-Z][A-Za-z ]*?) (\d.*)$', part)
+        if m:
+            bk = BY_NAME.get(m.group(1)) or BY_NAME.get(m.group(1).replace('Psalm', 'Psalms'))
+            part = m.group(2)
+        if not bk:
+            continue
+        ch = None
+        shown = []
+        for piece in part.split(','):
+            mm = re.match(r'^(?:(\d+):)?(\d+)(?:[-—–](?:(\d+):)?(\d+))?$', piece.strip())
+            if not mm:
+                continue
+            ch = int(mm.group(1)) if mm.group(1) else ch
+            if ch is None:
+                continue
+            v1 = int(mm.group(2))
+            ref = f"{bk['id']}.{ch}.{v1}"
+            if mm.group(4):
+                ref += f"-{mm.group(3)}.{mm.group(4)}" if mm.group(3) else f"-{mm.group(4)}"
+            refs.append(ref)
+            shown.append(piece.strip().replace('-', '–').replace('—', '–'))
+        if shown:
+            text = ', '.join(shown) + (' LXX' if lxx else '')
+            label.append(text if m is None else f"{bk['abbr']} {text}")
+    return '; '.join(label), refs
+
+
 def main(words_out=None):
     """(words_out, if given, gets each verse's quoted words: "BOOK.chapter.verse" -> [...], for checking the reader)"""
     os.makedirs(OUT, exist_ok=True)
@@ -175,7 +217,6 @@ def main(words_out=None):
                 dropped.append(f'{code} {ch}:{v} -> {target}: {" ".join(text[a:b] for a, b in segs)[:70]}')
                 continue
             total += 1
-            src = parse_ref_text(re.sub(r'^See\s+', '', target))
             inside = {}  # verse -> its words in the quoted passage
             for (a, b) in segs:
                 for (ta, tb, w, sn, c, vv) in toks:
@@ -190,14 +231,17 @@ def main(words_out=None):
                 if (c, vv) != (ch, v) and not lxx and len(said) >= 3 and not any(x in ot for x in said):
                     dropped.append(f'{code} {c}:{vv} (part of {ch}:{v} -> {target}): {" ".join(w for w, sn in ws)[:60]}')
                     continue
-                d = book.setdefault(f'{c}:{vv}', {'q': [], 'src': []})
+                d = book.setdefault(f'{c}:{vv}', {'q': []})
                 d['q'].extend(sn for w, sn in ws)
                 touched.add(f'{c}:{vv}')
                 if words_out is not None:
                     words_out.setdefault(f'{code}.{c}.{vv}', []).extend(w for w, sn in ws)
-            for k in touched:
-                if src and src not in book[k]['src']:
-                    book[k]['src'].append(src)
+            # the passage quoted, printed after the quotation where it ends (in the verse of the note)
+            if touched:
+                last = f'{ch}:{v}' if f'{ch}:{v}' in touched else max(touched, key=lambda k: tuple(map(int, k.split(':'))))
+                label, refs = citation(target)
+                if label:
+                    book[last].setdefault('e', []).append({'t': label, 'r': refs})
         # the verse's other Strong's numbers (those outside the quotation)
         allsn = {}
         for (ta, tb, w, sn, c, vv) in toks:

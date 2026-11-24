@@ -647,7 +647,7 @@ function PlacesMap({ places, book: bookId, chapter }: { places: Place[]; book: s
 }
 
 /** A verse's cross references (the book chip after the verse): each with the start of its text; tap to read it. */
-function XrefsPopup(p: { book: string; chapter: number; verse: number; refs: string[]; x: number; y: number; onBack?: () => void }) {
+function XrefsPopup(p: { book: string; chapter: number; verse: number; refs: string[]; title?: string; x: number; y: number; onBack?: () => void }) {
   const caps = useCaps()
   const [texts, setTexts] = useState<Record<string, string>>({})
   useEffect(() => {
@@ -665,7 +665,7 @@ function XrefsPopup(p: { book: string; chapter: number; verse: number; refs: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [p.refs])
   return (
-    <Popover x={p.x} y={p.y} width={430} title={`Cross references — ${locString(p.book, p.chapter, p.verse)}`} onClose={closeAllPopups} onBack={p.onBack}>
+    <Popover x={p.x} y={p.y} width={430} title={`${p.title ?? 'Cross references'} — ${locString(p.book, p.chapter, p.verse)}`} onClose={closeAllPopups} onBack={p.onBack}>
       {p.refs.map((r) => (
         <button
           key={r}
