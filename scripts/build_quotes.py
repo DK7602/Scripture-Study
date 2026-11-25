@@ -21,6 +21,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_data import parse_ref_text  # noqa: E402
 NT = ['MAT','MRK','LUK','JHN','ACT','ROM','1CO','2CO','GAL','EPH','PHP','COL','1TH','2TH','1TI','2TI','TIT','PHM','HEB','JAS','1PE','2PE','1JN','2JN','3JN','JUD','REV']
 OPEN = {'”': '“', '’': '‘'}
+VSTART = {}  # (book, chapter, verse) -> where its text begins
+
+
 def parse(code):
     f = glob.glob(f'{WEB}/*-{code}eng-web.usfm')[0]
     s = open(f, encoding='utf-8').read()
@@ -34,7 +37,7 @@ def parse(code):
     pat = re.compile(r'\\c (\d+)|\\v (\d+) |\\x .*?\\xt ([^\\]*?)\s*\\x\*|\\\+?w ([^|\\]+)\|strong="([^"]+)"\\\+?w\*|\\[a-z0-9+]+\*?\s?|([^\\]+)', re.S)
     for m in pat.finditer(s):
         if m.group(1): ch = int(m.group(1)); v = 0; continue
-        if m.group(2): v = int(m.group(2)); continue
+        if m.group(2): v = int(m.group(2)); VSTART[(code, ch, v)] = pos; continue
         if m.group(3) is not None: marks.append((pos, ch, v, m.group(3).strip())); continue
         if m.group(4):
             w = m.group(4); a = pos; out_text.append(w); pos += len(w); toks.append((a, pos, w, m.group(5), ch, v)); continue
@@ -99,6 +102,25 @@ NOT_QUOTES = {
 }
 
 _ot = {}
+
+
+def stem(word):
+    """A word as the reader compares it (src/lib/otquotes.ts, stem: the same rules): lower case, letters only,
+    without -ing, -ed or a plural -s; None for small words."""
+    w = re.sub(r'[^a-z]', '', word.lower())
+    if len(w) < 3:
+        return None
+    if len(w) > 5 and w.endswith('ing'):
+        return w[:-3]
+    if len(w) > 4 and w.endswith('ed'):
+        return w[:-2]
+    if len(w) > 3 and w.endswith('s') and not w.endswith('ss'):
+        return w[:-1]
+    return w
+
+
+def stems(text):
+    return {x for x in (stem(w) for w in re.findall(r"[A-Za-z’']+", text)) if x and x not in STOP}
 
 
 def ot_verses(code):
@@ -201,6 +223,7 @@ def main(words_out=None):
     for code in NT:
         text, toks, marks = parse(code)
         book = {}
+        quoted = {}  # verse -> the quoted passages touching it (character ranges)
         for (off, ch, v, target) in marks:
             segs = segments(text, off)
             if not segs:
@@ -219,6 +242,8 @@ def main(words_out=None):
             total += 1
             inside = {}  # verse -> its words in the quoted passage
             for (a, b) in segs:
+                for key in {f'{c}:{vv}' for (ta, tb, w, sn, c, vv) in toks if ta >= a and tb <= b}:
+                    quoted.setdefault(key, []).append((a, b))
                 for (ta, tb, w, sn, c, vv) in toks:
                     if ta >= a and tb <= b:
                         inside.setdefault((c, vv), []).append((w, sn))
@@ -242,6 +267,22 @@ def main(words_out=None):
                 label, refs = citation(target)
                 if label:
                     book[last].setdefault('e', []).append({'t': label, 'r': refs})
+        # the verse's English words (stems) inside the quotation and outside it, for translations whose words are
+        # not the KJV's (so carry few Strong's numbers): "But even if you should suffer for righteousness’ sake, you
+        # are blessed." outside, "Don’t fear what they fear, neither be troubled." inside
+        for k, d in book.items():
+            c, vv = map(int, k.split(':'))
+            a0 = VSTART[(code, c, vv)]
+            nxt = [VSTART[x] for x in VSTART if x[0] == code and (x[1], x[2]) > (c, vv)]
+            z0 = min(nxt) if nxt else len(text)
+            inq = [False] * (z0 - a0)
+            for (a, b) in quoted.get(k, []):
+                for x in range(max(a, a0), min(b, z0)):
+                    inq[x - a0] = True
+            qs = ''.join(ch if inq[x - a0] else ' ' for x, ch in enumerate(text[a0:z0], start=a0))
+            ns = ''.join(' ' if inq[x - a0] else ch for x, ch in enumerate(text[a0:z0], start=a0))
+            d['qw'] = sorted(stems(qs))
+            d['nw'] = sorted(stems(ns))
         # the verse's other Strong's numbers (those outside the quotation)
         allsn = {}
         for (ta, tb, w, sn, c, vv) in toks:
