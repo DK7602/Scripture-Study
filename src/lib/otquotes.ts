@@ -23,6 +23,11 @@ export interface OtQuote {
 
 const byBook = new Map<string, Promise<Record<string, OtQuote>>>()
 
+/** After newer data arrives (datasync.ts). */
+export function forgetQuotes() {
+  byBook.clear()
+}
+
 /** A book's quotations by "chapter:verse" (none for the Old Testament and the New Testament books without any). */
 export function otQuotes(book: string): Promise<Record<string, OtQuote>> {
   let p = byBook.get(book)

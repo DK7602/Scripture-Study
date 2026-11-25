@@ -26,6 +26,11 @@ export function getJSON<T>(path: string): Promise<T> {
   return p as Promise<T>
 }
 
+/** Files replaced by newer ones (src/lib/datasync.ts): read again when next asked for. */
+export function forgetJSON(paths: string[]) {
+  for (const p of paths) cache.delete(p)
+}
+
 /** Like getJSON but resolves to null when the file does not exist. */
 export function tryJSON<T>(path: string): Promise<T | null> {
   return getJSON<T>(path).catch(() => null)

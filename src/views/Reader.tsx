@@ -256,11 +256,18 @@ function BibleReader() {
     })
     crossRefs(loc.book).then((x) => live && setXref(x))
     otQuotes(loc.book).then((x) => live && setQuotes(x))
+    // newer data replacing what the phone kept (datasync.ts): this book's quotations and cross references again
+    const refreshed = () => {
+      crossRefs(loc.book).then((x) => live && setXref(x))
+      otQuotes(loc.book).then((x) => live && setQuotes(x))
+    }
+    window.addEventListener('ss:data-refreshed', refreshed)
     helpsForChapter(loc.book, loc.chapter).then((h) => live && setHelps(h))
     if (settings.placeChips) placesForChapter(loc.book, loc.chapter).then((p) => live && setPlaceMap(p))
     else setPlaceMap(new Map())
     return () => {
       live = false
+      window.removeEventListener('ss:data-refreshed', refreshed)
     }
   }, [loc.book, loc.chapter, settings.version, settings.placeChips, shared])
 
