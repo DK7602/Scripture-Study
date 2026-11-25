@@ -53,13 +53,26 @@ async function load(version: string, bookId: string, chapter: number): Promise<C
   }
 }
 
+/**
+ * API.Bible's plain text leaves a "#" where each of the publisher's notes was ("the gospel of God#— #"), sometimes
+ * between two words with no space ("Do not fear them#or be intimidated", 1 Peter 3:14 CSB). Scripture has no "#":
+ * each becomes a space, and the spacing is tidied around punctuation and quotation marks.
+ */
+export function cleanNoteMarks(text: string): string {
+  return text
+    .replace(/#/g, ' ')
+    .replace(/\s+([—,.;:!?”’)\]])/g, '$1')
+    .replace(/([“‘(\[])\s+/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 function splitNumbered(text: string, count: number): string[] {
   const verses: string[] = Array(count).fill('')
   const parts = text.split(/\[(\d+)\]/)
   for (let k = 1; k < parts.length; k += 2) {
     const n = +parts[k]
-    // API.Bible's plain text leaves "#" markers where the publisher's notes were (e.g. "God#— #"); Scripture has no "#"
-    if (n >= 1 && n <= count) verses[n - 1] = (verses[n - 1] + ' ' + parts[k + 1].replace(/#/g, '')).replace(/\s+([—,.;:!?])/g, '$1').replace(/\s+/g, ' ').trim()
+    if (n >= 1 && n <= count) verses[n - 1] = cleanNoteMarks(verses[n - 1] + ' ' + parts[k + 1])
   }
   return verses
 }
