@@ -10,6 +10,7 @@ import { citationsAfter, otQuotes, quoteTokens, type OtQuote } from '../lib/otqu
 import { membersOnlyVersions, onShared, sharedVersions } from '../lib/shared'
 import { applyRed, chapterAlign, matchWord, type ChapterAlign } from '../lib/align'
 import { useSyncExternalStore } from 'react'
+import { onSync, syncInfo } from '../lib/sync'
 import type { Highlight, Label, Place } from '../lib/types'
 import { Icon, Ornament } from '../components/Icon'
 import { AudioBar } from '../components/AudioBar'
@@ -754,10 +755,25 @@ function BibleReader() {
 function LicensedNotice({ version }: { version: string }) {
   const info = versionInfo(version)
   const members = membersOnlyVersions().includes(version)
+  const account = useSyncExternalStore(onSync, syncInfo)
+  const owner = account.status === 'signed-in' && account.role === 'owner'
   return (
     <div className="notice">
-      <h4>{members ? `Sign in to read the ${version}` : `The ${version} isn’t available here yet`}</h4>
-      {members ? (
+      <h4>{owner ? `Your ${version} key isn’t on this device` : members ? `Sign in to read the ${version}` : `The ${version} isn’t available here yet`}</h4>
+      {owner ? (
+        <>
+          <p>
+            A key typed into Settings stays on the device it was typed on: signing in brings your notes, highlights and settings, but not your
+            keys. To read the {version} on every device you sign in on, share your key once with your own server: on the device where the{' '}
+            {version} works (your phone), open Settings → <b>Sync across devices</b> → <b>Share the keys already on this phone</b>. Or paste
+            the key under <b>Share CSB, NIV, NKJV, NASB or ESV</b> in Settings here.
+          </p>
+          <p className="small">
+            Shared translations can be read by everyone who opens the app, unless you switch that off there: then only you and the people you
+            invite, signed in.
+          </p>
+        </>
+      ) : members ? (
         <p>
           The person who runs this app shares the {info?.name} with the people they invite. Open the invitation link they sent you, then sign in
           under Settings with your email (you’ll get a one-time code).
