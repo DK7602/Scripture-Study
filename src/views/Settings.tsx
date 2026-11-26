@@ -146,9 +146,10 @@ export function SettingsView() {
       </div>
       <div className="setting-row">
         Font Style
-        <select className="select" value={s.font} onChange={(e) => set({ font: e.target.value as 'serif' | 'sans' })} aria-label="Font style">
+        <select className="select" value={s.font} onChange={(e) => set({ font: e.target.value as Settings['font'] })} aria-label="Font style">
           <option value="serif">Serif (Printed)</option>
           <option value="sans">Sans-serif (Modern)</option>
+          <option value="typewriter">Typewriter (Typed)</option>
         </select>
       </div>
 

@@ -70,6 +70,7 @@ export function BottomBar({ onBooks }: { onBooks: () => void }) {
             <div className="seg">
               <button onClick={() => updateSettings({ font: 'serif' })} style={settings.font === 'serif' ? { background: 'var(--accent)', color: '#fff' } : undefined}>Serif</button>
               <button onClick={() => updateSettings({ font: 'sans' })} style={settings.font === 'sans' ? { background: 'var(--accent)', color: '#fff' } : undefined}>Sans</button>
+              <button onClick={() => updateSettings({ font: 'typewriter' })} style={settings.font === 'typewriter' ? { background: 'var(--accent)', color: '#fff' } : undefined}>Typewriter</button>
             </div>
           </div>
           <div className="setting-row">

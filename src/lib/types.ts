@@ -178,7 +178,7 @@ export interface Settings {
   audioLocalAsked: boolean // the listener has chosen between the two, so stop offering
   audioContinue: boolean // read on into the next chapter
   scrollSpeed: number // auto-scroll speed, 1..10
-  font: 'serif' | 'sans'
+  font: 'serif' | 'sans' | 'typewriter'
   layout: 'verse' | 'paragraph'
   strongsUnderline: boolean
   marginChips: boolean
