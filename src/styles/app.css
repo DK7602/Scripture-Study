@@ -33,7 +33,7 @@
   --serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
   --display: 'Cinzel', 'EB Garamond', Georgia, serif;
   --sans: 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --typewriter: 'Special Elite', 'Courier New', Courier, monospace;
+  --typewriter: 'Typewriter', 'Courier New', Courier, monospace; /* styles/typewriter.css */
   --text-size: 20px;
   --ui: 1.25; /* App text size setting: every font outside the Bible text is multiplied by this */
   --reader-font: var(--serif);
