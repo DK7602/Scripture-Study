@@ -5,8 +5,11 @@
  * Strong's numbers that occur in the same KJV verse, and match each word against the English
  * renderings the KJV uses for those numbers (strongs/words.json). Example: CSB John 15:4
  * "Remain in me" -> "remain" is a KJV rendering of G3306 (μένω), which occurs in KJV John 15:4.
+ * Where a translation chooses other words than the KJV's, the lexicons' modern glosses are a second chance
+ * (strongs/glosses.json, scripts/build_glosses.py): CSB 1 Peter 5:2 "Shepherd God's flock" -> "to shepherd",
+ * ποιμαίνω (G4165), the KJV's "Feed".
  */
-import { bibleBook, getJSON } from './data'
+import { bibleBook, getJSON, tryJSON } from './data'
 import { tokenize, type Tok } from './markup'
 
 export interface VerseAlign {
@@ -24,6 +27,7 @@ export interface VerseAlign {
 export interface ChapterAlign {
   verses: Map<number, VerseAlign>
   words: Record<string, string[]>
+  glosses: Record<string, string> // a stem (gstem) -> the Strong's numbers glossed with it: "G4290|G147 …" (scripts/build_glosses.py)
   paras: number[] // the KJV's paragraph starts
 }
 
@@ -52,7 +56,11 @@ export function chapterAlign(book: string, chapter: number): Promise<ChapterAlig
   const key = `${book}.${chapter}`
   let p = cache.get(key)
   if (!p) {
-    p = Promise.all([bibleBook('KJV', book), getJSON<Record<string, string[]>>('strongs/words.json')]).then(([kjv, words]) => {
+    p = Promise.all([
+      bibleBook('KJV', book),
+      getJSON<Record<string, string[]>>('strongs/words.json'),
+      tryJSON<Record<string, string>>('strongs/glosses.json'),
+    ]).then(([kjv, words, glosses]) => {
       const verses = new Map<number, VerseAlign>()
       ;(kjv.c[chapter - 1] ?? []).forEach((text, i) => {
         const all = tokenize(text)
@@ -74,7 +82,7 @@ export function chapterAlign(book: string, chapter: number): Promise<ChapterAlig
           redFrac: ws.length ? reds.length / ws.length : 0,
         })
       })
-      return { verses, words, paras: kjv.p?.[chapter] ?? [] }
+      return { verses, words, glosses: glosses ?? {}, paras: kjv.p?.[chapter] ?? [] }
     })
     p.catch(() => cache.delete(key))
     cache.set(key, p)
@@ -112,14 +120,50 @@ function variants(word: string): string[] {
   return out
 }
 
-/** The Strong's number for a word of another translation, if the same verse in the KJV supports it. */
-export function matchWord(word: string, v: VerseAlign | undefined, words: Record<string, string[]>): string | null {
+/** Words that say nothing of a word's meaning (as STOP in scripts/build_glosses.py). */
+const GLOSS_STOP = new Set(
+  `the a an and of to in on for is are was were be been being by with as at from that this these those it its or nor not no
+  but if so than then into upon one who whom which what whose his her their our your my me him them us you he she they we also
+  very much more most only such any all some other another out up down over under about after before through against among
+  within without between there here thing things something someone etc lxx syn see cf esp prob lit fig used use make made way
+  kind sort part person people man men say said do does did have has had can may might must shall should will would let
+  where when how why while until because just now still yet same each every both either neither whether even`.split(/\s+/),
+)
+
+/** A word reduced to a rough stem (scripts/build_glosses.py, gstem: the same rules): "greedily", "greedy", "greed" ->
+ * "greed"; "eagerly", "eagerness" -> "eager"; "overseeing", "oversees", "oversee" -> "overse". */
+export function gstem(word: string): string | null {
+  let w = word.toLowerCase().replace(/[^a-z]/g, '')
+  if (w.length < 3) return null
+  for (const suf of ['ingly', 'edly', 'fully', 'ily', 'ly', 'ness', 'ings', 'ing', 'ied', 'ies', 'ed', 's', 'y']) {
+    if (w.endsWith(suf) && w.length - suf.length >= 4) {
+      w = w.slice(0, -suf.length)
+      break
+    }
+  }
+  if (w.endsWith('e') && w.length > 4) w = w.slice(0, -1)
+  return w
+}
+
+/** The Strong's number for a word of another translation, if the same verse in the KJV supports it: by the KJV's
+ * English for it, else by the lexicons' glosses. */
+export function matchWord(word: string, v: VerseAlign | undefined, words: Record<string, string[]>, glosses?: Record<string, string>): string | null {
   if (!v || !v.nums.size) return null
   for (const form of variants(word)) {
     const cands = words[form]
     if (!cands) continue
     const hit = cands.find((n) => v.nums.has(n))
     if (hit) return hit
+  }
+  if (glosses) {
+    const plain = word.toLowerCase().replace(/[’‘]/g, "'").replace(/'s$/, '').replace(/[^a-z]/g, '')
+    const st = GLOSS_STOP.has(plain) ? null : gstem(plain)
+    // a number whose short gloss is this word ("eagerly", προθύμως) before one with it only in its definition
+    // ("from eagerness for base gain", αἰσχροκερδῶς)
+    for (const tier of (st && !GLOSS_STOP.has(st) ? glosses[st]?.split('|') : undefined) ?? []) {
+      const hit = tier.split(' ').find((n) => v.nums.has(n))
+      if (hit) return hit
+    }
   }
   return null
 }

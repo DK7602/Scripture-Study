@@ -384,7 +384,9 @@ function About() {
           (public domain), from the Christian Classics Ethereal Library.
         </p>
         <p>
-          <b>Concordance & topics:</b> Strong’s Hebrew and Greek dictionaries (Open Scriptures, CC BY-SA), Nave’s Topical Bible, Torrey’s New Topical
+          <b>Concordance & topics:</b> Strong’s Hebrew and Greek dictionaries (Open Scriptures, CC BY-SA); modern glosses for finding the
+          original words in other translations from STEPBible’s Translators Brief lexicons (Tyndale House Cambridge / STEPBible.org, CC BY 4.0);
+          Nave’s Topical Bible, Torrey’s New Topical
           Textbook and Easton’s Bible Dictionary (public domain). Cross references and Bible places: OpenBible.info (CC BY). Map data: Natural Earth.
         </p>
         <p>Install it: in Chrome or Edge choose “Install app”; on iPhone or iPad tap Share → “Add to Home Screen”; on Android tap “Install app”.</p>

@@ -873,7 +873,7 @@ const VerseRow = memo(function VerseRow(p: VerseProps) {
       const va = p.align.verses.get(p.v)
       t = t.map((x) => {
         if (x.s || x.sp) return x
-        const n = matchWord(x.t, va, p.align!.words)
+        const n = matchWord(x.t, va, p.align!.words, p.align!.glosses)
         return n ? { ...x, s: [n], al: true } : x
       })
       if (p.redFromKjv) t = applyRed(t, va)
